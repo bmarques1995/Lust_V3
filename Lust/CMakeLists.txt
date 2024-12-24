@@ -3,8 +3,37 @@
 #
 
 # Adicione a origem ao executável deste projeto.
-add_executable (Lust "Lust.cpp" "Lust.hpp" "entry.cpp")
+cmake_minimum_required(VERSION 3.22)
 
-set_property(TARGET Lust PROPERTY CXX_STANDARD 20)
+include(dep_tracer)
+include(target_destination)
+set(TARGET_NAME Lust)
+
+set(BUILD_TYPE STATIC)
+if(BUILD_SHARED_LIBS)
+	set(BUILD_TYPE SHARED)
+endif()
+
+file(GLOB_RECURSE LUST_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
+file(GLOB_RECURSE LUST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
+
+add_library(${TARGET_NAME} ${BUILD_TYPE} ${LUST_HDRS} ${LUST_SRCS})
+target_include_directories(${TARGET_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Core> $<INSTALL_INTERFACE:./Lust/Core>)
+
+if(WIN32 AND BUILD_SHARED_LIBS)
+	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_API=__declspec\(dllexport\))
+	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_API=__declspec\(dllimport\))
+else()
+	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_API)
+endif()
+set_cxx_project_standards(${TARGET_NAME} 20 FALSE)
+target_installation_behaviour(
+	CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in
+	TARGET_NAME ${TARGET_NAME}
+	VERSION ${PROJECT_VERSION}
+	PROJECT_NAME ${PROJECT_NAME}
+	NAMESPACE "Lust"
+	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/
+	HEADER_OUTPUT ./include/Lust/Core)
 
 # TODO: Adicione testes e instale destinos, se necessário.

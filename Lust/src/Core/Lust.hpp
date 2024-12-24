@@ -7,7 +7,7 @@
 
 namespace Lust
 {
-	void print();
+	LUST_API void print();
 }
 
 // TODO: Referencie os cabeçalhos adicionais de que seu programa precisa aqui.
