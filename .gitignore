@@ -1,0 +1,11 @@
+.vs/
+out/
+[Ww]indows/
+[Ll]inux/
+[Oo]SX/
+dependencies/
+modules/
+*.zip
+d3d12sdk_version.txt
+D3D12Core/
+dxil/
