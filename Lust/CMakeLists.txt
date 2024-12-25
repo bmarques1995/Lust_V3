@@ -12,16 +12,23 @@ set(TARGET_NAME Lust)
 file(GLOB_RECURSE LUST_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE LUST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
+if(WIN32)
+	trace_dependency(NAME sdl3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/sdl3.ps1")
+endif()
+
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${LUST_HDRS} ${LUST_SRCS})
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Core>
 	$<INSTALL_INTERFACE:./Lust/Core>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Events>
 	$<INSTALL_INTERFACE:./Lust/Events>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Window>
+	$<INSTALL_INTERFACE:./Lust/Window>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Window>
 )
-target_link_libraries(${TARGET_NAME} PUBLIC LustUtils)
+target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_API=__declspec\(dllexport\))
@@ -45,7 +52,7 @@ target_installation_behaviour(
 	VERSION ${PROJECT_VERSION}
 	PROJECT_NAME ${PROJECT_NAME}
 	NAMESPACE "Lust"
-	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ ${CMAKE_CURRENT_SOURCE_DIR}/src/Events/
-	HEADER_OUTPUT ./include/Lust/Core ./include/Lust/Events)
+	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ ${CMAKE_CURRENT_SOURCE_DIR}/src/Events/ ${CMAKE_CURRENT_SOURCE_DIR}/src/Window/
+	HEADER_OUTPUT ./include/Lust/Core ./include/Lust/Events ./include/Lust/Window)
 
 # TODO: Adicione testes e instale destinos, se necessário.

@@ -285,30 +285,6 @@ namespace Lust
 		JoystickKeyValue m_Value;
 	};
 
-	class JoystickKeyPressedEvent : public JoystickInputEvent
-	{
-	public:
-		JoystickKeyPressedEvent(JoystickKeyCode keycode, JoystickKeyValue value) :
-			m_Value(value), JoystickInputEvent(keycode)
-		{
-
-		}
-
-		std::string ToString() const override
-		{
-			std::stringstream ss;
-			ss << "JoystickKeyPressedEvent: (Keycode: " << m_Keycode << ", Value: " << m_Value << ")";
-			return ss.str();
-		}
-
-		inline JoystickKeyCode GetKeycode() const { return m_Keycode; }
-		inline JoystickKeyValue GetValue() const { return m_Value; }
-
-		EVENT_CLASS_TYPE(JoystickKeyPressed)
-	private:
-		JoystickKeyValue m_Value;
-	};
-
 	class JoystickAxisMovedEvent : public JoystickInputEvent
 	{
 	public:
