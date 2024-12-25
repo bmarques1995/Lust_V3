@@ -3,6 +3,8 @@
 #
 cmake_minimum_required (VERSION 3.22)
 
+project("Lust" VERSION 0.0.1)
+
 option(BUILD_SHARED_LIBS "Build all libs as .dll/.so" OFF)
 option(BUILD_AS_WINDOWED_APP "Build the app as Win32 application" OFF)
 
@@ -17,11 +19,10 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project("Lust" VERSION 0.0.1)
-
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_helpers")
 
 # Inclua subprojetos.
+add_subdirectory("Utils")
 add_subdirectory("Lust")
 add_subdirectory("Sandbox")
 add_subdirectory("Launcher")

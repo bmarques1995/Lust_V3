@@ -1,17 +1,18 @@
 #include "Application.hpp"
+#include <Console.hpp>
 #include <iostream>
 
 Lust::Application::Application()
 {
-
+	Console::Init();
 }
 
 Lust::Application::~Application()
 {
-
+	Console::End();
 }
 
 void Lust::Application::Run()
 {
-	std::cout << "Hello Lust\n";
+	Console::CoreDebug("Hello Lust");
 }
