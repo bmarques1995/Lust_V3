@@ -15,7 +15,12 @@ file(GLOB_RECURSE SANDBOX_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${SANDBOX_HDRS} ${SANDBOX_SRCS})
 target_link_libraries(${TARGET_NAME} PUBLIC Lust)
-target_include_directories(${TARGET_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> $<INSTALL_INTERFACE:./Lust/Sandbox>)
+target_include_directories(${TARGET_NAME} PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Sandbox>
+	$<INSTALL_INTERFACE:./Lust/Sandbox>
+	PRIVATE
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
+)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_SANDBOX_API=__declspec\(dllexport\))
@@ -33,6 +38,8 @@ else()
 	message(FATAL_ERROR "Platform not implemented")
 endif()
 
+target_precompile_headers(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch/pch.hpp)
+
 set_cxx_project_standards(${TARGET_NAME} 20 FALSE)
 target_installation_behaviour(
 	CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in
@@ -40,7 +47,7 @@ target_installation_behaviour(
 	VERSION ${PROJECT_VERSION}
 	PROJECT_NAME ${PROJECT_NAME}
 	NAMESPACE "Lust"
-	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/
+	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Sandbox/
 	HEADER_OUTPUT ./include/Lust/Sandbox)
 
 

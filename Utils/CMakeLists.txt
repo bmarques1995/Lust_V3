@@ -17,7 +17,12 @@ if(WIN32)
 endif()
 
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${UTILS_HDRS} ${UTILS_SRCS})
-target_include_directories(${TARGET_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> $<INSTALL_INTERFACE:./Lust/Utils>)
+target_include_directories(${TARGET_NAME} PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Utils>
+	$<INSTALL_INTERFACE:./Lust/Utils>
+	PRIVATE
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
+)
 target_link_libraries(${TARGET_NAME} PUBLIC spdlog::spdlog)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
@@ -36,6 +41,8 @@ else()
 	message(FATAL_ERROR "Platform not implemented")
 endif()
 
+target_precompile_headers(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch/pch.hpp)
+
 set_cxx_project_standards(${TARGET_NAME} 20 FALSE)
 target_installation_behaviour(
 	CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in
@@ -43,5 +50,5 @@ target_installation_behaviour(
 	VERSION ${PROJECT_VERSION}
 	PROJECT_NAME ${PROJECT_NAME}
 	NAMESPACE "Lust"
-	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/
+	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Utils/
 	HEADER_OUTPUT ./include/Lust/Utils)
