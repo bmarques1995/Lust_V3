@@ -1,7 +1,3 @@
-#include "Lust.hpp"
+#include "Application.hpp"
 
-int main()
-{
-	Lust::print();
-	return 0;
-}
+extern int main(int argc, char** argv);

@@ -9,11 +9,6 @@ include(dep_tracer)
 include(target_destination)
 set(TARGET_NAME Lust)
 
-set(BUILD_TYPE STATIC)
-if(BUILD_SHARED_LIBS)
-	set(BUILD_TYPE SHARED)
-endif()
-
 file(GLOB_RECURSE LUST_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE LUST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
@@ -26,6 +21,13 @@ if(WIN32 AND BUILD_SHARED_LIBS)
 else()
 	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_API)
 endif()
+
+if(WIN32)
+	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_CORE_WINDOWS)
+else()
+	message(FATAL_ERROR "Platform not implemented")
+endif()
+
 set_cxx_project_standards(${TARGET_NAME} 20 FALSE)
 target_installation_behaviour(
 	CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in

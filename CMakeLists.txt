@@ -4,6 +4,12 @@
 cmake_minimum_required (VERSION 3.22)
 
 option(BUILD_SHARED_LIBS "Build all libs as .dll/.so" OFF)
+option(BUILD_AS_WINDOWED_APP "Build the app as Win32 application" OFF)
+
+set(BUILD_TYPE STATIC CACHE STRING "Set if the lib will be static or shared")
+if(BUILD_SHARED_LIBS)
+	set(BUILD_TYPE SHARED)
+endif()
 
 # Habilite a Recarga Dinâmica para compiladores MSVC, se houver suporte.
 if (POLICY CMP0141)
@@ -17,4 +23,5 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_helpers")
 
 # Inclua subprojetos.
 add_subdirectory("Lust")
+add_subdirectory("Sandbox")
 add_subdirectory("Launcher")
