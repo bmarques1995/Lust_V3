@@ -31,7 +31,9 @@ void Lust::Application::OnEvent(Event& e)
 {
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
-	//dispatcher.Dispatch<WindowResizeEvent>(HZ_BIND_EVENT_FN(Application::OnWindowResize));
+	dispatcher.Dispatch<WindowResizeEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
+	dispatcher.Dispatch<JoystickKeyPressedEvent>(std::bind(&Application::OnJoystickKeyPress, this, std::placeholders::_1));
+	dispatcher.Dispatch<JoystickKeyReleasedEvent>(std::bind(&Application::OnJoystickKeyRelease, this, std::placeholders::_1));
 }
 
 bool Lust::Application::OnWindowClose(WindowCloseEvent& e)
@@ -39,3 +41,22 @@ bool Lust::Application::OnWindowClose(WindowCloseEvent& e)
 	m_Running = false;
 	return true;
 }
+
+bool Lust::Application::OnWindowResize(WindowResizeEvent& e)
+{
+	Console::CoreLog("New window size: ({},{})", e.GetWidth(), e.GetHeight());
+	return true;
+}
+
+bool Lust::Application::OnJoystickKeyPress(JoystickKeyPressedEvent& e)
+{
+	Console::CoreDebug("Joystick #{} button {} -> {}", (unsigned int)e.GetJoystickNumber(), (int)e.GetKeyCode(), "PRESSED");
+	return true;
+}
+
+bool Lust::Application::OnJoystickKeyRelease(JoystickKeyReleasedEvent& e)
+{
+	Console::CoreDebug("Joystick #{} button {} -> {}", (unsigned int)e.GetJoystickNumber(), (int)e.GetKeyCode(), "RELEASED");
+	return true;
+}
+

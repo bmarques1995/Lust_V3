@@ -225,23 +225,25 @@ namespace Lust
 	{
 	public:
 		KeyCode GetKeyCode() const { return m_Keycode; }
-
+		uint32_t GetJoystickNumber() const { return m_JoystickNumber; }
 		EVENT_CLASS_CATEGORY(LUST_EVENT_CATEGORY_INPUT |
 			LUST_EVENT_CATEGORY_JOYSTICK |
 			LUST_EVENT_CATEGORY_JOYSTICK_BUTTON)
 	protected:
-		JoystickInputEvent(const KeyCode keycode)
-			: m_Keycode(keycode) {
+		JoystickInputEvent(uint32_t joystickNumber, const KeyCode keycode)
+			: m_Keycode(keycode), m_JoystickNumber(joystickNumber)
+		{
 		}
 
 		JoystickKeyCode m_Keycode;
+		uint32_t m_JoystickNumber;
 	};
 
 	class JoystickKeyPressedEvent : public JoystickInputEvent
 	{
 	public:
-		JoystickKeyPressedEvent(JoystickKeyCode keycode, JoystickKeyValue value):
-			m_Value(value), JoystickInputEvent(keycode)
+		JoystickKeyPressedEvent(uint32_t joystickNumber, JoystickKeyCode keycode, JoystickKeyValue value):
+			m_Value(value), JoystickInputEvent(joystickNumber, keycode)
 		{
 		
 		}
@@ -253,7 +255,6 @@ namespace Lust
 			return ss.str();
 		}
 
-		inline JoystickKeyCode GetKeycode() const { return m_Keycode; }
 		inline JoystickKeyValue GetValue() const { return m_Value; }
 		
 		EVENT_CLASS_TYPE(JoystickKeyPressed)
@@ -264,8 +265,8 @@ namespace Lust
 	class JoystickKeyReleasedEvent : public JoystickInputEvent
 	{
 	public:
-		JoystickKeyReleasedEvent(JoystickKeyCode keycode, JoystickKeyValue value) :
-			m_Value(value), JoystickInputEvent(keycode)
+		JoystickKeyReleasedEvent(uint32_t joystickNumber, JoystickKeyCode keycode, JoystickKeyValue value) :
+			m_Value(value), JoystickInputEvent(joystickNumber, keycode)
 		{
 			
 		}
@@ -288,8 +289,8 @@ namespace Lust
 	class JoystickAxisMovedEvent : public JoystickInputEvent
 	{
 	public:
-		JoystickAxisMovedEvent(JoystickKeyCode keycode, JoystickKeyValue value) :
-			m_Value(value), JoystickInputEvent(keycode)
+		JoystickAxisMovedEvent(uint32_t joystickNumber, JoystickKeyCode keycode, JoystickKeyValue value) :
+			m_Value(value), JoystickInputEvent(joystickNumber, keycode)
 		{
 
 		}
@@ -301,7 +302,6 @@ namespace Lust
 			return ss.str();
 		}
 
-		inline JoystickKeyCode GetKeycode() const { return m_Keycode; }
 		inline JoystickKeyValue GetValue() const { return m_Value; }
 
 		EVENT_CLASS_TYPE(JoystickAxisMoved)
@@ -312,8 +312,8 @@ namespace Lust
 	class JoystickHatActivatedEvent : public JoystickInputEvent
 	{
 	public:
-		JoystickHatActivatedEvent(JoystickKeyCode keycode, JoystickKeyValue value) :
-			m_Value(value), JoystickInputEvent(keycode)
+		JoystickHatActivatedEvent(uint32_t joystickNumber, JoystickKeyCode keycode, JoystickKeyValue value) :
+			m_Value(value), JoystickInputEvent(joystickNumber, keycode)
 		{
 
 		}
@@ -325,7 +325,6 @@ namespace Lust
 			return ss.str();
 		}
 
-		inline JoystickKeyCode GetKeycode() const { return m_Keycode; }
 		inline JoystickKeyValue GetValue() const { return m_Value; }
 
 		EVENT_CLASS_TYPE(JoystickHatActivated)

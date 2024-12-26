@@ -5,6 +5,12 @@
 
 namespace Lust
 {
+	struct JoystickWrapper
+	{
+		SDL_Joystick* Joystick;
+		SDL_JoystickID JoystickID;
+	};
+	
 	class LUST_API SDL3Window : public Window
 	{
 	public:
@@ -27,6 +33,8 @@ namespace Lust
 
 	private:
 
+		void StartJoysticks();
+
 		uint32_t m_Width;
 		uint32_t m_Height;
 		std::string m_Title;
@@ -34,5 +42,7 @@ namespace Lust
 		EventCallbackFn m_ExecuteCallback;
 		bool m_Minimized;
 		bool m_FullScreen;
+
+		std::unordered_map<SDL_JoystickID, SDL_Joystick*> m_Joysticks;
 	};
 }

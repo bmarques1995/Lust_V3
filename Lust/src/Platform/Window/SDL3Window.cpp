@@ -5,6 +5,8 @@
 #include <windows.h>
 #endif
 #include <ApplicationEvent.hpp>
+#include <InputEvent.hpp>
+#include "Console.hpp"
 
 Lust::SDL3Window::SDL3Window(WindowProps props)
 {
@@ -22,11 +24,17 @@ Lust::SDL3Window::SDL3Window(WindowProps props)
 	m_Window = SDL_CreateWindow(m_Title.c_str(), m_Width, m_Height, window_flags);
 	assert(m_Window != nullptr);
 
+	StartJoysticks();
+
 	SDL_ShowWindow(m_Window);
 }
 
 Lust::SDL3Window::~SDL3Window()
 {
+	for (auto& joystick : m_Joysticks)
+	{
+		SDL_CloseJoystick(joystick.second);
+	}
 }
 
 uint32_t Lust::SDL3Window::GetWidth() const
@@ -80,10 +88,10 @@ bool Lust::SDL3Window::IsMinimized() const
 
 void Lust::SDL3Window::OnUpdate()
 {
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
+	SDL_Event eventData;
+	while (SDL_PollEvent(&eventData))
 	{
-		switch (event.type)
+		switch (eventData.type)
 		{
 			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 			case SDL_EVENT_QUIT:
@@ -92,6 +100,72 @@ void Lust::SDL3Window::OnUpdate()
 				m_ExecuteCallback(e);
 				break;
 			}
+			case SDL_EVENT_WINDOW_RESIZED:
+			{
+				WindowResizeEvent e(eventData.window.data1, eventData.window.data2);
+				m_Width = eventData.window.data1;
+				m_Height = eventData.window.data2;
+				m_ExecuteCallback(e);
+				break;
+			}
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+			{
+				/*
+				0 - LeftAnalogX
+				1 - LeftAnalogY
+				2 - RightAnalogX
+				3 - RightAnalogY
+				4 - LeftTrigger
+				5 - RightTrigger
+				*/
+				const SDL_JoystickID which = eventData.jaxis.which;
+				Console::CoreDebug("Joystick Axis #{} axis {} -> {}", (unsigned int)which, (int)eventData.jaxis.axis, (int)eventData.jaxis.value);
+			}
+			
+			case SDL_EVENT_JOYSTICK_ADDED:
+			{
+				const SDL_JoystickID which = eventData.jdevice.which;
+				m_Joysticks[which] = SDL_OpenJoystick(which);
+				break;
+			}
+			case SDL_EVENT_JOYSTICK_REMOVED:
+			{
+				const SDL_JoystickID which = eventData.jdevice.which;
+				SDL_CloseJoystick(m_Joysticks[which]);  /* the joystick was unplugged. */
+				auto it = m_Joysticks.find(which);
+				if(it != m_Joysticks.end())
+					m_Joysticks.erase(it);
+				break;
+			}
+			case SDL_EVENT_JOYSTICK_BUTTON_UP:
+			{
+				const SDL_JoystickID which = eventData.jbutton.which;
+				JoystickKeyReleasedEvent e(which, eventData.jbutton.button, eventData.jbutton.down ? 1 : 0);
+				m_ExecuteCallback(e);
+				break;
+			}
+			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+			{
+				const SDL_JoystickID which = eventData.jbutton.which;
+				JoystickKeyPressedEvent e(which, eventData.jbutton.button, eventData.jbutton.down? 1 : 0);
+				m_ExecuteCallback(e);
+				break;
+				//Console::CoreDebug("Joystick #{} button {} -> {}", (unsigned int)which, (int)eventData.jbutton.button, eventData.jbutton.down ? "PRESSED" : "RELEASED");
+			}
 		}	
 	}
+}
+
+void Lust::SDL3Window::StartJoysticks()
+{
+	int joystickNumber;
+	auto joystickIDs = SDL_GetJoysticks(&joystickNumber);
+
+	for (size_t i = 0; i < joystickNumber; i++)
+	{
+		m_Joysticks[joystickIDs[i]] = SDL_OpenJoystick(joystickIDs[i]);
+		assert(m_Joysticks[joystickIDs[i]] != nullptr);
+	}
+
+	SDL_free(joystickIDs);
 }
