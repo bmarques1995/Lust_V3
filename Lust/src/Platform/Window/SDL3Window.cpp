@@ -33,7 +33,7 @@ Lust::SDL3Window::~SDL3Window()
 {
 	for (auto& joystick : m_Joysticks)
 	{
-		SDL_CloseJoystick(joystick.second);
+		SDL_CloseJoystick(joystick.second.Joystick);
 	}
 }
 
@@ -111,6 +111,7 @@ void Lust::SDL3Window::OnUpdate()
 			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
 			{
 				/*
+				* axis
 				0 - LeftAnalogX
 				1 - LeftAnalogY
 				2 - RightAnalogX
@@ -120,18 +121,21 @@ void Lust::SDL3Window::OnUpdate()
 				*/
 				const SDL_JoystickID which = eventData.jaxis.which;
 				Console::CoreDebug("Joystick Axis #{} axis {} -> {}", (unsigned int)which, (int)eventData.jaxis.axis, (int)eventData.jaxis.value);
+				break;
 			}
 			
 			case SDL_EVENT_JOYSTICK_ADDED:
 			{
 				const SDL_JoystickID which = eventData.jdevice.which;
-				m_Joysticks[which] = SDL_OpenJoystick(which);
+				m_Joysticks[which].Joystick = SDL_OpenJoystick(which);
+				m_Joysticks[which].JoystickVendor = SDL_GetJoystickVendor(m_Joysticks[which].Joystick);
+				m_Joysticks[which].JoystickProduct = SDL_GetJoystickProduct(m_Joysticks[which].Joystick);
 				break;
 			}
 			case SDL_EVENT_JOYSTICK_REMOVED:
 			{
 				const SDL_JoystickID which = eventData.jdevice.which;
-				SDL_CloseJoystick(m_Joysticks[which]);  /* the joystick was unplugged. */
+				SDL_CloseJoystick(m_Joysticks[which].Joystick);  /* the joystick was unplugged. */
 				auto it = m_Joysticks.find(which);
 				if(it != m_Joysticks.end())
 					m_Joysticks.erase(it);
@@ -152,6 +156,12 @@ void Lust::SDL3Window::OnUpdate()
 				break;
 				//Console::CoreDebug("Joystick #{} button {} -> {}", (unsigned int)which, (int)eventData.jbutton.button, eventData.jbutton.down ? "PRESSED" : "RELEASED");
 			}
+			case SDL_EVENT_JOYSTICK_HAT_MOTION:
+			{
+				const SDL_JoystickID which = eventData.jaxis.which;
+				Console::CoreDebug("Joystick Hat #{} hat {} -> {}", (unsigned int)which, (int)eventData.jhat.hat, (int)eventData.jhat.value);
+				break;
+			}
 		}	
 	}
 }
@@ -163,8 +173,11 @@ void Lust::SDL3Window::StartJoysticks()
 
 	for (size_t i = 0; i < joystickNumber; i++)
 	{
-		m_Joysticks[joystickIDs[i]] = SDL_OpenJoystick(joystickIDs[i]);
-		assert(m_Joysticks[joystickIDs[i]] != nullptr);
+		m_Joysticks[joystickIDs[i]].Joystick = SDL_OpenJoystick(joystickIDs[i]);
+		assert(m_Joysticks[joystickIDs[i]].Joystick != nullptr);
+		//usb_ids.h l.42
+		m_Joysticks[joystickIDs[i]].JoystickVendor = SDL_GetJoystickVendor(m_Joysticks[joystickIDs[i]].Joystick);
+		m_Joysticks[joystickIDs[i]].JoystickProduct = SDL_GetJoystickProduct(m_Joysticks[joystickIDs[i]].Joystick);
 	}
 
 	SDL_free(joystickIDs);

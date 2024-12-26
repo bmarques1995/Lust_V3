@@ -8,7 +8,8 @@ namespace Lust
 	struct JoystickWrapper
 	{
 		SDL_Joystick* Joystick;
-		SDL_JoystickID JoystickID;
+		uint16_t JoystickVendor;
+		uint16_t JoystickProduct;
 	};
 	
 	class LUST_API SDL3Window : public Window
@@ -43,6 +44,6 @@ namespace Lust
 		bool m_Minimized;
 		bool m_FullScreen;
 
-		std::unordered_map<SDL_JoystickID, SDL_Joystick*> m_Joysticks;
+		std::unordered_map<SDL_JoystickID, JoystickWrapper> m_Joysticks;
 	};
 }
