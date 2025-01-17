@@ -61,21 +61,26 @@ namespace Lust
 		EVENT_CLASS_TYPE(KeyReleased)
 	};
 
-	class KeyTypedEvent : public KeyEvent
+	class TextTypedEvent : public Event
 	{
 	public:
-		KeyTypedEvent(const KeyCode keycode)
-			: KeyEvent(keycode) {
+		TextTypedEvent(const char* text) :
+			m_Text(text)
+		{
+		
 		}
 
 		std::string ToString() const override
 		{
 			std::stringstream ss;
-			ss << "KeyTypedEvent: " << m_Keycode;
+			ss << "KeyTypedEvent: " << m_Text;
 			return ss.str();
 		}
 
-		EVENT_CLASS_TYPE(KeyTyped)
+		EVENT_CLASS_CATEGORY(LUST_EVENT_CATEGORY_INPUT | LUST_EVENT_CATEGORY_KEYBOARD)
+		EVENT_CLASS_TYPE(TextTyped)
+	private:
+		std::string m_Text;
 	};
 
 	class MouseMovedEvent : public Event

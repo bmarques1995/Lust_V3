@@ -36,6 +36,8 @@ namespace Lust
 
 		void StartJoysticks();
 
+		void ProcessEvents(SDL_Event* eventData);
+
 		uint32_t m_Width;
 		uint32_t m_Height;
 		std::string m_Title;

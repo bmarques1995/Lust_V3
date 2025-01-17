@@ -25,7 +25,7 @@ namespace Lust
 
 		KeyPressed,
 		KeyReleased,
-		KeyTyped,
+		TextTyped,
 
 		MouseButtonPressed,
 		MouseButtonReleased,

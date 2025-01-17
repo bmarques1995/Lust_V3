@@ -3,7 +3,7 @@
 
 namespace Lust
 {
-	class Sandbox : public Application
+	class LUST_SANDBOX_API Sandbox : public Application
 	{
 	public:
 		Sandbox();

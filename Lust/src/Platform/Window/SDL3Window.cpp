@@ -91,78 +91,7 @@ void Lust::SDL3Window::OnUpdate()
 	SDL_Event eventData;
 	while (SDL_PollEvent(&eventData))
 	{
-		switch (eventData.type)
-		{
-			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-			case SDL_EVENT_QUIT:
-			{
-				WindowCloseEvent e;
-				m_ExecuteCallback(e);
-				break;
-			}
-			case SDL_EVENT_WINDOW_RESIZED:
-			{
-				WindowResizeEvent e(eventData.window.data1, eventData.window.data2);
-				m_Width = eventData.window.data1;
-				m_Height = eventData.window.data2;
-				m_ExecuteCallback(e);
-				break;
-			}
-			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
-			{
-				/*
-				* axis
-				0 - LeftAnalogX
-				1 - LeftAnalogY
-				2 - RightAnalogX
-				3 - RightAnalogY
-				4 - LeftTrigger
-				5 - RightTrigger
-				*/
-				const SDL_JoystickID which = eventData.jaxis.which;
-				Console::CoreDebug("Joystick Axis #{} axis {} -> {}", (unsigned int)which, (int)eventData.jaxis.axis, (int)eventData.jaxis.value);
-				break;
-			}
-			
-			case SDL_EVENT_JOYSTICK_ADDED:
-			{
-				const SDL_JoystickID which = eventData.jdevice.which;
-				m_Joysticks[which].Joystick = SDL_OpenJoystick(which);
-				m_Joysticks[which].JoystickVendor = SDL_GetJoystickVendor(m_Joysticks[which].Joystick);
-				m_Joysticks[which].JoystickProduct = SDL_GetJoystickProduct(m_Joysticks[which].Joystick);
-				break;
-			}
-			case SDL_EVENT_JOYSTICK_REMOVED:
-			{
-				const SDL_JoystickID which = eventData.jdevice.which;
-				SDL_CloseJoystick(m_Joysticks[which].Joystick);  /* the joystick was unplugged. */
-				auto it = m_Joysticks.find(which);
-				if(it != m_Joysticks.end())
-					m_Joysticks.erase(it);
-				break;
-			}
-			case SDL_EVENT_JOYSTICK_BUTTON_UP:
-			{
-				const SDL_JoystickID which = eventData.jbutton.which;
-				JoystickKeyReleasedEvent e(which, eventData.jbutton.button, eventData.jbutton.down ? 1 : 0);
-				m_ExecuteCallback(e);
-				break;
-			}
-			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
-			{
-				const SDL_JoystickID which = eventData.jbutton.which;
-				JoystickKeyPressedEvent e(which, eventData.jbutton.button, eventData.jbutton.down? 1 : 0);
-				m_ExecuteCallback(e);
-				break;
-				//Console::CoreDebug("Joystick #{} button {} -> {}", (unsigned int)which, (int)eventData.jbutton.button, eventData.jbutton.down ? "PRESSED" : "RELEASED");
-			}
-			case SDL_EVENT_JOYSTICK_HAT_MOTION:
-			{
-				const SDL_JoystickID which = eventData.jaxis.which;
-				Console::CoreDebug("Joystick Hat #{} hat {} -> {}", (unsigned int)which, (int)eventData.jhat.hat, (int)eventData.jhat.value);
-				break;
-			}
-		}	
+		ProcessEvents(&eventData);
 	}
 }
 
@@ -180,5 +109,142 @@ void Lust::SDL3Window::StartJoysticks()
 		m_Joysticks[joystickIDs[i]].JoystickProduct = SDL_GetJoystickProduct(m_Joysticks[joystickIDs[i]].Joystick);
 	}
 
+	Console::CoreDebug("Joysticks Avaliable: {}", joystickNumber);
+
 	SDL_free(joystickIDs);
+}
+
+void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
+{
+	switch (eventData->type)
+	{
+	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+	case SDL_EVENT_QUIT:
+	{
+		WindowCloseEvent e;
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_WINDOW_RESIZED:
+	{
+		WindowResizeEvent e(eventData->window.data1, eventData->window.data2);
+		m_Width = eventData->window.data1;
+		m_Height = eventData->window.data2;
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+	{
+		/*
+		* axis
+		0 - LeftAnalogX
+		1 - LeftAnalogY
+		2 - RightAnalogX
+		3 - RightAnalogY
+		4 - LeftTrigger
+		5 - RightTrigger
+		*/
+		const SDL_JoystickID which = eventData->jaxis.which;
+		JoystickAxisMovedEvent e(which, eventData->jaxis.axis, eventData->jaxis.value);
+		m_ExecuteCallback(e);
+		break;
+	}
+
+	case SDL_EVENT_JOYSTICK_ADDED:
+	{
+		const SDL_JoystickID which = eventData->jdevice.which;
+		m_Joysticks[which].Joystick = SDL_OpenJoystick(which);
+		m_Joysticks[which].JoystickVendor = SDL_GetJoystickVendor(m_Joysticks[which].Joystick);
+		m_Joysticks[which].JoystickProduct = SDL_GetJoystickProduct(m_Joysticks[which].Joystick);
+		Console::CoreDebug("Joystick Added");
+		break;
+	}
+	case SDL_EVENT_JOYSTICK_REMOVED:
+	{
+		const SDL_JoystickID which = eventData->jdevice.which;
+		SDL_CloseJoystick(m_Joysticks[which].Joystick);  /* the joystick was unplugged. */
+		auto it = m_Joysticks.find(which);
+		if (it != m_Joysticks.end())
+			m_Joysticks.erase(it);
+		Console::CoreDebug("Joystick Removed");
+		break;
+	}
+	case SDL_EVENT_JOYSTICK_BUTTON_UP:
+	{
+		const SDL_JoystickID which = eventData->jbutton.which;
+		JoystickKeyReleasedEvent e(which, eventData->jbutton.button, eventData->jbutton.down ? 1 : 0);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+	{
+		const SDL_JoystickID which = eventData->jbutton.which;
+		JoystickKeyPressedEvent e(which, eventData->jbutton.button, eventData->jbutton.down ? 1 : 0);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_JOYSTICK_HAT_MOTION:
+	{
+		/*
+		* based on SDL_Hat values
+		* to find if the hat is up, down, left, right just do <jhat.value & hat_mask>
+		* up_mask - 1
+		* left_mask - 2
+		* down_mask - 4
+		* right_mask - 8
+		*/
+		const SDL_JoystickID which = eventData->jaxis.which;
+		JoystickHatActivatedEvent e((unsigned int)which, (int)eventData->jhat.hat, (int)eventData->jhat.value);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_KEY_DOWN:
+	{
+		KeyPressedEvent e(eventData->key.key, eventData->key.repeat ? 1 : 0);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_KEY_UP:
+	{
+		KeyReleasedEvent e(eventData->key.key);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_TEXT_INPUT:
+	{
+		TextTypedEvent e(eventData->text.text);
+		m_ExecuteCallback(e);
+		break;
+	}
+	//SDL_EVENT_MOUSE_MOTION = 0x400, /**< Mouse moved */
+	//	SDL_EVENT_MOUSE_BUTTON_DOWN,       /**< Mouse button pressed */
+	//	SDL_EVENT_MOUSE_BUTTON_UP,         /**< Mouse button released */
+	//	SDL_EVENT_MOUSE_WHEEL,
+	case SDL_EVENT_MOUSE_MOTION:
+	{
+		MouseMovedEvent e(eventData->motion.x, eventData->motion.y);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_MOUSE_BUTTON_DOWN:
+	{
+		MouseButtonPressedEvent e(eventData->button.button);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_MOUSE_BUTTON_UP:
+	{
+		MouseButtonReleasedEvent e(eventData->button.button);
+		m_ExecuteCallback(e);
+		break;
+	}
+	case SDL_EVENT_MOUSE_WHEEL:
+	{
+		MouseScrolledEvent e(eventData->wheel.x, eventData->wheel.y);
+		m_ExecuteCallback(e);
+		break;
+	}
+	default:
+		break;
+	}
 }
