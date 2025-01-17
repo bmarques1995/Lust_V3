@@ -20,9 +20,6 @@ namespace Lust
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
-		bool OnJoystickKeyPress(JoystickKeyPressedEvent& e);
-		bool OnJoystickKeyRelease(JoystickKeyReleasedEvent& e);
-
 		bool m_Running = true;
 
 		std::shared_ptr<Window> m_Window;

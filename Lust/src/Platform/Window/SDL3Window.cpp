@@ -17,24 +17,30 @@ Lust::SDL3Window::SDL3Window(WindowProps props)
 	m_Minimized = false;
 
 	bool result;
-	result = SDL_Init(SDL_INIT_EVENTS | SDL_INIT_JOYSTICK);
+	result = SDL_Init(SDL_INIT_EVENTS | SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK);
 	assert(result);
 
 	Uint32 window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
 	m_Window = SDL_CreateWindow(m_Title.c_str(), m_Width, m_Height, window_flags);
 	assert(m_Window != nullptr);
 
-	StartJoysticks();
+	StartGamepads();
+
+	SDL_StartTextInput(m_Window);
 
 	SDL_ShowWindow(m_Window);
 }
 
 Lust::SDL3Window::~SDL3Window()
 {
-	for (auto& joystick : m_Joysticks)
+	SDL_StopTextInput(m_Window);
+	
+	for (auto& gamepad : m_Gamepads)
 	{
-		SDL_CloseJoystick(joystick.second.Joystick);
+		SDL_CloseGamepad(gamepad.second.Gamepad);
 	}
+
+	SDL_DestroyWindow(m_Window);
 }
 
 uint32_t Lust::SDL3Window::GetWidth() const
@@ -95,23 +101,23 @@ void Lust::SDL3Window::OnUpdate()
 	}
 }
 
-void Lust::SDL3Window::StartJoysticks()
+void Lust::SDL3Window::StartGamepads()
 {
-	int joystickNumber;
-	auto joystickIDs = SDL_GetJoysticks(&joystickNumber);
+	int gamepadNumber;
+	auto gamepadIDs = SDL_GetGamepads(&gamepadNumber);
 
-	for (size_t i = 0; i < joystickNumber; i++)
+	for (size_t i = 0; i < gamepadNumber; i++)
 	{
-		m_Joysticks[joystickIDs[i]].Joystick = SDL_OpenJoystick(joystickIDs[i]);
-		assert(m_Joysticks[joystickIDs[i]].Joystick != nullptr);
+		m_Gamepads[gamepadIDs[i]].Gamepad = SDL_OpenGamepad(gamepadIDs[i]);
+		assert(m_Gamepads[gamepadIDs[i]].Gamepad != nullptr);
 		//usb_ids.h l.42
-		m_Joysticks[joystickIDs[i]].JoystickVendor = SDL_GetJoystickVendor(m_Joysticks[joystickIDs[i]].Joystick);
-		m_Joysticks[joystickIDs[i]].JoystickProduct = SDL_GetJoystickProduct(m_Joysticks[joystickIDs[i]].Joystick);
+		m_Gamepads[gamepadIDs[i]].GamepadVendor = SDL_GetGamepadVendor(m_Gamepads[gamepadIDs[i]].Gamepad);
+		m_Gamepads[gamepadIDs[i]].GamepadProduct = SDL_GetGamepadProduct(m_Gamepads[gamepadIDs[i]].Gamepad);
 	}
 
-	Console::CoreDebug("Joysticks Avaliable: {}", joystickNumber);
+	Console::CoreDebug("Gamepads Avaliable: {}", gamepadNumber);
 
-	SDL_free(joystickIDs);
+	SDL_free(gamepadIDs);
 }
 
 void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
@@ -133,7 +139,28 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		m_ExecuteCallback(e);
 		break;
 	}
-	case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+	
+
+	case SDL_EVENT_GAMEPAD_ADDED:
+	{
+		const SDL_JoystickID which = eventData->jdevice.which;
+		m_Gamepads[which].Gamepad = SDL_OpenGamepad(which);
+		m_Gamepads[which].GamepadVendor = SDL_GetGamepadVendor(m_Gamepads[which].Gamepad);
+		m_Gamepads[which].GamepadProduct = SDL_GetGamepadProduct(m_Gamepads[which].Gamepad);
+		Console::CoreDebug("Gamepad Added");
+		break;
+	}
+	case SDL_EVENT_GAMEPAD_REMOVED:
+	{
+		const SDL_JoystickID which = eventData->jdevice.which;
+		SDL_CloseGamepad(m_Gamepads[which].Gamepad);  /* the joystick was unplugged. */
+		auto it = m_Gamepads.find(which);
+		if (it != m_Gamepads.end())
+			m_Gamepads.erase(it);
+		Console::CoreDebug("Gamepad Removed");
+		break;
+	}
+	case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 	{
 		/*
 		* axis
@@ -144,57 +171,22 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		4 - LeftTrigger
 		5 - RightTrigger
 		*/
-		const SDL_JoystickID which = eventData->jaxis.which;
-		JoystickAxisMovedEvent e(which, eventData->jaxis.axis, eventData->jaxis.value);
+		const SDL_JoystickID which = eventData->gaxis.which;
+		GamepadAxisMovedEvent e(which, eventData->gaxis.axis, eventData->gaxis.value);
 		m_ExecuteCallback(e);
 		break;
 	}
-
-	case SDL_EVENT_JOYSTICK_ADDED:
+	case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
 	{
-		const SDL_JoystickID which = eventData->jdevice.which;
-		m_Joysticks[which].Joystick = SDL_OpenJoystick(which);
-		m_Joysticks[which].JoystickVendor = SDL_GetJoystickVendor(m_Joysticks[which].Joystick);
-		m_Joysticks[which].JoystickProduct = SDL_GetJoystickProduct(m_Joysticks[which].Joystick);
-		Console::CoreDebug("Joystick Added");
-		break;
-	}
-	case SDL_EVENT_JOYSTICK_REMOVED:
-	{
-		const SDL_JoystickID which = eventData->jdevice.which;
-		SDL_CloseJoystick(m_Joysticks[which].Joystick);  /* the joystick was unplugged. */
-		auto it = m_Joysticks.find(which);
-		if (it != m_Joysticks.end())
-			m_Joysticks.erase(it);
-		Console::CoreDebug("Joystick Removed");
-		break;
-	}
-	case SDL_EVENT_JOYSTICK_BUTTON_UP:
-	{
-		const SDL_JoystickID which = eventData->jbutton.which;
-		JoystickKeyReleasedEvent e(which, eventData->jbutton.button, eventData->jbutton.down ? 1 : 0);
+		const SDL_JoystickID which = eventData->gbutton.which;
+		GamepadKeyPressedEvent e(which, eventData->gbutton.button, eventData->gbutton.down ? 1 : 0);
 		m_ExecuteCallback(e);
 		break;
 	}
-	case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+	case SDL_EVENT_GAMEPAD_BUTTON_UP:
 	{
-		const SDL_JoystickID which = eventData->jbutton.which;
-		JoystickKeyPressedEvent e(which, eventData->jbutton.button, eventData->jbutton.down ? 1 : 0);
-		m_ExecuteCallback(e);
-		break;
-	}
-	case SDL_EVENT_JOYSTICK_HAT_MOTION:
-	{
-		/*
-		* based on SDL_Hat values
-		* to find if the hat is up, down, left, right just do <jhat.value & hat_mask>
-		* up_mask - 1
-		* left_mask - 2
-		* down_mask - 4
-		* right_mask - 8
-		*/
-		const SDL_JoystickID which = eventData->jaxis.which;
-		JoystickHatActivatedEvent e((unsigned int)which, (int)eventData->jhat.hat, (int)eventData->jhat.value);
+		const SDL_JoystickID which = eventData->gbutton.which;
+		GamepadKeyReleasedEvent e(which, eventData->gbutton.button, eventData->gbutton.down ? 1 : 0);
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -216,10 +208,6 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		m_ExecuteCallback(e);
 		break;
 	}
-	//SDL_EVENT_MOUSE_MOTION = 0x400, /**< Mouse moved */
-	//	SDL_EVENT_MOUSE_BUTTON_DOWN,       /**< Mouse button pressed */
-	//	SDL_EVENT_MOUSE_BUTTON_UP,         /**< Mouse button released */
-	//	SDL_EVENT_MOUSE_WHEEL,
 	case SDL_EVENT_MOUSE_MOTION:
 	{
 		MouseMovedEvent e(eventData->motion.x, eventData->motion.y);

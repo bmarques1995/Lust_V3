@@ -4,7 +4,7 @@
 namespace Lust
 {
 	using JoystickKeyCode = uint16_t;
-	using JoystickKeyValue = int16_t;
+	using GamepadKeyValue = int16_t;
 
 	namespace Joystick
 	{

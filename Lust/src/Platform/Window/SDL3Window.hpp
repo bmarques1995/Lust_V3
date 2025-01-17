@@ -5,11 +5,11 @@
 
 namespace Lust
 {
-	struct JoystickWrapper
+	struct GamepadWrapper
 	{
-		SDL_Joystick* Joystick;
-		uint16_t JoystickVendor;
-		uint16_t JoystickProduct;
+		SDL_Gamepad* Gamepad;
+		uint16_t GamepadVendor;
+		uint16_t GamepadProduct;
 	};
 	
 	class LUST_API SDL3Window : public Window
@@ -34,7 +34,7 @@ namespace Lust
 
 	private:
 
-		void StartJoysticks();
+		void StartGamepads();
 
 		void ProcessEvents(SDL_Event* eventData);
 
@@ -46,6 +46,6 @@ namespace Lust
 		bool m_Minimized;
 		bool m_FullScreen;
 
-		std::unordered_map<SDL_JoystickID, JoystickWrapper> m_Joysticks;
+		std::unordered_map<SDL_JoystickID, GamepadWrapper> m_Gamepads;
 	};
 }
