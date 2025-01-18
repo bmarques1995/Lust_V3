@@ -8,7 +8,7 @@
 namespace Lust
 {
 
-	struct WindowProps
+	struct LUST_API WindowProps
 	{
 		std::string Title;
 		uint32_t Width;
@@ -23,7 +23,7 @@ namespace Lust
 	};
 
 	// Interface representing a desktop system based Window
-	class Window
+	class LUST_API Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;
@@ -41,6 +41,8 @@ namespace Lust
 		virtual std::any GetNativePointer() const = 0;
 		virtual std::any GetInstance() const = 0;
 		virtual std::any GetWindow() const = 0;
+
+		virtual std::any GetGamepad(uint32_t player = 1) const = 0;
 
 		virtual void ResetTitle(std::string newTitle) = 0;
 		virtual bool IsMinimized() const = 0;

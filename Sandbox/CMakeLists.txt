@@ -25,7 +25,7 @@ target_include_directories(${TARGET_NAME} PUBLIC
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_SANDBOX_API=__declspec\(dllexport\))
 	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_SANDBOX_API=__declspec\(dllimport\))
-	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR BUILD_AS_WINDOWED_APP)
+	if(BUILD_AS_WINDOWED_APP)
 		target_compile_definitions(${TARGET_NAME} PUBLIC LUST_CORE_WIN32_ENTRY)
 	endif()
 else()

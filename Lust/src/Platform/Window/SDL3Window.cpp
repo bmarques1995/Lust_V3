@@ -76,6 +76,14 @@ std::any Lust::SDL3Window::GetWindow() const
 	return m_Window;
 }
 
+std::any Lust::SDL3Window::GetGamepad(uint32_t player) const
+{
+	auto it = m_Gamepads.find(player);
+	if (it == m_Gamepads.end())
+		return nullptr;
+	return it->second.Gamepad;
+}
+
 void Lust::SDL3Window::SetEventCallback(const EventCallbackFn& callback)
 {
 	m_ExecuteCallback = callback;

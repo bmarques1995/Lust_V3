@@ -16,6 +16,14 @@ namespace Lust
 		void Run();
 
 		void OnEvent(Event& e);
+
+		inline const std::shared_ptr<Window>& GetWindow() const
+		{
+			return m_Window;
+		}
+
+		static void EnableSingleton(Application* ptr);
+		static Application* GetInstance();
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -23,5 +31,8 @@ namespace Lust
 		bool m_Running = true;
 
 		std::shared_ptr<Window> m_Window;
+
+		static Application* s_AppSingleton;
+		static bool s_SingletonEnabled;
 	};
 }

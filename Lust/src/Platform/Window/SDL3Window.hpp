@@ -25,6 +25,8 @@ namespace Lust
 		std::any GetInstance() const override;
 		std::any GetWindow() const override;
 
+		std::any GetGamepad(uint32_t player) const override;
+
 		void SetEventCallback(const EventCallbackFn& callback) override;
 
 		void ResetTitle(std::string newTitle) override;
