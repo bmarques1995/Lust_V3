@@ -3,6 +3,7 @@
 
 Lust::SandCoffin::SandCoffin()
 {
+	PushLayer(new ExampleLayer());
 }
 
 Lust::SandCoffin::~SandCoffin()

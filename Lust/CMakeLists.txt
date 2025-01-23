@@ -14,6 +14,7 @@ file(GLOB_RECURSE LUST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 if(WIN32)
 	trace_dependency(NAME sdl3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/sdl3.ps1")
+	trace_dependency(NAME jsoncpp INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/jsoncpp.ps1")
 endif()
 
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${LUST_HDRS} ${LUST_SRCS})
@@ -28,7 +29,7 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Window>
 )
-target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3)
+target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 jsoncpp_lib)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_API=__declspec\(dllexport\))

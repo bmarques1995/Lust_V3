@@ -29,6 +29,10 @@ namespace Lust
 
 		void SetEventCallback(const EventCallbackFn& callback) override;
 
+		void SetFullScreen(bool fullScreen) override;
+
+		bool IsFullscreen() const override;
+
 		void ResetTitle(std::string newTitle) override;
 		bool IsMinimized() const override;
 		

@@ -38,6 +38,10 @@ namespace Lust
 		// Window attributes
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 
+		virtual void SetFullScreen(bool fullScreen) = 0;
+
+		virtual bool IsFullscreen() const = 0;
+
 		virtual std::any GetNativePointer() const = 0;
 		virtual std::any GetInstance() const = 0;
 		virtual std::any GetWindow() const = 0;

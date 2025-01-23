@@ -11,14 +11,17 @@ bool Lust::Application::s_SingletonEnabled = false;
 Lust::Application::Application()
 {
 	EnableSingleton(this);
+	m_Starter.reset(new ApplicationStarter("controller.json"));
 	Console::Init();
 	m_Window.reset(Window::Instantiate());
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
+	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 }
 
 Lust::Application::~Application()
 {
 	m_Window.reset();
+	m_Starter.reset();
 	Console::End();
 }
 
@@ -26,17 +29,21 @@ void Lust::Application::Run()
 {	
 	while (m_Running)
 	{
+		Uint64 now = SDL_GetPerformanceCounter();
+		Uint64 frequency = SDL_GetPerformanceFrequency();
+		double time = (double)now / (double)frequency;
+		Timestep timestep = time - m_LastFrameTime;
+		m_LastFrameTime = time;
+		m_CommandEllapsed = time;
 		m_Window->OnUpdate();
-		if(Input::IsKeyPressed(Key::LUST_KEYCODE_ESCAPE))
-			Console::CoreDebug("Escape key pressed");
-		if(Input::IsMouseButtonPressed(Mouse::LUST_BUTTON_LEFT))
-			Console::CoreDebug("({}, {})", Input::GetMousePosition().first, Input::GetMousePosition().second);
-		if(Input::IsGamepadKeyPressed(Gamepad::LUST_GAMEPAD_BUTTON_SOUTH))
-			Console::CoreDebug("A/Cross button pressed");
-		int16_t leftStickX = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
-		int16_t leftStickY = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
-		if((leftStickX > 980) && (leftStickY > 980))
-			Console::CoreDebug("Left joystick moved ({},{})", leftStickX, leftStickY);
+		if (Input::IsKeyPressed(Key::LUST_KEYCODE_F1) && (m_CommandEllapsed - m_LastCommand) > .2f)
+		{
+			m_LastCommand = time;
+			m_Window->SetFullScreen(!m_Window->IsFullscreen());
+			m_Starter->SetFullscreenMode(m_Window->IsFullscreen());
+		}
+		for (Layer* layer : m_LayerStack)
+			layer->OnUpdate(timestep);
 	}
 }
 
@@ -45,6 +52,16 @@ void Lust::Application::OnEvent(Event& e)
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
 	dispatcher.Dispatch<WindowResizeEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
+}
+
+void Lust::Application::PushLayer(Layer* layer)
+{
+	m_LayerStack.PushLayer(layer);
+}
+
+void Lust::Application::PushOverlay(Layer* layer)
+{
+	m_LayerStack.PushOverlay(layer);
 }
 
 bool Lust::Application::OnWindowClose(WindowCloseEvent& e)

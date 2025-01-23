@@ -89,6 +89,19 @@ void Lust::SDL3Window::SetEventCallback(const EventCallbackFn& callback)
 	m_ExecuteCallback = callback;
 }
 
+void Lust::SDL3Window::SetFullScreen(bool fullScreen)
+{
+	if(m_FullScreen == fullScreen)
+		return;
+	m_FullScreen = fullScreen;
+	SDL_SetWindowFullscreen(m_Window, m_FullScreen);
+}
+
+bool Lust::SDL3Window::IsFullscreen() const
+{
+	return m_FullScreen;
+}
+
 void Lust::SDL3Window::ResetTitle(std::string newTitle)
 {
 	m_Title = newTitle;
