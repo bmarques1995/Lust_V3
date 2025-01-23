@@ -35,6 +35,10 @@ namespace Lust
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
 
+		virtual bool ShouldClose() const = 0;
+
+		virtual const bool* TrackWindowClosing() const = 0;
+
 		// Window attributes
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 

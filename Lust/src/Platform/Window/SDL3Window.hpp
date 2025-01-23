@@ -21,6 +21,9 @@ namespace Lust
 		uint32_t GetWidth() const override;
 		uint32_t GetHeight() const override;
 		
+		bool ShouldClose() const override;
+		const bool* TrackWindowClosing() const override;
+
 		std::any GetNativePointer() const override;
 		std::any GetInstance() const override;
 		std::any GetWindow() const override;
@@ -49,6 +52,7 @@ namespace Lust
 		std::string m_Title;
 		SDL_Window* m_Window;
 		EventCallbackFn m_ExecuteCallback;
+		bool m_ShouldClose;
 		bool m_Minimized;
 		bool m_FullScreen;
 

@@ -13,6 +13,7 @@ Lust::SDL3Window::SDL3Window(WindowProps props)
 	m_Width = props.Width;
 	m_Height = props.Height;
 	m_Title = props.Title;
+	m_ShouldClose = false;
 	m_FullScreen = false;
 	m_Minimized = false;
 
@@ -51,6 +52,16 @@ uint32_t Lust::SDL3Window::GetWidth() const
 uint32_t Lust::SDL3Window::GetHeight() const
 {
 	return m_Height;
+}
+
+bool Lust::SDL3Window::ShouldClose() const
+{
+	return m_ShouldClose;
+}
+
+const bool* Lust::SDL3Window::TrackWindowClosing() const
+{
+	return &m_ShouldClose;
 }
 
 std::any Lust::SDL3Window::GetNativePointer() const
@@ -149,6 +160,7 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_QUIT:
 	{
 		WindowCloseEvent e;
+		m_ShouldClose = true;
 		m_ExecuteCallback(e);
 		break;
 	}

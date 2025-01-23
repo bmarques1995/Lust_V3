@@ -7,6 +7,7 @@
 #include "Timestep.hpp"
 #include "LayerStack.hpp"
 #include "ApplicationStarter.hpp"
+#include "GraphicsContext.hpp"
 
 namespace Lust
 {
@@ -19,6 +20,11 @@ namespace Lust
 		void Run();
 
 		void OnEvent(Event& e);
+
+		inline GraphicsAPI GetCurrentAPI()
+		{
+			return m_Starter->GetCurrentAPI();;
+		}
 
 		inline const std::shared_ptr<Window>& GetWindow() const
 		{
@@ -38,6 +44,7 @@ namespace Lust
 
 		std::shared_ptr<Window> m_Window;
 		std::unique_ptr<ApplicationStarter> m_Starter;
+		std::shared_ptr<GraphicsContext> m_Context;
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.0f;
 		float m_LastCommand = .0f;

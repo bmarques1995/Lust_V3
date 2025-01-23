@@ -16,10 +16,15 @@ Lust::Application::Application()
 	m_Window.reset(Window::Instantiate());
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
+	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
+	std::stringstream buffer;
+	buffer << "SampleRender Window [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
+	m_Window->ResetTitle(buffer.str());
 }
 
 Lust::Application::~Application()
 {
+	m_Context.reset();
 	m_Window.reset();
 	m_Starter.reset();
 	Console::End();
@@ -29,6 +34,7 @@ void Lust::Application::Run()
 {	
 	while (m_Running)
 	{
+
 		Uint64 now = SDL_GetPerformanceCounter();
 		Uint64 frequency = SDL_GetPerformanceFrequency();
 		double time = (double)now / (double)frequency;
@@ -36,6 +42,10 @@ void Lust::Application::Run()
 		m_LastFrameTime = time;
 		m_CommandEllapsed = time;
 		m_Window->OnUpdate();
+
+		m_Context->ReceiveCommands();
+		m_Context->StageViewportAndScissors();
+		
 		if (Input::IsKeyPressed(Key::LUST_KEYCODE_F1) && (m_CommandEllapsed - m_LastCommand) > .2f)
 		{
 			m_LastCommand = time;
@@ -44,6 +54,9 @@ void Lust::Application::Run()
 		}
 		for (Layer* layer : m_LayerStack)
 			layer->OnUpdate(timestep);
+
+		m_Context->DispatchCommands();
+		m_Context->Present();
 	}
 }
 

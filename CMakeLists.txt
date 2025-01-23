@@ -7,6 +7,7 @@ project("Lust" VERSION 0.0.1)
 
 option(BUILD_SHARED_LIBS "Build all libs as .dll/.so" OFF)
 option(BUILD_AS_WINDOWED_APP "Build the app as Win32 application" OFF)
+option(REGISTER_VULKAN_LAYERS "Set vulkan layers location on regedit" OFF)
 
 set(BUILD_TYPE STATIC CACHE STRING "Set if the lib will be static or shared")
 if(BUILD_SHARED_LIBS)
