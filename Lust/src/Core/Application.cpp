@@ -43,15 +43,18 @@ void Lust::Application::Run()
 		m_CommandEllapsed = time;
 		m_Window->OnUpdate();
 
-		m_Context->ReceiveCommands();
-		m_Context->StageViewportAndScissors();
-		
 		if (Input::IsKeyPressed(Key::LUST_KEYCODE_F1) && (m_CommandEllapsed - m_LastCommand) > .2f)
 		{
 			m_LastCommand = time;
 			m_Window->SetFullScreen(!m_Window->IsFullscreen());
 			m_Starter->SetFullscreenMode(m_Window->IsFullscreen());
+			m_Context->WindowResize(m_Window->GetWidth(), m_Window->GetHeight());
 		}
+
+		m_Context->ReceiveCommands();
+		m_Context->StageViewportAndScissors();
+		
+		
 		for (Layer* layer : m_LayerStack)
 			layer->OnUpdate(timestep);
 
@@ -85,7 +88,7 @@ bool Lust::Application::OnWindowClose(WindowCloseEvent& e)
 
 bool Lust::Application::OnWindowResize(WindowResizeEvent& e)
 {
-	Console::CoreLog("New window size: ({},{})", e.GetWidth(), e.GetHeight());
+	m_Context->WindowResize(e.GetWidth(), e.GetHeight());
 	return true;
 }
 

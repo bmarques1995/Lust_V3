@@ -106,6 +106,10 @@ void Lust::SDL3Window::SetFullScreen(bool fullScreen)
 		return;
 	m_FullScreen = fullScreen;
 	SDL_SetWindowFullscreen(m_Window, m_FullScreen);
+	int width, height;
+	SDL_GetWindowSize(m_Window, &width, &height);
+	m_Height = height;
+	m_Width = width;
 }
 
 bool Lust::SDL3Window::IsFullscreen() const
