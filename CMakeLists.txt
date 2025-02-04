@@ -22,6 +22,10 @@ endif()
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_helpers")
 
+include(dep_tracer)
+include(target_destination)
+include(source_downloader)
+
 # Inclua subprojetos.
 add_subdirectory("Utils")
 add_subdirectory("Lust")

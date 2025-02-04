@@ -6,8 +6,6 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-include(dep_tracer)
-include(target_destination)
 set(TARGET_NAME LustSandbox)
 
 file(GLOB_RECURSE SANDBOX_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")

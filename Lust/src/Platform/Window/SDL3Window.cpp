@@ -7,6 +7,7 @@
 #include <ApplicationEvent.hpp>
 #include <InputEvent.hpp>
 #include "Console.hpp"
+#include <imgui_impl_sdl3.h>
 
 Lust::SDL3Window::SDL3Window(WindowProps props)
 {
@@ -133,6 +134,7 @@ void Lust::SDL3Window::OnUpdate()
 	SDL_Event eventData;
 	while (SDL_PollEvent(&eventData))
 	{
+		ImGui_ImplSDL3_ProcessEvent(&eventData);
 		ProcessEvents(&eventData);
 	}
 }

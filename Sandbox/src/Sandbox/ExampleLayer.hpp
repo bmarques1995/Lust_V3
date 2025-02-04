@@ -15,6 +15,6 @@ namespace Lust
 
 		void OnEvent(Event& event) override;
 	private:
-
+		bool m_ShowDemoWindow = true;
 	};
 }

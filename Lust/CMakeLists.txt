@@ -5,8 +5,6 @@
 # Adicione a origem ao executável deste projeto.
 cmake_minimum_required(VERSION 3.22)
 
-include(dep_tracer)
-include(target_destination)
 set(TARGET_NAME Lust)
 
 file(GLOB_RECURSE LUST_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
@@ -39,6 +37,35 @@ if(WIN32)
 
 endif()
 
+set(IMGUI_COMMIT_HASH "11b3a7c8ca23201294464c7f368614a9106af2a1")
+set(IMGUI_SOURCE_URL "https://raw.githubusercontent.com/ocornut/imgui")
+
+set(IMGUI_PUBLIC_FILES "imgui.h"
+					   "imconfig.h"
+					   "imgui.cpp"
+					   "imstb_rectpack.h"
+					   "imstb_textedit.h"
+					   "imstb_truetype.h"
+					   "imgui_demo.cpp"
+					   "imgui_draw.cpp"
+					   "imgui_widgets.cpp"
+					   "imgui_tables.cpp" 
+					   "imgui_internal.h")
+
+set(IMGUI_BACKEND_FILES "backends/imgui_impl_sdl3.cpp"
+						"backends/imgui_impl_sdl3.h"
+						"backends/imgui_impl_vulkan.cpp"
+						"backends/imgui_impl_vulkan.h")
+
+if(WIN32)
+	set(IMGUI_BACKEND_FILES ${IMGUI_BACKEND_FILES}
+							"backends/imgui_impl_dx12.cpp"
+							"backends/imgui_impl_dx12.h")
+endif()
+
+download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_PUBLIC_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui)
+download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_BACKEND_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui)
+
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${LUST_HDRS} ${LUST_SRCS})
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Core>
@@ -49,10 +76,14 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	$<INSTALL_INTERFACE:./Lust/Window>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics>
 	$<INSTALL_INTERFACE:./Lust/Graphics>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public>
+	$<INSTALL_INTERFACE:./Lust/third_party/imgui/public>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Window>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Graphics/VK>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/backends>
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -94,6 +125,8 @@ target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 jsoncpp_lib Vul
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_BUILD_DLL)
 	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_CONSUME_DLL)
+	target_compile_definitions(${TARGET_NAME} PRIVATE IMGUI_API=__declspec\(dllexport\))
+	target_compile_definitions(${TARGET_NAME} INTERFACE IMGUI_API=__declspec\(dllimport\))
 endif()
 
 target_precompile_headers(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch/pch.hpp)
@@ -105,7 +138,13 @@ target_installation_behaviour(
 	VERSION ${PROJECT_VERSION}
 	PROJECT_NAME ${PROJECT_NAME}
 	NAMESPACE "Lust"
-	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ ${CMAKE_CURRENT_SOURCE_DIR}/src/Events/ ${CMAKE_CURRENT_SOURCE_DIR}/src/Window/
-	HEADER_OUTPUT ./include/Lust/Core ./include/Lust/Events ./include/Lust/Window)
+	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ 
+				 ${CMAKE_CURRENT_SOURCE_DIR}/src/Events/
+				 ${CMAKE_CURRENT_SOURCE_DIR}/src/Window/
+				 ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public
+	HEADER_OUTPUT ./include/Lust/Core
+				  ./include/Lust/Events
+				  ./include/Lust/Events
+				  ./include/Lust/third_party/imgui/public)
 
 # TODO: Adicione testes e instale destinos, se necessário.

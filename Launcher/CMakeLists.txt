@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
 
-include(dep_tracer)
-include(target_destination)
 set(TARGET_NAME LustLauncher)
 
 if(WIN32)

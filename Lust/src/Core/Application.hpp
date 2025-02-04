@@ -9,6 +9,8 @@
 #include "LayerStack.hpp"
 #include "ApplicationStarter.hpp"
 #include "GraphicsContext.hpp"
+#include "ImguiWindowController.hpp"
+#include "ImguiContext.hpp"
 
 namespace Lust
 {
@@ -46,6 +48,8 @@ namespace Lust
 		std::shared_ptr<Window> m_Window;
 		std::unique_ptr<ApplicationStarter> m_Starter;
 		std::shared_ptr<GraphicsContext> m_Context;
+		std::shared_ptr<ImguiWindowController> m_ImguiWindowController;
+		std::shared_ptr<ImguiContext> m_ImguiContext;
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.0f;
 		float m_LastCommand = .0f;

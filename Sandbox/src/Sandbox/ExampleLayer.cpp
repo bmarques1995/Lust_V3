@@ -1,4 +1,5 @@
 #include "ExampleLayer.hpp"
+#include <imgui/imgui.h>
 
 Lust::ExampleLayer::ExampleLayer() :
 	Layer("Example")
@@ -21,6 +22,8 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 
 void Lust::ExampleLayer::OnImGuiRender()
 {
+	if (m_ShowDemoWindow)
+		ImGui::ShowDemoWindow(&m_ShowDemoWindow);
 }
 
 void Lust::ExampleLayer::OnEvent(Event& event)
