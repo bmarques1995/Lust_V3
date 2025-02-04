@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "LustDLLMacro.hpp"
 
 namespace Lust
 {

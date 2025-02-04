@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
 #include <cstdint>
 #include <string>
 #include <functional>

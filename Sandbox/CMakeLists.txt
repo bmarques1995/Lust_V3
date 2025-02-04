@@ -23,13 +23,11 @@ target_include_directories(${TARGET_NAME} PUBLIC
 )
 
 if(WIN32 AND BUILD_SHARED_LIBS)
-	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_SANDBOX_API=__declspec\(dllexport\))
-	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_SANDBOX_API=__declspec\(dllimport\))
+	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_SANDBOX_BUILD_DLL)
+	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_SANDBOX_CONSUME_DLL)
 	if(BUILD_AS_WINDOWED_APP)
 		target_compile_definitions(${TARGET_NAME} PUBLIC LUST_CORE_WIN32_ENTRY)
 	endif()
-else()
-	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_SANDBOX_API)
 endif()
 
 if(WIN32)

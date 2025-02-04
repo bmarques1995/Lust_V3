@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
 #include <memory>
 #include "Window.hpp"
 #include "ApplicationEvent.hpp"

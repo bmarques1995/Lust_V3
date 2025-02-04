@@ -1,5 +1,7 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
+
 namespace Lust {
 
 	class Timestep

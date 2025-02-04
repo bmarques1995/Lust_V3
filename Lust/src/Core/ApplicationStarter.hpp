@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
 #include <json/json.h>
 #include "GraphicsContext.hpp"
 #include <unordered_map>

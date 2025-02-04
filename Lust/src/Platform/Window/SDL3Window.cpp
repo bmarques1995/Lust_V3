@@ -1,7 +1,7 @@
 #include "SDL3Window.hpp"
 #include <cassert>
 
-#ifdef LUST_CORE_WINDOWS
+#ifdef LUST_USES_WINDOWS
 #include <windows.h>
 #endif
 #include <ApplicationEvent.hpp>
@@ -66,7 +66,7 @@ const bool* Lust::SDL3Window::TrackWindowClosing() const
 
 std::any Lust::SDL3Window::GetNativePointer() const
 {
-#ifdef LUST_CORE_WINDOWS
+#ifdef LUST_USES_WINDOWS
 	return (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(m_Window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
 #else
 	return nullptr;
@@ -75,7 +75,7 @@ std::any Lust::SDL3Window::GetNativePointer() const
 
 std::any Lust::SDL3Window::GetInstance() const
 {
-#ifdef LUST_CORE_WINDOWS
+#ifdef LUST_USES_WINDOWS
 	return (HINSTANCE)SDL_GetPointerProperty(SDL_GetWindowProperties(m_Window), SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER, NULL);
 #else
 	return nullptr;

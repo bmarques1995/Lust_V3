@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
 #include "GraphicsContext.hpp"
 #include <vector>
 

@@ -92,16 +92,8 @@ endif()
 target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 jsoncpp_lib Vulkan::Headers Vulkan::Loader )
 
 if(WIN32 AND BUILD_SHARED_LIBS)
-	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_API=__declspec\(dllexport\))
-	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_API=__declspec\(dllimport\))
-else()
-	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_API)
-endif()
-
-if(WIN32)
-	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_CORE_WINDOWS)
-else()
-	message(FATAL_ERROR "Platform not implemented")
+	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_BUILD_DLL)
+	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_CONSUME_DLL)
 endif()
 
 target_precompile_headers(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch/pch.hpp)

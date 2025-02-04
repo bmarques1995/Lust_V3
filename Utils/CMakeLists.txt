@@ -26,13 +26,11 @@ target_include_directories(${TARGET_NAME} PUBLIC
 target_link_libraries(${TARGET_NAME} PUBLIC spdlog::spdlog)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
-	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_UTILS_API=__declspec\(dllexport\))
-	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_UTILS_API=__declspec\(dllimport\))
+	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_UTILS_BUILD_DLL)
+	target_compile_definitions(${TARGET_NAME} INTERFACE LUST_UTILS_CONSUME_DLL)
 	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR BUILD_AS_WINDOWED_APP)
 		target_compile_definitions(${TARGET_NAME} PUBLIC LUST_UTILS_WINDOWED)
 	endif()
-else()
-	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_API)
 endif()
 
 if(WIN32)

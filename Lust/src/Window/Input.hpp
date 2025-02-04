@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
 #include <utility>
 #include "KeyCodes.hpp"
 #include "MouseCodes.hpp"

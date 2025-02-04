@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
 #include "Timestep.hpp"
 #include "Event.hpp"
 #include <sstream>

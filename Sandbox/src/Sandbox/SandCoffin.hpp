@@ -1,4 +1,5 @@
 #pragma once
+#include "LustSandboxDLLMacro.hpp"
 #include <Application.hpp>
 
 namespace Lust

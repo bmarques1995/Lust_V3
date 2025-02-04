@@ -1,5 +1,7 @@
 #pragma once
 
+#include "LustDLLMacro.hpp"
+
 #include "Layer.hpp"
 
 #include <list>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LustUtilsDLLMacro.hpp"
 #include <string>
 #include <utility>
 
