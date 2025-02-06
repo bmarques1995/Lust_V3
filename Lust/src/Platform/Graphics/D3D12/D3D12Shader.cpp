@@ -40,8 +40,8 @@ const std::list<std::string> Lust::D3D12Shader::s_GraphicsPipelineStages =
 	"hs",
 };
 
-Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout) :
-	m_Context(context), m_Layout(layout)
+Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout) :
+	m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout)
 {
 	HRESULT hr;
 	auto device = (*m_Context)->GetDevicePtr();
@@ -117,6 +117,15 @@ uint32_t Lust::D3D12Shader::GetStride() const
 uint32_t Lust::D3D12Shader::GetOffset() const
 {
 	return 0;
+}
+
+void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot)
+{
+	if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
+		throw SizeMismatchException(size, m_SmallBufferLayout.GetElement(bindingSlot).GetSize());
+	auto cmdList = (*m_Context)->GetCurrentCommandList();
+	auto smallStride = (*m_Context)->GetSmallBufferAttachment();
+	cmdList->SetGraphicsRoot32BitConstants(bindingSlot, size / smallStride, data, m_SmallBufferLayout.GetElement(bindingSlot).GetOffset() / smallStride);
 }
 
 void Lust::D3D12Shader::CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device)

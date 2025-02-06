@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-namespace SampleRenderV2
+namespace Lust
 {
 	TEST(SampleTest, SampleTest)
 	{

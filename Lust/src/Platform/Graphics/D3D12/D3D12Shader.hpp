@@ -19,12 +19,14 @@ namespace Lust
 	class LUST_API D3D12Shader : public Shader
 	{
 	public:
-		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout);
+		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout);
 		~D3D12Shader();
 
 		void Stage() override;
 		virtual uint32_t GetStride() const override;
 		virtual uint32_t GetOffset() const override;
+
+		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot) override;
 
 	private:
 		void CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device);
@@ -44,6 +46,8 @@ namespace Lust
 		Json::Value m_PipelineInfo;
 
 		InputBufferLayout m_Layout;
+		SmallBufferLayout m_SmallBufferLayout;
+
 		const std::shared_ptr<D3D12Context>* m_Context;
 		std::string m_ShaderDir;
 		ComPointer<IDxcBlob> m_RootBlob;

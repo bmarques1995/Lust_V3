@@ -12,6 +12,11 @@ bool Lust::Application::s_SingletonEnabled = false;
 Lust::Application::Application()
 {
 	EnableSingleton(this);
+
+	m_SmallMVP = {
+		Eigen::Matrix4f::Identity()
+	};
+
 	m_Starter.reset(new ApplicationStarter("controller.json"));
 	Console::Init();
 	m_Window.reset(Window::Instantiate());
@@ -48,7 +53,13 @@ Lust::Application::Application()
 			{ShaderDataType::Float4, "COLOR", false},
 		});
 
-	m_Shader.reset(Shader::Instantiate(&m_Context, "./assets/shaders/HelloTriangle", layout));
+	SmallBufferLayout smallBufferLayout(
+		{
+			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
+			{ 0, 64, 0, m_Context->GetSmallBufferAttachment() }
+		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+	m_Shader.reset(Shader::Instantiate(&m_Context, "./assets/shaders/HelloTriangle", layout, smallBufferLayout));
 
 	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 1);
 	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 2);
@@ -96,6 +107,7 @@ void Lust::Application::Run()
 		m_Context->StageViewportAndScissors();
 		
 		m_Shader->Stage();
+		m_Shader->BindSmallBuffer(&m_SmallMVP.model(0, 0), sizeof(m_SmallMVP), 0);
 		m_VertexBuffer->Stage();
 		m_IndexBuffer->Stage();
 		m_Context->Draw(m_IndexBuffer->GetCount());

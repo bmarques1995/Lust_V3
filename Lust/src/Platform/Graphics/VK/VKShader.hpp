@@ -11,12 +11,14 @@ namespace Lust
 	class LUST_API VKShader : public Shader
 	{
 	public:
-		VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout);
+		VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout);
 		~VKShader();
 
 		void Stage() override;
-		virtual uint32_t GetStride() const override;
-		virtual uint32_t GetOffset() const override;;
+		uint32_t GetStride() const override;
+		uint32_t GetOffset() const override;
+
+		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot) override;
 	private:
 
 		void PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc);
@@ -39,6 +41,8 @@ namespace Lust
 		Json::Value m_PipelineInfo;
 
 		InputBufferLayout m_Layout;
+		SmallBufferLayout m_SmallBufferLayout;
+
 		const std::shared_ptr<VKContext>* m_Context;
 		std::string m_ShaderDir;
 		VkPipeline m_GraphicsPipeline;

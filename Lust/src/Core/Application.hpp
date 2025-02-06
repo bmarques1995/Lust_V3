@@ -58,6 +58,11 @@ namespace Lust
 			Eigen::Vector<float, 7> { -.4f, -.4f, .6f, 1.0f, .0f, 1.0f, 1.0f },
 		};
 
+		struct SmallMVP
+		{
+			Eigen::Matrix4f model;
+		};
+
 		float vBuffer[42] =
 		{
 			.0f, .5f, .2f, 1.0f, .0f, .0f, 1.0f,
@@ -73,18 +78,20 @@ namespace Lust
 			0,1,2,
 		};
 
-		bool m_Running = true;
+		SmallMVP m_SmallMVP;
+
+		std::shared_ptr<CSOCompiler> m_CSOCompiler;
+		std::shared_ptr<SPVCompiler> m_SPVCompiler;
 
 		std::shared_ptr<Window> m_Window;
-		std::unique_ptr<ApplicationStarter> m_Starter;
-		std::shared_ptr<GraphicsContext> m_Context;
 		std::shared_ptr<ImguiWindowController> m_ImguiWindowController;
+
+		std::shared_ptr<GraphicsContext> m_Context;
 		std::shared_ptr<ImguiContext> m_ImguiContext;
 		std::shared_ptr<Shader> m_Shader;
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
-		std::shared_ptr<CSOCompiler> m_CSOCompiler;
-		std::shared_ptr<SPVCompiler> m_SPVCompiler;
+		
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.0f;
 		float m_LastCommand = .0f;
@@ -92,5 +99,7 @@ namespace Lust
 
 		static Application* s_AppSingleton;
 		static bool s_SingletonEnabled;
+		std::unique_ptr<ApplicationStarter> m_Starter;
+		bool m_Running = true;
 	};
 }

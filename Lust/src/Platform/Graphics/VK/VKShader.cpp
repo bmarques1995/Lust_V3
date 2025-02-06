@@ -18,8 +18,19 @@ const std::unordered_map<std::string, VkShaderStageFlagBits> Lust::VKShader::s_S
     {"ps", VK_SHADER_STAGE_FRAGMENT_BIT}
 };
 
-Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout) :
-    m_Context(context), m_Layout(layout)
+const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_EnumStageCaster =
+{
+    {AllowedStages::VERTEX_STAGE, VK_SHADER_STAGE_VERTEX_BIT},
+    {AllowedStages::GEOMETRY_STAGE, VK_SHADER_STAGE_GEOMETRY_BIT},
+    {AllowedStages::DOMAIN_STAGE, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
+    {AllowedStages::HULL_STAGE, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
+    {AllowedStages::PIXEL_STAGE, VK_SHADER_STAGE_FRAGMENT_BIT},
+    {AllowedStages::MESH_STAGE, VK_SHADER_STAGE_MESH_BIT_EXT},
+    {AllowedStages::AMPLIFICATION_STAGE, VK_SHADER_STAGE_TASK_BIT_EXT},
+};
+
+Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout) :
+    m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout)
 {
     VkResult vkr;
     auto device = (*m_Context)->GetDevice();
@@ -82,13 +93,35 @@ Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string 
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
+    auto smallBuffers = m_SmallBufferLayout.GetElements();
+
+    VkPushConstantRange* pushConstantRange;
+    uint32_t pushConstantOffset = 0;
+    uint32_t pushConstantCount = smallBuffers.size();
+
+    pushConstantRange = new VkPushConstantRange[pushConstantCount];
+
+    VkShaderStageFlags stageFlag = 0x0;
+
+    for (auto& i : s_EnumStageCaster)
+        if ((i.first & m_SmallBufferLayout.GetStages()) != 0)
+            stageFlag |= i.second;
+
+    size_t i = 0;
+    for (auto& smallBuffer : smallBuffers)
+    {
+        pushConstantRange[i].offset = pushConstantOffset;
+        pushConstantRange[i].size = smallBuffer.second.GetSize();
+        pushConstantRange[i].stageFlags = stageFlag;
+        pushConstantOffset += smallBuffer.second.GetSize();
+    }
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 0;
     pipelineLayoutInfo.pSetLayouts = nullptr;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;
-    pipelineLayoutInfo.pPushConstantRanges = nullptr;
+    pipelineLayoutInfo.pushConstantRangeCount = pushConstantCount;
+    pipelineLayoutInfo.pPushConstantRanges = pushConstantRange;
 
     vkr = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
     assert(vkr == VK_SUCCESS);
@@ -120,6 +153,7 @@ Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string 
     }
 
     delete[] ied;
+    delete[] pushConstantRange;
 }
 
 Lust::VKShader::~VKShader()
@@ -144,6 +178,27 @@ uint32_t Lust::VKShader::GetStride() const
 uint32_t Lust::VKShader::GetOffset() const
 {
     return 0;
+}
+
+void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot)
+{
+    if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
+        throw SizeMismatchException(size, m_SmallBufferLayout.GetElement(bindingSlot).GetSize());
+    VkShaderStageFlags bindingFlag = 0;
+    for (auto& enumStage : s_EnumStageCaster)
+    {
+        auto stages = m_SmallBufferLayout.GetStages();
+        if (stages & enumStage.first)
+            bindingFlag |= enumStage.second;
+    }
+    vkCmdPushConstants(
+        (*m_Context)->GetCurrentCommandBuffer(),
+        m_PipelineLayout,
+        bindingFlag,
+        m_SmallBufferLayout.GetElement(bindingSlot).GetOffset(), // Offset
+        size,
+        data
+    );
 }
 
 void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc)
