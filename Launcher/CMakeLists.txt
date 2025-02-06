@@ -21,3 +21,10 @@ if(BUILD_AS_WINDOWED_APP)
 endif()
 
 set_cxx_project_standards(${TARGET_NAME} 20 FALSE)
+
+add_custom_target(copy_assets ALL
+			COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"${CMAKE_CURRENT_SOURCE_DIR}/assets"
+			${CMAKE_PREFIX_PATH}/bin/assets
+			COMMENT "Copying D3D12Core dll into binary directory")
+add_dependencies(${TARGET_NAME} copy_assets)

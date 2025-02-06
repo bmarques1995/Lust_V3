@@ -28,6 +28,7 @@ include(source_downloader)
 
 # Inclua subprojetos.
 add_subdirectory("Utils")
+add_subdirectory("ShaderManager")
 add_subdirectory("Lust")
 add_subdirectory("Sandbox")
 add_subdirectory("Launcher")

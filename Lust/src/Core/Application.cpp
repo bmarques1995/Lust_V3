@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include "CompilerExceptions.hpp"
 #include "Input.hpp"
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
@@ -26,10 +27,40 @@ Lust::Application::Application()
 	std::stringstream buffer;
 	buffer << "SampleRender Window [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
 	m_Window->ResetTitle(buffer.str());
+
+	try
+	{
+		m_SPVCompiler.reset(new SPVCompiler("_main", "_6_8", "1.3"));
+		m_CSOCompiler.reset(new CSOCompiler("_main", "_6_8"));
+		m_SPVCompiler->PushShaderPath("./assets/shaders/HelloTriangle.hlsl", PipelineType::Graphics);
+		m_CSOCompiler->PushShaderPath("./assets/shaders/HelloTriangle.hlsl", PipelineType::Graphics);
+		m_SPVCompiler->CompilePackedShader();
+		m_CSOCompiler->CompilePackedShader();
+	}
+	catch (CompilerException e)
+	{
+		Console::CoreError("{}", e.what());
+	}
+
+	InputBufferLayout layout(
+		{
+			{ShaderDataType::Float3, "POSITION", false},
+			{ShaderDataType::Float4, "COLOR", false},
+		});
+
+	m_Shader.reset(Shader::Instantiate(&m_Context, "./assets/shaders/HelloTriangle", layout));
+
+	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 1);
+	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 2);
+	m_VertexBuffer.reset(VertexBuffer::Instantiate(&m_Context, (const void*)&vBuffer[0], sizeof(vBuffer), layout.GetStride()));
+	m_IndexBuffer.reset(IndexBuffer::Instantiate(&m_Context, (const void*)&iBuffer[0], sizeof(iBuffer) / sizeof(uint32_t)));
 }
 
 Lust::Application::~Application()
 {
+	m_IndexBuffer.reset();
+	m_VertexBuffer.reset();
+	m_Shader.reset();
 	m_ImguiContext.reset();
 	m_ImguiWindowController.reset();
 	ImguiContext::EndImgui();
@@ -64,6 +95,10 @@ void Lust::Application::Run()
 		m_Context->ReceiveCommands();
 		m_Context->StageViewportAndScissors();
 		
+		m_Shader->Stage();
+		m_VertexBuffer->Stage();
+		m_IndexBuffer->Stage();
+		m_Context->Draw(m_IndexBuffer->GetCount());
 		
 		for (Layer* layer : m_LayerStack)
 			layer->OnUpdate(timestep);

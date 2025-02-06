@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 #include "Window.hpp"
-//#include "CommonException.hpp"
+#include "CommonException.hpp"
 
 #include <exception>
 

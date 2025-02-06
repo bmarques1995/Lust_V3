@@ -149,7 +149,6 @@ bool Lust::D3D12Context::IsVSyncEnabled() const
 
 void Lust::D3D12Context::Draw(uint32_t elements)
 {
-	m_CommandLists[m_CurrentBufferIndex]->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_CommandLists[m_CurrentBufferIndex]->DrawIndexedInstanced(elements, 1, 0, 0, 0);
 }
 
