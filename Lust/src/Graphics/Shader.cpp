@@ -13,7 +13,7 @@ Lust::SizeMismatchException::SizeMismatchException(size_t layoutSize, size_t pro
 	buffer << "The expected size is: " << layoutSize << ", but the provided buffer size is: " << providedSize;
 	m_Reason = buffer.str();
 }
-Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, InputBufferLayout layout, SmallBufferLayout smallBufferLayout)
+Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	std::stringstream controller_path;
@@ -25,14 +25,14 @@ Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* 
 	{
 		controller_path << ".d3d12.json";
 		std::string json_controller_path = controller_path.str();
-		return new D3D12Shader((const std::shared_ptr<D3D12Context>*)(context), json_controller_path, layout, smallBufferLayout);
+		return new D3D12Shader((const std::shared_ptr<D3D12Context>*)(context), json_controller_path, layout, smallBufferLayout, uniformLayout);
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
 		controller_path << ".vk.json";
 		std::string json_controller_path = controller_path.str();
-		return new VKShader((const std::shared_ptr<VKContext>*)(context), json_controller_path, layout, smallBufferLayout);
+		return new VKShader((const std::shared_ptr<VKContext>*)(context), json_controller_path, layout, smallBufferLayout, uniformLayout);
 	}
 	default:
 		break;

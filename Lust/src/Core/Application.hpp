@@ -50,12 +50,12 @@ namespace Lust
 
 		Eigen::Vector<float, 7> m_VBuffer[6] =
 		{
-			Eigen::Vector<float, 7> { .0f, .5f, .2f, 1.0f, .0f, .0f, 1.0f },
-			Eigen::Vector<float, 7> { .5f, -.5f, .2f, .0f, 1.0f, .0f, 1.0f },
-			Eigen::Vector<float, 7> { -.5f, -.5f, .2f, .0f, .0f, 1.0f, 1.0f },
-			Eigen::Vector<float, 7> { .0f, .4f, .6f, 1.0f, 1.0f, .0f, 1.0f },
-			Eigen::Vector<float, 7> { .4f, -.4f, .6f, .0f, 1.0f, 1.0f, 1.0f },
-			Eigen::Vector<float, 7> { -.4f, -.4f, .6f, 1.0f, .0f, 1.0f, 1.0f },
+			Eigen::Vector<float, 7> { .0f, .5f, .6f, 1.0f, .0f, .0f, 1.0f },
+			Eigen::Vector<float, 7> { .5f, -.5f, .6f, .0f, 1.0f, .0f, 1.0f },
+			Eigen::Vector<float, 7> { -.5f, -.5f, .6f, .0f, .0f, 1.0f, 1.0f },
+			Eigen::Vector<float, 7> { .0f, .4f, .2f, 1.0f, 1.0f, .0f, 1.0f},
+			Eigen::Vector<float, 7> { .4f, -.4f, .2f, .0f, 1.0f, 1.0f, 1.0f },
+			Eigen::Vector<float, 7> { -.4f, -.4f, .2f, 1.0f, .0f, 1.0f, 1.0f },
 		};
 
 		struct SmallMVP
@@ -63,15 +63,14 @@ namespace Lust
 			Eigen::Matrix4f model;
 		};
 
-		float vBuffer[42] =
+		struct CompleteMVP
 		{
-			.0f, .5f, .2f, 1.0f, .0f, .0f, 1.0f,
-			.5f, -.5f, .2f, .0f, 1.0f, .0f, 1.0f,
-			-.5f, -.5f, .2f, .0f, .0f, 1.0f, 1.0f,
-			.0f, .4f, .6f, 1.0f, 1.0f, .0f, 1.0f,
-			.4f, -.4f, .6f, .0f, 1.0f, 1.0f, 1.0f,
-			-.4f, -.4f, .6f, 1.0f, .0f, 1.0f, 1.0f,
+			Eigen::Matrix4f model;
+			Eigen::Matrix4f view;
+			Eigen::Matrix4f projection;
+			Eigen::Matrix4f mipLevel;
 		};
+
 		uint32_t iBuffer[6] =
 		{
 			3,4,5,
@@ -79,6 +78,7 @@ namespace Lust
 		};
 
 		SmallMVP m_SmallMVP;
+		CompleteMVP m_CompleteMVP;
 
 		std::shared_ptr<CSOCompiler> m_CSOCompiler;
 		std::shared_ptr<SPVCompiler> m_SPVCompiler;

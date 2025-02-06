@@ -40,13 +40,26 @@ const std::list<std::string> Lust::D3D12Shader::s_GraphicsPipelineStages =
 	"hs",
 };
 
-Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout) :
-	m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout)
+Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout) :
+	m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout), m_UniformLayout(uniformLayout)
 {
 	HRESULT hr;
 	auto device = (*m_Context)->GetDevicePtr();
 
 	InitJsonAndPaths(json_controller_path);
+
+	auto uniforms = m_UniformLayout.GetElements();
+
+	for (auto& uniform : uniforms)
+	{
+		if (uniform.second.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
+			m_RootSignatureSize += 8;
+		else
+		{
+			m_RootSignatureSize += 4;
+			break;
+		}
+	}
 
 	auto nativeElements = m_Layout.GetElements();
 	D3D12_INPUT_ELEMENT_DESC* ied = new D3D12_INPUT_ELEMENT_DESC[nativeElements.size()];
@@ -79,6 +92,18 @@ Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std
 	graphicsDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
 		graphicsDesc.SampleDesc.Count = 1;
 	graphicsDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+	size_t i = 0;
+	for (auto& uniform : uniforms)
+	{
+		unsigned char* data = new unsigned char[uniform.second.GetSize()];
+		if (uniform.second.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
+			PreallocateRootCBuffer(data, uniform.second);
+		else
+			PreallocateTabledCBuffer(data, uniform.second);
+		delete[] data;
+		i++;
+	}
 
 	for (auto it = s_GraphicsPipelineStages.begin(); it != s_GraphicsPipelineStages.end(); it++)
 	{
@@ -126,6 +151,171 @@ void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t 
 	auto cmdList = (*m_Context)->GetCurrentCommandList();
 	auto smallStride = (*m_Context)->GetSmallBufferAttachment();
 	cmdList->SetGraphicsRoot32BitConstants(bindingSlot, size / smallStride, data, m_SmallBufferLayout.GetElement(bindingSlot).GetOffset() / smallStride);
+}
+
+void Lust::D3D12Shader::BindDescriptors()
+{
+	
+	auto cmdList = (*m_Context)->GetCurrentCommandList();
+	for (auto& rootDescriptor : m_RootDescriptors)
+	{
+		uint64_t bufferLocation = (((uint64_t)rootDescriptor.first << 32) + 1);
+		cmdList->SetGraphicsRootConstantBufferView(rootDescriptor.first, m_CBVResources[bufferLocation]->GetGPUVirtualAddress());
+	}
+}
+
+void Lust::D3D12Shader::UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
+{
+	MapCBuffer(data, size, shaderRegister, tableIndex);
+}
+
+bool Lust::D3D12Shader::IsCBufferValid(size_t size)
+{
+	return ((size % (*m_Context)->GetUniformAttachment()) == 0);
+}
+
+void Lust::D3D12Shader::PreallocateRootCBuffer(const void* data, UniformElement uniformElement)
+{
+	uint64_t bufferLocation = (((uint64_t)uniformElement.GetShaderRegister() << 32) + 1);
+	if (!IsCBufferValid(uniformElement.GetSize()))
+		throw AttachmentMismatchException(uniformElement.GetSize(), (*m_Context)->GetSmallBufferAttachment());
+
+	auto device = (*m_Context)->GetDevicePtr();
+	HRESULT hr;
+
+	m_CBVResources[bufferLocation] = nullptr;
+	m_RootDescriptors[uniformElement.GetShaderRegister()] = nullptr;
+
+	D3D12_DESCRIPTOR_HEAP_DESC cbvDescriptorHeapDesc{};
+	cbvDescriptorHeapDesc.Type = GetNativeHeapType(uniformElement.GetBufferType());
+	cbvDescriptorHeapDesc.NumDescriptors = 1;
+	cbvDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	cbvDescriptorHeapDesc.NodeMask = 0;
+
+	hr = device->CreateDescriptorHeap(&cbvDescriptorHeapDesc, IID_PPV_ARGS(m_RootDescriptors[uniformElement.GetShaderRegister()].GetAddressOf()));
+	assert(hr == S_OK);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE cbvHeapStartHandle = m_RootDescriptors[uniformElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
+
+	D3D12_RESOURCE_DESC1 constantBufferDesc = {};
+	constantBufferDesc.Dimension = GetNativeDimension(uniformElement.GetBufferType());
+	constantBufferDesc.Width = uniformElement.GetSize();
+	constantBufferDesc.Height = 1;
+	constantBufferDesc.DepthOrArraySize = 1;
+	constantBufferDesc.MipLevels = 1;
+	constantBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	constantBufferDesc.SampleDesc.Count = 1;
+	constantBufferDesc.SampleDesc.Quality = 0;
+	constantBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	constantBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heapProps.CreationNodeMask = 1;
+	heapProps.VisibleNodeMask = 1;
+
+	hr = device->CreateCommittedResource2(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&constantBufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		nullptr,
+		IID_PPV_ARGS(m_CBVResources[bufferLocation].GetAddressOf()));
+
+	assert(hr == S_OK);
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+
+	cbvDesc.BufferLocation = m_CBVResources[bufferLocation]->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = uniformElement.GetSize();
+
+	device->CreateConstantBufferView(&cbvDesc, cbvHeapStartHandle);
+
+	MapCBuffer(data, uniformElement.GetSize(), uniformElement.GetShaderRegister());
+}
+
+void Lust::D3D12Shader::PreallocateTabledCBuffer(const void* data, UniformElement uniformElement)
+{
+	if (!IsCBufferValid(uniformElement.GetSize()))
+		throw AttachmentMismatchException(uniformElement.GetSize(), (*m_Context)->GetSmallBufferAttachment());
+
+	auto device = (*m_Context)->GetDevicePtr();
+	HRESULT hr;
+
+	// 4. Create the descriptor heap for CBVs
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.NumDescriptors = uniformElement.GetNumberOfBuffers(); // Two descriptors
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+	hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_TabledDescriptors[uniformElement.GetShaderRegister()].GetAddressOf()));
+	assert(hr == S_OK);
+
+	// 5. Create CBVs and place them in the descriptor heap
+	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle(m_TabledDescriptors[uniformElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart());
+	UINT cbvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	for (UINT i = 0; i < uniformElement.GetNumberOfBuffers(); ++i)
+	{
+		uint64_t bufferLocation = (((uint64_t)uniformElement.GetShaderRegister() << 32) + 1);
+		m_CBVResources[bufferLocation] = nullptr;
+
+		D3D12_RESOURCE_DESC1 constantBufferDesc = {};
+		constantBufferDesc.Dimension = GetNativeDimension(uniformElement.GetBufferType());
+		constantBufferDesc.Width = uniformElement.GetSize();
+		constantBufferDesc.Height = 1;
+		constantBufferDesc.DepthOrArraySize = 1;
+		constantBufferDesc.MipLevels = 1;
+		constantBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+		constantBufferDesc.SampleDesc.Count = 1;
+		constantBufferDesc.SampleDesc.Quality = 0;
+		constantBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		constantBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		D3D12_HEAP_PROPERTIES heapProps = {};
+		heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+		heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+		heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+		heapProps.CreationNodeMask = 1;
+		heapProps.VisibleNodeMask = 1;
+
+		hr = device->CreateCommittedResource2(
+			&heapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&constantBufferDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			nullptr,
+			IID_PPV_ARGS(m_CBVResources[(((uint64_t)uniformElement.GetShaderRegister() << 32) + (i + 1))].GetAddressOf()));
+
+		assert(hr == S_OK);
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		cbvDesc.SizeInBytes = uniformElement.GetSize(); // 256-byte aligned
+		cbvDesc.BufferLocation = m_CBVResources[(((uint64_t)uniformElement.GetShaderRegister() << 32) + (i + 1))]->GetGPUVirtualAddress(); // Set the GPU virtual address for each CBV
+
+		// Create the CBV and advance the descriptor handle
+		device->CreateConstantBufferView(&cbvDesc, cbvHandle);
+		cbvHandle.ptr += cbvDescriptorSize;
+
+		MapCBuffer(data, uniformElement.GetSize(), uniformElement.GetShaderRegister(), i + 1);
+	}
+}
+
+void Lust::D3D12Shader::MapCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
+{
+	HRESULT hr;
+	uint64_t bufferLocation = (((uint64_t)shaderRegister << 32) + tableIndex);
+	D3D12_RANGE readRange = { 0 };
+	void* gpuData = nullptr;
+	hr = m_CBVResources[bufferLocation]->Map(0, &readRange, &gpuData);
+	assert(hr == S_OK);
+	memcpy(gpuData, data, size);
+	m_CBVResources[bufferLocation]->Unmap(0, NULL);
+
 }
 
 void Lust::D3D12Shader::CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device)
@@ -253,6 +443,33 @@ DXGI_FORMAT Lust::D3D12Shader::GetNativeFormat(ShaderDataType type)
 	case ShaderDataType::Uint4: return DXGI_FORMAT_R32G32B32A32_UINT;
 	case ShaderDataType::Bool: return DXGI_FORMAT_R8_UINT;
 	default: return DXGI_FORMAT_UNKNOWN;
+	}
+}
+
+D3D12_DESCRIPTOR_HEAP_TYPE Lust::D3D12Shader::GetNativeHeapType(BufferType type)
+{
+	switch (type)
+	{
+	case BufferType::UNIFORM_CONSTANT_BUFFER:
+	case BufferType::TEXTURE_BUFFER:
+		return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	case BufferType::SAMPLER_BUFFER:
+		return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+	default:
+	case BufferType::INVALID_BUFFER_TYPE:
+		return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
+	}
+}
+
+D3D12_RESOURCE_DIMENSION Lust::D3D12Shader::GetNativeDimension(BufferType type)
+{
+	switch (type)
+	{
+	case BufferType::UNIFORM_CONSTANT_BUFFER:
+		return D3D12_RESOURCE_DIMENSION_BUFFER;
+	default:
+	case BufferType::INVALID_BUFFER_TYPE:
+		return D3D12_RESOURCE_DIMENSION_UNKNOWN;
 	}
 }
 

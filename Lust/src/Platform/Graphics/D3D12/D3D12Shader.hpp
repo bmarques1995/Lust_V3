@@ -19,7 +19,7 @@ namespace Lust
 	class LUST_API D3D12Shader : public Shader
 	{
 	public:
-		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout);
+		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout);
 		~D3D12Shader();
 
 		void Stage() override;
@@ -28,7 +28,17 @@ namespace Lust
 
 		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot) override;
 
+		void BindDescriptors() override;
+
+		void UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex) override;
+
 	private:
+
+		bool IsCBufferValid(size_t size);
+		void PreallocateRootCBuffer(const void* data, UniformElement uniformElement);
+		void PreallocateTabledCBuffer(const void* data, UniformElement uniformElement);
+		void MapCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex = 1);
+
 		void CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device);
 		void BuildBlender(D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc);
 		void BuildRasterizer(D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc);
@@ -38,6 +48,9 @@ namespace Lust
 		void InitJsonAndPaths(std::string json_controller_path);
 
 		static DXGI_FORMAT GetNativeFormat(ShaderDataType type);
+		static D3D12_DESCRIPTOR_HEAP_TYPE GetNativeHeapType(BufferType type);
+		static D3D12_RESOURCE_DIMENSION GetNativeDimension(BufferType type);
+
 
 		static const std::unordered_map<std::string, std::function<void(IDxcBlob**, D3D12_GRAPHICS_PIPELINE_STATE_DESC*)>> s_ShaderPusher;
 		static const std::list<std::string> s_GraphicsPipelineStages;
@@ -47,13 +60,20 @@ namespace Lust
 
 		InputBufferLayout m_Layout;
 		SmallBufferLayout m_SmallBufferLayout;
+		UniformLayout m_UniformLayout;
+
+		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
 
 		const std::shared_ptr<D3D12Context>* m_Context;
 		std::string m_ShaderDir;
 		ComPointer<IDxcBlob> m_RootBlob;
 		ComPointer<ID3D12PipelineState> m_GraphicsPipeline;
 		std::unordered_map<std::string, ComPointer<IDxcBlob>> m_ShaderBlobs;
+		
 		ComPointer<ID3D12RootSignature> m_RootSignature;
+		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_RootDescriptors;
+		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_TabledDescriptors;
+
 		/*in bytes*/
 		uint32_t m_RootSignatureSize = 0;
 	};

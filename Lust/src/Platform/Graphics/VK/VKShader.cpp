@@ -29,8 +29,8 @@ const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_Enum
     {AllowedStages::AMPLIFICATION_STAGE, VK_SHADER_STAGE_TASK_BIT_EXT},
 };
 
-Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout) :
-    m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout)
+Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout) :
+    m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout), m_UniformLayout(uniformLayout)
 {
     VkResult vkr;
     auto device = (*m_Context)->GetDevice();
@@ -83,6 +83,27 @@ Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string 
     SetRasterizer(&rasterizer);
     SetBlend(&colorBlendAttachment, &colorBlending);
     SetDepthStencil(&depthStencil);
+    CreateDescriptorSetLayout();
+    CreateDescriptorPool();
+
+    {
+        PreallocatesDescSets();
+
+        auto uniforms = m_UniformLayout.GetElements();
+
+        for (const auto& element : uniforms)
+        {
+
+            unsigned char* data = new unsigned char[element.second.GetSize()];
+            for (size_t i = 0; i < element.second.GetNumberOfBuffers(); i++)
+            {
+                PreallocateUniform(data, element.second, i);
+            }
+            delete[] data;
+        }
+
+        CreateDescriptorSets();
+    }
 
     std::vector<VkDynamicState> dynamicStates = {
         VK_DYNAMIC_STATE_VIEWPORT,
@@ -118,8 +139,8 @@ Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string 
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &m_RootSignature;
     pipelineLayoutInfo.pushConstantRangeCount = pushConstantCount;
     pipelineLayoutInfo.pPushConstantRanges = pushConstantRange;
 
@@ -199,6 +220,234 @@ void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bin
         size,
         data
     );
+}
+
+void Lust::VKShader::BindDescriptors()
+{
+    auto commandBuffer = (*m_Context)->GetCurrentCommandBuffer();
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
+}
+
+void Lust::VKShader::UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
+{
+    if (m_UniformLayout.GetElement(shaderRegister).GetAccessLevel() == AccessLevel::ROOT_BUFFER)
+        MapUniform(data, size, shaderRegister, 0);
+    else
+        MapUniform(data, size, shaderRegister, (tableIndex - shaderRegister));
+}
+
+void Lust::VKShader::PreallocatesDescSets()
+{
+    auto device = (*m_Context)->GetDevice();
+
+    VkResult vkr;
+    auto uniforms = m_UniformLayout.GetElements();
+
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = m_DescriptorPool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &m_RootSignature;
+
+    for (auto& uniformElement : uniforms)
+    {
+        if (m_DescriptorSets.find(uniformElement.second.GetSpaceSet()) == m_DescriptorSets.end())
+        {
+            vkr = vkAllocateDescriptorSets(device, &allocInfo, &m_DescriptorSets[uniformElement.second.GetSpaceSet()]);
+            assert(vkr == VK_SUCCESS);
+        }
+    }
+
+    for (auto& descSet : m_DescriptorSets)
+    {
+        m_BindableDescriptorSets.push_back(descSet.second);
+    }
+}
+
+void Lust::VKShader::CreateDescriptorSetLayout()
+{
+    VkResult vkr;
+    auto device = (*m_Context)->GetDevice();
+
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+    auto uniformElements = m_UniformLayout.GetElements();
+
+    for (auto& i : uniformElements)
+    {
+        for (size_t j = 0; j < i.second.GetNumberOfBuffers(); j++)
+        {
+            VkDescriptorSetLayoutBinding binding{};
+            binding.binding = i.second.GetBindingSlot() + j;
+            binding.descriptorCount = 1;
+            binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            binding.pImmutableSamplers = nullptr;
+            VkShaderStageFlags stageFlag = 0x0;
+
+            for (auto& i : s_EnumStageCaster)
+                if ((i.first & m_UniformLayout.GetStages()) != 0)
+                    stageFlag |= i.second;
+
+            binding.stageFlags = stageFlag;
+            bindings.push_back(binding);
+        }
+
+    }
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+    layoutInfo.pBindings = bindings.data();
+
+    vkr = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_RootSignature);
+    assert(vkr == VK_SUCCESS);
+}
+
+void Lust::VKShader::CreateDescriptorPool()
+{
+    VkResult vkr;
+    auto device = (*m_Context)->GetDevice();
+
+    std::vector<VkDescriptorPoolSize> poolSize;
+    auto uniformElements = m_UniformLayout.GetElements();
+    for (auto& i : uniformElements)
+    {
+        for (size_t j = 0; j < i.second.GetNumberOfBuffers(); j++)
+        {
+            VkDescriptorPoolSize poolSizer;
+            poolSizer.type = GetNativeDescriptorType(i.second.GetBufferType());
+            poolSizer.descriptorCount = 1;
+            poolSize.push_back(poolSizer);
+        }
+    }
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = poolSize.data();
+    poolInfo.maxSets = poolSize.size();
+
+    vkr = vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool);
+    assert(vkr == VK_SUCCESS);
+}
+
+void Lust::VKShader::CreateDescriptorSets()
+{
+    VkResult vkr;
+    auto device = (*m_Context)->GetDevice();
+
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
+    std::vector<VkDescriptorImageInfo> samplerInfos;
+    std::vector<VkDescriptorBufferInfo> bufferInfos;
+
+    auto uniforms = m_UniformLayout.GetElements();
+
+    size_t i = 0;
+
+    VkDescriptorBufferInfo bufferInfo{};
+    VkWriteDescriptorSet descriptorWrite{};
+
+    for (auto& uniformElement : uniforms)
+    {
+        for (size_t j = 0; j < uniformElement.second.GetNumberOfBuffers(); j++)
+        {
+            bufferInfo = {};
+            bufferInfo.buffer = m_Uniforms[uniformElement.second.GetBindingSlot() + j].Resource;
+            bufferInfo.offset = 0;
+            bufferInfo.range = uniformElement.second.GetSize();
+
+            bufferInfos.push_back(bufferInfo);
+        }
+    }
+
+    for (auto& uniformElement : uniforms)
+    {
+        for (size_t j = 0; j < uniformElement.second.GetNumberOfBuffers(); j++)
+        {
+            descriptorWrite = {};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = m_DescriptorSets[uniformElement.second.GetSpaceSet()];
+            descriptorWrite.dstBinding = uniformElement.second.GetBindingSlot() + j;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = GetNativeDescriptorType(uniformElement.second.GetBufferType());
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &bufferInfos[i];
+
+            descriptorWrites.push_back(descriptorWrite);
+            i++;
+        }
+    }
+
+    vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+    descriptorWrites.clear();
+}
+
+bool Lust::VKShader::IsUniformValid(size_t size)
+{
+    return ((size % (*m_Context)->GetUniformAttachment()) == 0);
+}
+
+void Lust::VKShader::PreallocateUniform(const void* data, UniformElement uniformElement, uint32_t offset)
+{
+    uint32_t bindingPoint = uniformElement.GetBindingSlot() + offset;
+    if (!IsUniformValid(uniformElement.GetSize()))
+        throw AttachmentMismatchException(uniformElement.GetSize(), (*m_Context)->GetUniformAttachment());
+
+    VkResult vkr;
+    auto device = (*m_Context)->GetDevice();
+    VkDeviceSize bufferSize = uniformElement.GetSize();
+    m_Uniforms[bindingPoint] = {};
+
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = uniformElement.GetSize();
+    bufferInfo.usage = GetNativeBufferUsage(uniformElement.GetBufferType());
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    vkr = vkCreateBuffer(device, &bufferInfo, nullptr, &m_Uniforms[bindingPoint].Resource);
+    assert(vkr == VK_SUCCESS);
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, m_Uniforms[bindingPoint].Resource, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    vkr = vkAllocateMemory(device, &allocInfo, nullptr, &m_Uniforms[bindingPoint].Memory);
+    assert(vkr == VK_SUCCESS);
+
+    vkBindBufferMemory(device, m_Uniforms[bindingPoint].Resource, m_Uniforms[bindingPoint].Memory, 0);
+
+    MapUniform(data, uniformElement.GetSize(), uniformElement.GetBindingSlot(), offset);
+
+}
+
+void Lust::VKShader::MapUniform(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset)
+{
+    VkResult vkr;
+    void* gpuData;
+    auto device = (*m_Context)->GetDevice();
+    vkr = vkMapMemory(device, m_Uniforms[shaderRegister + offset].Memory, 0, size, 0, &gpuData);
+    assert(vkr == VK_SUCCESS);
+    memcpy(gpuData, data, size);
+    vkUnmapMemory(device, m_Uniforms[shaderRegister + offset].Memory);
+}
+
+uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    auto adapter = (*m_Context)->GetAdapter();
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(adapter, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    return 0xffffffff;
 }
 
 void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc)
@@ -331,5 +580,33 @@ VkFormat Lust::VKShader::GetNativeFormat(ShaderDataType type)
     case ShaderDataType::Uint4: return VK_FORMAT_R32G32B32A32_UINT;
     case ShaderDataType::Bool: return VK_FORMAT_R8_UINT;
     default: return VK_FORMAT_UNDEFINED;
+    }
+}
+
+VkDescriptorType Lust::VKShader::GetNativeDescriptorType(BufferType type)
+{
+    switch (type)
+    {
+    case BufferType::UNIFORM_CONSTANT_BUFFER:
+        return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    case BufferType::TEXTURE_BUFFER:
+        return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    case BufferType::SAMPLER_BUFFER:
+        return VK_DESCRIPTOR_TYPE_SAMPLER;
+    default:
+    case BufferType::INVALID_BUFFER_TYPE:
+        return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    }
+}
+
+VkBufferUsageFlagBits Lust::VKShader::GetNativeBufferUsage(BufferType type)
+{
+    switch (type)
+    {
+    case BufferType::UNIFORM_CONSTANT_BUFFER:
+        return VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    default:
+    case BufferType::INVALID_BUFFER_TYPE:
+        return VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
     }
 }
