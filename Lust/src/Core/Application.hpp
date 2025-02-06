@@ -15,6 +15,7 @@
 #include "SPVCompiler.hpp"
 #include "Shader.hpp"
 #include "Buffer.hpp"
+#include <Eigen/Eigen>
 
 namespace Lust
 {
@@ -46,6 +47,16 @@ namespace Lust
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
+
+		Eigen::Vector<float, 7> m_VBuffer[6] =
+		{
+			Eigen::Vector<float, 7> { .0f, .5f, .2f, 1.0f, .0f, .0f, 1.0f },
+			Eigen::Vector<float, 7> { .5f, -.5f, .2f, .0f, 1.0f, .0f, 1.0f },
+			Eigen::Vector<float, 7> { -.5f, -.5f, .2f, .0f, .0f, 1.0f, 1.0f },
+			Eigen::Vector<float, 7> { .0f, .4f, .6f, 1.0f, 1.0f, .0f, 1.0f },
+			Eigen::Vector<float, 7> { .4f, -.4f, .6f, .0f, 1.0f, 1.0f, 1.0f },
+			Eigen::Vector<float, 7> { -.4f, -.4f, .6f, 1.0f, .0f, 1.0f, 1.0f },
+		};
 
 		float vBuffer[42] =
 		{
