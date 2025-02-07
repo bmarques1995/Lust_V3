@@ -467,6 +467,8 @@ void Lust::D3D12Shader::CreateGraphicsRootSignature(ID3D12RootSignature** rootSi
 
 	hr = device->CreateRootSignature(0, m_RootBlob->GetBufferPointer(), m_RootBlob->GetBufferSize(), IID_PPV_ARGS(rootSignature));
 	assert(hr == S_OK);
+
+	delete[] blobData;
 }
 
 void Lust::D3D12Shader::BuildBlender(D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc)
