@@ -5,6 +5,8 @@
 #include <chrono>
 #include "CompilerExceptions.hpp"
 #include "Input.hpp"
+#include "TextureLayout.hpp"
+#include "SamplerLayout.hpp"
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -30,6 +32,7 @@ Lust::Application::Application()
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
+	m_CopyPipeline.reset(CopyPipeline::Instantiate(&m_Context));
 
 	ImguiContext::StartImgui();
 
@@ -58,6 +61,7 @@ Lust::Application::Application()
 		{
 			{ShaderDataType::Float3, "POSITION", false},
 			{ShaderDataType::Float4, "COLOR", false},
+			{ShaderDataType::Float2, "TEXCOORD", false},
 		});
 
 	SmallBufferLayout smallBufferLayout(
@@ -73,22 +77,46 @@ Lust::Application::Application()
 			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, m_Context->GetUniformAttachment() } //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
-	m_Shader.reset(Shader::Instantiate(&m_Context, "./assets/shaders/HelloTriangle", layout, smallBufferLayout, uniformsLayout));
+	m_Texture1.reset(Texture2D::Instantiate(&m_Context, "./assets/textures/yor.png", 3, 0, 3, 0));
+	m_Texture2.reset(Texture2D::Instantiate(&m_Context, "./assets/textures/sample.png", 4, 0, 3, 1));
+
+	TextureLayout textureLayout(
+		{
+			m_Texture1->GetTextureDescription(),
+			m_Texture2->GetTextureDescription(),
+		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+
+
+	SamplerLayout samplerLayout(
+		{
+			//SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t samplerIndex
+			{SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 5, 0, 4, 0},
+			{SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 6, 0, 4, 1},
+		}
+		);
+
+	m_Shader.reset(Shader::Instantiate(&m_Context, "./assets/shaders/HelloTriangle", layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout));
 
 	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 1);
 	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 2, 1);
+	m_Shader->UploadTexture2D(&m_Texture1);
+	m_Shader->UploadTexture2D(&m_Texture2);
 	m_VertexBuffer.reset(VertexBuffer::Instantiate(&m_Context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), layout.GetStride()));
 	m_IndexBuffer.reset(IndexBuffer::Instantiate(&m_Context, (const void*)&iBuffer[0], sizeof(iBuffer) / sizeof(uint32_t)));
 }
 
 Lust::Application::~Application()
 {
+	m_Texture2.reset();
+	m_Texture1.reset();
 	m_IndexBuffer.reset();
 	m_VertexBuffer.reset();
 	m_Shader.reset();
 	m_ImguiContext.reset();
 	m_ImguiWindowController.reset();
 	ImguiContext::EndImgui();
+	m_CopyPipeline.reset();
 	m_Context.reset();
 	m_Window.reset();
 	m_Starter.reset();
@@ -162,6 +190,11 @@ void Lust::Application::PushLayer(Layer* layer)
 void Lust::Application::PushOverlay(Layer* layer)
 {
 	m_LayerStack.PushOverlay(layer);
+}
+
+std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
+{
+	return &m_CopyPipeline;
 }
 
 bool Lust::Application::OnWindowClose(WindowCloseEvent& e)

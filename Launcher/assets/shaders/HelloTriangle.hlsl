@@ -7,6 +7,8 @@ RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT\
 RootConstants(num32BitConstants=16, b0), \
 CBV(b1),\
 CBV(b2),\
+DescriptorTable(SRV(t1, numDescriptors = 2)), \
+DescriptorTable(Sampler(s1, numDescriptors = 2)), \
 
 struct SmallMVP
 {
@@ -54,16 +56,26 @@ cbuffer u_SSBO : register(b2)
     SSBO m_SSBO;
 };
 
+[[vk::binding(3, 0)]] Texture2D<float4> textureChecker : register(t1);
+[[vk::binding(4, 0)]] Texture2D<float4> textureChecker2 : register(t2);
+
+[[vk::binding(5, 0)]] SamplerState dynamicSampler : register(s1);
+[[vk::binding(6, 0)]] SamplerState dynamicSampler2 : register(s2);
+
 struct VSInput
 {
     [[vk::location(0)]]float3 pos : POSITION;
     [[vk::location(1)]]float4 col : COLOR;
+    [[vk::location(2)]]float2 txc : TEXCOORD;
 };
+
 struct PSInput
 {
     float4 pos : SV_POSITION;
     float4 col : COLOR;
+    float2 txc : TEXCOORD;
 };
+
 PSInput vs_main(VSInput vsInput)
 {
     PSInput vsoutput;
@@ -71,9 +83,19 @@ PSInput vs_main(VSInput vsInput)
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.M);
     vsoutput.pos = mul(vsoutput.pos, m_SSBO.M);
     vsoutput.col = vsInput.col;
+    vsoutput.txc = vsInput.txc;
     return vsoutput;
 }
+
 float4 ps_main(PSInput psInput) : SV_TARGET0
 {
-    return psInput.col;
+    float4 pixel1 = textureChecker.SampleLevel(dynamicSampler, psInput.txc, 0.0f);
+    float4 pixel2 = textureChecker2.SampleLevel(dynamicSampler2, psInput.txc, 0.0f);
+    float4 mixPixel;
+    if (pixel1.a < 0.8f)
+        mixPixel = pixel2;
+    else
+        mixPixel = pixel1;
+    //float4 pixel = float4(1.0f);
+    return float4(psInput.col.xyzw * mixPixel);
 }

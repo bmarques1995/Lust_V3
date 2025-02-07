@@ -29,8 +29,8 @@ const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_Enum
     {AllowedStages::AMPLIFICATION_STAGE, VK_SHADER_STAGE_TASK_BIT_EXT},
 };
 
-Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout) :
-    m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout), m_UniformLayout(uniformLayout)
+Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout) :
+    m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout), m_UniformLayout(uniformLayout), m_TextureLayout(textureLayout), m_SamplerLayout(samplerLayout)
 {
     VkResult vkr;
     auto device = (*m_Context)->GetDevice();
@@ -100,6 +100,13 @@ Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string 
                 PreallocateUniform(data, element.second, i);
             }
             delete[] data;
+        }
+
+        auto samplers = m_SamplerLayout.GetElements();
+
+        for (const auto& element : samplers)
+        {
+            CreateSampler(element.second);
         }
 
         CreateDescriptorSets();
@@ -181,6 +188,19 @@ Lust::VKShader::~VKShader()
 {
     auto device = (*m_Context)->GetDevice();
     vkDeviceWaitIdle(device);
+    for (auto& i : m_Samplers)
+    {
+        vkDestroySampler(device, i.second, nullptr);
+    }
+
+    for (auto& i : m_Uniforms)
+    {
+        vkDestroyBuffer(device, i.second.Resource, nullptr);
+        vkFreeMemory(device, i.second.Memory, nullptr);
+    }
+
+    vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
+    vkDestroyDescriptorSetLayout(device, m_RootSignature, nullptr);
     vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 }
@@ -199,6 +219,11 @@ uint32_t Lust::VKShader::GetStride() const
 uint32_t Lust::VKShader::GetOffset() const
 {
     return 0;
+}
+
+void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture)
+{
+    CreateTextureDescriptorSet((const std::shared_ptr<VKTexture2D>*) texture);
 }
 
 void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot)
@@ -294,6 +319,42 @@ void Lust::VKShader::CreateDescriptorSetLayout()
 
     }
 
+    auto textureElements = m_TextureLayout.GetElements();
+    for (auto& i : textureElements)
+    {
+        VkDescriptorSetLayoutBinding binding{};
+        binding.binding = i.second.GetBindingSlot();
+        binding.descriptorCount = 1;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        binding.pImmutableSamplers = nullptr;
+        VkShaderStageFlags stageFlag = 0x0;
+
+        for (auto& i : s_EnumStageCaster)
+            if ((i.first & m_UniformLayout.GetStages()) != 0)
+                stageFlag |= i.second;
+
+        binding.stageFlags = stageFlag;
+        bindings.push_back(binding);
+    }
+
+    auto samplerElements = m_SamplerLayout.GetElements();
+    for (auto& i : samplerElements)
+    {
+        VkDescriptorSetLayoutBinding binding{};
+        binding.binding = i.second.GetBindingSlot();
+        binding.descriptorCount = 1;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+        binding.pImmutableSamplers = nullptr;
+        VkShaderStageFlags stageFlag = 0x0;
+
+        for (auto& i : s_EnumStageCaster)
+            if ((i.first & m_UniformLayout.GetStages()) != 0)
+                stageFlag |= i.second;
+
+        binding.stageFlags = stageFlag;
+        bindings.push_back(binding);
+    }
+
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -321,6 +382,24 @@ void Lust::VKShader::CreateDescriptorPool()
         }
     }
 
+    auto textureElements = m_TextureLayout.GetElements();
+    for (auto& i : textureElements)
+    {
+        VkDescriptorPoolSize poolSizer;
+        poolSizer.type = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
+        poolSizer.descriptorCount = 1;
+        poolSize.push_back(poolSizer);
+    }
+
+    auto samplerElements = m_SamplerLayout.GetElements();
+    for (auto& i : samplerElements)
+    {
+        VkDescriptorPoolSize poolSizer;
+        poolSizer.type = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
+        poolSizer.descriptorCount = 1;
+        poolSize.push_back(poolSizer);
+    }
+
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 1;
@@ -341,6 +420,7 @@ void Lust::VKShader::CreateDescriptorSets()
     std::vector<VkDescriptorBufferInfo> bufferInfos;
 
     auto uniforms = m_UniformLayout.GetElements();
+    auto samplers = m_SamplerLayout.GetElements();
 
     size_t i = 0;
 
@@ -358,6 +438,19 @@ void Lust::VKShader::CreateDescriptorSets()
 
             bufferInfos.push_back(bufferInfo);
         }
+    }
+
+    for (auto& samplerElement : samplers)
+    {
+
+        //assert(vkr == VK_SUCCESS);
+
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = nullptr;
+        imageInfo.sampler = m_Samplers[samplerElement.second.GetBindingSlot()];
+
+        samplerInfos.push_back(imageInfo);
     }
 
     for (auto& uniformElement : uniforms)
@@ -378,8 +471,48 @@ void Lust::VKShader::CreateDescriptorSets()
         }
     }
 
+    i = 0;
+    for (auto& samplerElement : samplers)
+    {
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = m_DescriptorSets[samplerElement.second.GetSpaceSet()];
+        descriptorWrite.dstBinding = samplerElement.second.GetBindingSlot();
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = &samplerInfos[i];
+
+        descriptorWrites.push_back(descriptorWrite);
+
+        i++;
+    }
+
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
     descriptorWrites.clear();
+}
+
+void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture)
+{
+    VkResult vkr;
+    auto device = (*m_Context)->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+    VkDescriptorImageInfo imageInfo{};
+
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = (*texture)->GetView();
+    imageInfo.sampler = nullptr;
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[(*texture)->GetTextureDescription().GetSpaceSet()];
+    descriptorWrite.dstBinding = (*texture)->GetTextureDescription().GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 bool Lust::VKShader::IsUniformValid(size_t size)
@@ -448,6 +581,36 @@ uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
     }
 
     return 0xffffffff;
+}
+
+void Lust::VKShader::CreateSampler(SamplerElement samplerElement)
+{
+    VkResult vkr;
+    auto device = (*m_Context)->GetDevice();
+    auto adapter = (*m_Context)->GetAdapter();
+
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(adapter, &properties);
+
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = GetNativeFilter(samplerElement.GetFilter());
+    samplerInfo.minFilter = GetNativeFilter(samplerElement.GetFilter());
+    samplerInfo.addressModeU = GetNativeAddressMode(samplerElement.GetAddressMode());
+    samplerInfo.addressModeV = GetNativeAddressMode(samplerElement.GetAddressMode());
+    samplerInfo.addressModeW = GetNativeAddressMode(samplerElement.GetAddressMode());
+    samplerInfo.anisotropyEnable = samplerElement.GetFilter() == SamplerFilter::ANISOTROPIC ? VK_TRUE : VK_FALSE;
+    samplerInfo.maxAnisotropy = std::min<float>(properties.limits.maxSamplerAnisotropy, (1 << (uint32_t)samplerElement.GetAnisotropicFactor()) * 1.0f);
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_TRUE;
+    samplerInfo.compareOp = (VkCompareOp)((uint32_t)samplerElement.GetComparisonPassMode());
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = FLT_MAX;
+
+    vkr = vkCreateSampler(device, &samplerInfo, nullptr, &m_Samplers[samplerElement.GetBindingSlot()]);
+    assert(vkr == VK_SUCCESS);
 }
 
 void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc)
@@ -608,5 +771,38 @@ VkBufferUsageFlagBits Lust::VKShader::GetNativeBufferUsage(BufferType type)
     default:
     case BufferType::INVALID_BUFFER_TYPE:
         return VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+    }
+}
+
+VkFilter Lust::VKShader::GetNativeFilter(SamplerFilter filter)
+{
+    switch (filter)
+    {
+    case SamplerFilter::ANISOTROPIC:
+    case SamplerFilter::LINEAR:
+        return VK_FILTER_LINEAR;
+    case SamplerFilter::NEAREST:
+        return VK_FILTER_NEAREST;
+    default:
+        return VK_FILTER_MAX_ENUM;
+    }
+}
+
+VkSamplerAddressMode Lust::VKShader::GetNativeAddressMode(AddressMode addressMode)
+{
+    switch (addressMode)
+    {
+    case AddressMode::REPEAT:
+        return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    case AddressMode::MIRROR:
+        return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+    case AddressMode::CLAMP:
+        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    case AddressMode::BORDER:
+        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    case AddressMode::MIRROR_ONCE:
+        return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+    default:
+        return VK_SAMPLER_ADDRESS_MODE_MAX_ENUM;
     }
 }

@@ -9,6 +9,8 @@
 #include "LayerStack.hpp"
 #include "ApplicationStarter.hpp"
 #include "GraphicsContext.hpp"
+#include "CopyPipeline.hpp"
+#include "Texture.hpp"
 #include "ImguiWindowController.hpp"
 #include "ImguiContext.hpp"
 #include "CSOCompiler.hpp"
@@ -42,20 +44,26 @@ namespace Lust
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 
+		std::shared_ptr<CopyPipeline>* GetCopyPipeline();
+
 		static void EnableSingleton(Application* ptr);
 		static Application* GetInstance();
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
-		Eigen::Vector<float, 7> m_VBuffer[6] =
+		Eigen::Vector<float, 9> m_VBuffer[4] =
 		{
-			Eigen::Vector<float, 7> { .0f, .5f, .6f, 1.0f, .0f, .0f, 1.0f },
-			Eigen::Vector<float, 7> { .5f, -.5f, .6f, .0f, 1.0f, .0f, 1.0f },
-			Eigen::Vector<float, 7> { -.5f, -.5f, .6f, .0f, .0f, 1.0f, 1.0f },
-			Eigen::Vector<float, 7> { .0f, .4f, .2f, 1.0f, 1.0f, .0f, 1.0f},
-			Eigen::Vector<float, 7> { .4f, -.4f, .2f, .0f, 1.0f, 1.0f, 1.0f },
-			Eigen::Vector<float, 7> { -.4f, -.4f, .2f, 1.0f, .0f, 1.0f, 1.0f },
+			{-.5f, -.5f, .2f, 1.0f, .0f, .0f, 1.0f,  0.0f, 1.0f },
+			{-.5f, .5f, .2f, .0f, 1.0f, .0f, 1.0f,  0.0f, 0.0f },
+			{.5f, -.5f, .2f, .0f, .0f, 1.0f, 1.0f,  1.0f, 1.0f},
+			{.5f, .5f, .2f, 1.0f, 1.0f, .0f, 1.0f,  1.0f, 0.0f},
+		};
+
+		uint32_t iBuffer[6] =
+		{
+			3,2,1,
+			1,2,0
 		};
 
 		struct SmallMVP
@@ -71,12 +79,6 @@ namespace Lust
 			Eigen::Matrix4f mipLevel;
 		};
 
-		uint32_t iBuffer[6] =
-		{
-			3,4,5,
-			0,1,2,
-		};
-
 		SmallMVP m_SmallMVP;
 		CompleteMVP m_CompleteMVP;
 
@@ -89,6 +91,9 @@ namespace Lust
 		std::shared_ptr<GraphicsContext> m_Context;
 		std::shared_ptr<ImguiContext> m_ImguiContext;
 		std::shared_ptr<Shader> m_Shader;
+		std::shared_ptr<CopyPipeline> m_CopyPipeline;
+		std::shared_ptr<Texture2D> m_Texture1;
+		std::shared_ptr<Texture2D> m_Texture2;
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		

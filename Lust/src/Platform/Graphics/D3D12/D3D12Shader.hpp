@@ -4,6 +4,7 @@
 
 #include "Shader.hpp"
 #include "D3D12Context.hpp"
+#include "D3D12Texture.hpp"
 #include "DXCSafeInclude.hpp"
 #include <json/json.h>
 #include <functional>
@@ -19,12 +20,14 @@ namespace Lust
 	class LUST_API D3D12Shader : public Shader
 	{
 	public:
-		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout);
+		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout);
 		~D3D12Shader();
 
 		void Stage() override;
 		virtual uint32_t GetStride() const override;
 		virtual uint32_t GetOffset() const override;
+
+		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture) override;
 
 		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot) override;
 
@@ -33,6 +36,10 @@ namespace Lust
 		void UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex) override;
 
 	private:
+		void CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture);
+		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
+		void CreateSampler(SamplerElement samplerElement);
+		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);
 
 		bool IsCBufferValid(size_t size);
 		void PreallocateRootCBuffer(const void* data, UniformElement uniformElement);
@@ -50,7 +57,8 @@ namespace Lust
 		static DXGI_FORMAT GetNativeFormat(ShaderDataType type);
 		static D3D12_DESCRIPTOR_HEAP_TYPE GetNativeHeapType(BufferType type);
 		static D3D12_RESOURCE_DIMENSION GetNativeDimension(BufferType type);
-
+		static D3D12_FILTER GetNativeFilter(SamplerFilter filter);
+		static D3D12_TEXTURE_ADDRESS_MODE GetNativeAddressMode(AddressMode addressMode);
 
 		static const std::unordered_map<std::string, std::function<void(IDxcBlob**, D3D12_GRAPHICS_PIPELINE_STATE_DESC*)>> s_ShaderPusher;
 		static const std::list<std::string> s_GraphicsPipelineStages;
@@ -61,6 +69,8 @@ namespace Lust
 		InputBufferLayout m_Layout;
 		SmallBufferLayout m_SmallBufferLayout;
 		UniformLayout m_UniformLayout;
+		TextureLayout m_TextureLayout;
+		SamplerLayout m_SamplerLayout;
 
 		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
 
@@ -73,6 +83,8 @@ namespace Lust
 		ComPointer<ID3D12RootSignature> m_RootSignature;
 		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_RootDescriptors;
 		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_TabledDescriptors;
+		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_SamplerDescriptors;
+		std::vector<ID3D12DescriptorHeap*> m_MergedHeaps;
 
 		/*in bytes*/
 		uint32_t m_RootSignatureSize = 0;
