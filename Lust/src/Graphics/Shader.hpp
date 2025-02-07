@@ -5,6 +5,7 @@
 #include "UniformsLayout.hpp"
 #include "SamplerLayout.hpp"
 #include "TextureLayout.hpp"
+#include "Topology.hpp"
 #include "Texture.hpp"
 #include "GraphicsContext.hpp"
 #include <json/json.h>
@@ -17,10 +18,22 @@ namespace Lust
 		SizeMismatchException(size_t layoutSize, size_t providedSize);
 	};
 
+	struct LUST_API InputInfo
+	{
+		InputBufferLayout m_InputLayout;
+		SmallBufferLayout m_SmallBufferLayout;
+		UniformLayout m_UniformLayout;
+		TextureLayout m_TextureLayout;
+		SamplerLayout m_SamplerLayout;
+		Topology m_Topology = Topology::LUST_TOPOLOGY_TRIANGLELIST;
+
+		InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout);
+	};
+
 	class LUST_API Shader
 	{
 	public:
-		Shader(InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout);
+		Shader(InputInfo inputInfo);
 		virtual ~Shader() = default;
 		virtual void Stage() = 0;
 		virtual uint32_t GetStride() const = 0;
@@ -32,8 +45,8 @@ namespace Lust
 		virtual void BindDescriptors() = 0;
 		virtual void UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex) = 0;
 
-		static Shader* Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout);
-	
+		static Shader* Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, const InputInfo& inputInfo);
+
 	protected:
 
 		Json::Value m_PipelineInfo;

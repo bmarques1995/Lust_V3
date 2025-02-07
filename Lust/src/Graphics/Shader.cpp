@@ -18,12 +18,25 @@ Lust::SizeMismatchException::SizeMismatchException(size_t layoutSize, size_t pro
 	m_Reason = buffer.str();
 }
 
-Lust::Shader::Shader(InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout)
-	: m_Layout(layout), m_SmallBufferLayout(smallBufferLayout), m_UniformLayout(uniformLayout), m_TextureLayout(textureLayout), m_SamplerLayout(samplerLayout)
+Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout) :
+	m_InputLayout(inputLayout),
+	m_SmallBufferLayout(smallBufferLayout),
+	m_UniformLayout(uniformLayout),
+	m_TextureLayout(textureLayout),
+	m_SamplerLayout(samplerLayout)
 {
 }
 
-Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout)
+Lust::Shader::Shader(InputInfo inputInfo)
+	: m_Layout(inputInfo.m_InputLayout),
+	m_SmallBufferLayout(inputInfo.m_SmallBufferLayout),
+	m_UniformLayout(inputInfo.m_UniformLayout),
+	m_TextureLayout(inputInfo.m_TextureLayout),
+	m_SamplerLayout(inputInfo.m_SamplerLayout)
+{
+}
+
+Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, const InputInfo& inputInfo)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	std::stringstream controller_path;
@@ -35,14 +48,14 @@ Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* 
 	{
 		controller_path << ".d3d12.json";
 		std::string json_controller_path = controller_path.str();
-		return new D3D12Shader((const std::shared_ptr<D3D12Context>*)(context), json_controller_path, layout, smallBufferLayout, uniformLayout, textureLayout, samplerLayout);
+		return new D3D12Shader((const std::shared_ptr<D3D12Context>*)(context), json_controller_path, inputInfo);
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
 		controller_path << ".vk.json";
 		std::string json_controller_path = controller_path.str();
-		return new VKShader((const std::shared_ptr<VKContext>*)(context), json_controller_path, layout, smallBufferLayout, uniformLayout, textureLayout, samplerLayout);
+		return new VKShader((const std::shared_ptr<VKContext>*)(context), json_controller_path, inputInfo);
 	}
 	default:
 		break;

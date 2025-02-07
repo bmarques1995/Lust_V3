@@ -14,7 +14,7 @@ const std::vector<const char*> Lust::VKContext::s_ValidationLayers =
     "VK_LAYER_KHRONOS_validation"
 };
 
-bool Lust::VKContext::CheckValidationLayerSupport()
+bool Lust::VKContext::CheckValidationLayerSupport(uint32_t vkVersion)
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -26,7 +26,7 @@ bool Lust::VKContext::CheckValidationLayerSupport()
         bool layerFound = false;
 
         for (const auto& layerProperties : availableLayers) {
-            if (strcmp(layerName, layerProperties.layerName) == 0) {
+            if ((strcmp(layerName, layerProperties.layerName) == 0) && layerProperties.specVersion == vkVersion) {
                 layerFound = true;
                 break;
             }
@@ -326,18 +326,19 @@ uint32_t Lust::VKContext::GetSwapchainImageCount() const
 
 void Lust::VKContext::CreateInstance()
 {
+    uint32_t vkVersion = VK_MAKE_API_VERSION(0, 1, 4, 304);
     VkResult vkr;
 #ifdef LUST_DEBUG_MODE
-    assert(CheckValidationLayerSupport());
+    assert(CheckValidationLayerSupport(vkVersion));
 #endif
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Hello Triangle";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 4, 0);
+    appInfo.applicationVersion = vkVersion;
     appInfo.pEngineName = "No Engine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 4, 0);
-    appInfo.apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
+    appInfo.engineVersion = vkVersion;
+    appInfo.apiVersion = vkVersion;
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

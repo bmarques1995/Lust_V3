@@ -40,14 +40,15 @@ const std::list<std::string> Lust::D3D12Shader::s_GraphicsPipelineStages =
 	"hs",
 };
 
-Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout) :
-	m_Context(context), Lust::Shader(layout, smallBufferLayout, uniformLayout, textureLayout, samplerLayout)
+Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputInfo inputInfo) :
+	m_Context(context), Lust::Shader(inputInfo)
 {
 	HRESULT hr;
 	auto device = (*m_Context)->GetDevicePtr();
 
 	InitJsonAndPaths(json_controller_path, &(this->m_PipelineInfo), &(this->m_ShaderDir));
 	StartDXC();
+	m_RenderTopology = GetNativeTopology(inputInfo.m_Topology);
 
 	auto uniforms = m_UniformLayout.GetElements();
 
@@ -100,8 +101,8 @@ Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std
 	graphicsDesc.NumRenderTargets = 1;
 	graphicsDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	graphicsDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	graphicsDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
-		graphicsDesc.SampleDesc.Count = 1;
+	graphicsDesc.PrimitiveTopologyType = GetNativeTopologyType(inputInfo.m_Topology);
+	graphicsDesc.SampleDesc.Count = 1;
 	graphicsDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 	size_t i = 0;
@@ -154,7 +155,7 @@ Lust::D3D12Shader::~D3D12Shader()
 void Lust::D3D12Shader::Stage()
 {
 	auto cmdList = (*m_Context)->GetCurrentCommandList();
-	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	cmdList->IASetPrimitiveTopology(m_RenderTopology);
 	cmdList->SetGraphicsRootSignature(m_RootSignature.Get());
 	cmdList->SetPipelineState(m_GraphicsPipeline.Get());
 }
@@ -616,6 +617,57 @@ D3D12_TEXTURE_ADDRESS_MODE Lust::D3D12Shader::GetNativeAddressMode(AddressMode a
 		return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 	case AddressMode::MIRROR_ONCE:
 		return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+	}
+}
+
+D3D12_PRIMITIVE_TOPOLOGY_TYPE Lust::D3D12Shader::GetNativeTopologyType(Topology topology)
+{
+	switch (topology)
+	{
+	case Lust::Topology::LUST_TOPOLOGY_POINTLIST:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	case Lust::Topology::LUST_TOPOLOGY_LINELIST:
+	case Lust::Topology::LUST_TOPOLOGY_LINELIST_ADJ:
+	case Lust::Topology::LUST_TOPOLOGY_LINESTRIP:
+	case Lust::Topology::LUST_TOPOLOGY_LINESTRIP_ADJ:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLELIST:
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLELIST_ADJ:
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLESTRIP:
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLESTRIP_ADJ:
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLE_FAN:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	default:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+	}
+}
+
+D3D12_PRIMITIVE_TOPOLOGY Lust::D3D12Shader::GetNativeTopology(Topology topology)
+{
+	switch (topology)
+	{
+	case Lust::Topology::LUST_TOPOLOGY_POINTLIST:
+		return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+	case Lust::Topology::LUST_TOPOLOGY_LINELIST:
+		return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+	case Lust::Topology::LUST_TOPOLOGY_LINELIST_ADJ:
+		return D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ;
+	case Lust::Topology::LUST_TOPOLOGY_LINESTRIP:
+		return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+	case Lust::Topology::LUST_TOPOLOGY_LINESTRIP_ADJ:
+		return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ;
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLELIST:
+		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLELIST_ADJ:
+		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ;
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLESTRIP:
+		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLESTRIP_ADJ:
+		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ;
+	case Lust::Topology::LUST_TOPOLOGY_TRIANGLE_FAN:
+		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLEFAN;
+	default:
+		return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 	}
 }
 

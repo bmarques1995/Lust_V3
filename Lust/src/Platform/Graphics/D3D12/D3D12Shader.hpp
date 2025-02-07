@@ -19,7 +19,7 @@ namespace Lust
 	class LUST_API D3D12Shader : public Shader
 	{
 	public:
-		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout);
+		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputInfo inputInfo);
 		~D3D12Shader();
 
 		void Stage() override;
@@ -59,6 +59,9 @@ namespace Lust
 		static D3D12_FILTER GetNativeFilter(SamplerFilter filter);
 		static D3D12_TEXTURE_ADDRESS_MODE GetNativeAddressMode(AddressMode addressMode);
 
+		static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetNativeTopologyType(Topology topology);
+		static D3D12_PRIMITIVE_TOPOLOGY GetNativeTopology(Topology topology);
+
 		static const std::unordered_map<std::string, std::function<void(IDxcBlob**, D3D12_GRAPHICS_PIPELINE_STATE_DESC*)>> s_ShaderPusher;
 		static const std::list<std::string> s_GraphicsPipelineStages;
 
@@ -69,6 +72,7 @@ namespace Lust
 
 		const std::shared_ptr<D3D12Context>* m_Context;
 		
+		D3D12_PRIMITIVE_TOPOLOGY m_RenderTopology;
 		ComPointer<IDxcUtils> m_DxcLib;
 		ComPointer<IDxcBlob> m_RootBlob;
 		ComPointer<ID3D12PipelineState> m_GraphicsPipeline;

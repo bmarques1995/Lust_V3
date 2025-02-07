@@ -18,7 +18,7 @@ namespace Lust
 	class LUST_API VKShader : public Shader
 	{
 	public:
-		VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout);
+		VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputInfo inputInfo);
 		~VKShader();
 
 		void Stage() override;
@@ -52,7 +52,7 @@ namespace Lust
 
 		void PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc);
 		void SetRasterizer(VkPipelineRasterizationStateCreateInfo* rasterizer);
-		void SetInputAssemblyViewportAndMultisampling(VkPipelineInputAssemblyStateCreateInfo* inputAssembly, VkPipelineViewportStateCreateInfo* viewportState, VkPipelineMultisampleStateCreateInfo* multisampling);
+		void SetInputAssemblyViewportAndMultisampling(VkPipelineInputAssemblyStateCreateInfo* inputAssembly, VkPipelineViewportStateCreateInfo* viewportState, VkPipelineMultisampleStateCreateInfo* multisampling, Topology topology);
 		void SetBlend(VkPipelineColorBlendAttachmentState* colorBlendAttachment, VkPipelineColorBlendStateCreateInfo* colorBlending);
 		void SetDepthStencil(VkPipelineDepthStencilStateCreateInfo* depthStencil);
 
@@ -61,7 +61,7 @@ namespace Lust
 		static VkBufferUsageFlagBits GetNativeBufferUsage(BufferType type);
 		static VkFilter GetNativeFilter(SamplerFilter filter);
 		static VkSamplerAddressMode GetNativeAddressMode(AddressMode addressMode);
-
+		static VkPrimitiveTopology GetNativeTopology(Topology topology);
 
 		static const std::list<std::string> s_GraphicsPipelineStages;
 

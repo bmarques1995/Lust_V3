@@ -29,8 +29,8 @@ const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_Enum
     {AllowedStages::AMPLIFICATION_STAGE, VK_SHADER_STAGE_TASK_BIT_EXT},
 };
 
-Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout) :
-    m_Context(context), Lust::Shader(layout, smallBufferLayout, uniformLayout, textureLayout, samplerLayout)
+Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputInfo inputInfo) :
+    m_Context(context), Lust::Shader(inputInfo)
 {
     VkResult vkr;
     auto device = (*m_Context)->GetDevice();
@@ -79,7 +79,7 @@ Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string 
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
 
-    SetInputAssemblyViewportAndMultisampling(&inputAssembly, &viewportState, &multisampling);
+    SetInputAssemblyViewportAndMultisampling(&inputAssembly, &viewportState, &multisampling, inputInfo.m_Topology);
     SetRasterizer(&rasterizer);
     SetBlend(&colorBlendAttachment, &colorBlending);
     SetDepthStencil(&depthStencil);
@@ -670,10 +670,10 @@ void Lust::VKShader::SetRasterizer(VkPipelineRasterizationStateCreateInfo* raste
     rasterizer->depthBiasEnable = VK_FALSE;
 }
 
-void Lust::VKShader::SetInputAssemblyViewportAndMultisampling(VkPipelineInputAssemblyStateCreateInfo* inputAssembly, VkPipelineViewportStateCreateInfo* viewportState, VkPipelineMultisampleStateCreateInfo* multisampling)
+void Lust::VKShader::SetInputAssemblyViewportAndMultisampling(VkPipelineInputAssemblyStateCreateInfo* inputAssembly, VkPipelineViewportStateCreateInfo* viewportState, VkPipelineMultisampleStateCreateInfo* multisampling, Topology topology)
 {
     inputAssembly->sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssembly->topology = GetNativeTopology(topology);
     inputAssembly->primitiveRestartEnable = VK_FALSE;
 
     viewportState->sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -793,5 +793,34 @@ VkSamplerAddressMode Lust::VKShader::GetNativeAddressMode(AddressMode addressMod
         return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
     default:
         return VK_SAMPLER_ADDRESS_MODE_MAX_ENUM;
+    }
+}
+
+VkPrimitiveTopology Lust::VKShader::GetNativeTopology(Topology topology)
+{
+    switch (topology)
+    {
+    case Lust::Topology::LUST_TOPOLOGY_POINTLIST:
+		return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    case Lust::Topology::LUST_TOPOLOGY_LINELIST:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    case Lust::Topology::LUST_TOPOLOGY_LINELIST_ADJ:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+    case Lust::Topology::LUST_TOPOLOGY_LINESTRIP:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    case Lust::Topology::LUST_TOPOLOGY_LINESTRIP_ADJ:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+    case Lust::Topology::LUST_TOPOLOGY_TRIANGLELIST:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    case Lust::Topology::LUST_TOPOLOGY_TRIANGLELIST_ADJ:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+    case Lust::Topology::LUST_TOPOLOGY_TRIANGLESTRIP:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    case Lust::Topology::LUST_TOPOLOGY_TRIANGLESTRIP_ADJ:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+    case Lust::Topology::LUST_TOPOLOGY_TRIANGLE_FAN:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    default:
+        return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
     }
 }
