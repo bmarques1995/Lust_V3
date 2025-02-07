@@ -4,7 +4,6 @@
 #include "VKContext.hpp"
 #include "VKTexture.hpp"
 #include "DXCSafeInclude.hpp"
-#include <json/json.h>
 #include <functional>
 
 namespace Lust
@@ -52,7 +51,6 @@ namespace Lust
 		void CreateSampler(SamplerElement samplerElement);
 
 		void PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc);
-		void InitJsonAndPaths(std::string json_controller_path);
 		void SetRasterizer(VkPipelineRasterizationStateCreateInfo* rasterizer);
 		void SetInputAssemblyViewportAndMultisampling(VkPipelineInputAssemblyStateCreateInfo* inputAssembly, VkPipelineViewportStateCreateInfo* viewportState, VkPipelineMultisampleStateCreateInfo* multisampling);
 		void SetBlend(VkPipelineColorBlendAttachmentState* colorBlendAttachment, VkPipelineColorBlendStateCreateInfo* colorBlending);
@@ -73,16 +71,9 @@ namespace Lust
 		std::unordered_map<std::string, VkShaderModule> m_Modules;
 		std::unordered_map<std::string, std::string> m_ModulesEntrypoint;
 
-		Json::Value m_PipelineInfo;
 
 		std::unordered_map<uint32_t, RM> m_Uniforms;
 		std::unordered_map<uint32_t, VkSampler> m_Samplers;
-
-		InputBufferLayout m_Layout;
-		SmallBufferLayout m_SmallBufferLayout;
-		UniformLayout m_UniformLayout;
-		TextureLayout m_TextureLayout;
-		SamplerLayout m_SamplerLayout;
 
 		VkDescriptorSetLayout m_RootSignature;
 		VkDescriptorPool m_DescriptorPool;
@@ -90,7 +81,6 @@ namespace Lust
 		std::vector<VkDescriptorSet> m_BindableDescriptorSets;
 
 		const std::shared_ptr<VKContext>* m_Context;
-		std::string m_ShaderDir;
 		VkPipeline m_GraphicsPipeline;
 		VkPipelineLayout m_PipelineLayout;
 	};

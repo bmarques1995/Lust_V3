@@ -6,7 +6,6 @@
 #include "D3D12Context.hpp"
 #include "D3D12Texture.hpp"
 #include "DXCSafeInclude.hpp"
-#include <json/json.h>
 #include <functional>
 
 namespace Lust
@@ -36,6 +35,7 @@ namespace Lust
 		void UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex) override;
 
 	private:
+		void StartDXC();
 		void CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture);
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
 		void CreateSampler(SamplerElement samplerElement);
@@ -52,7 +52,6 @@ namespace Lust
 		void BuildDepthStencil(D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc);
 
 		void PushShader(std::string_view stage, D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc);
-		void InitJsonAndPaths(std::string json_controller_path);
 
 		static DXGI_FORMAT GetNativeFormat(ShaderDataType type);
 		static D3D12_DESCRIPTOR_HEAP_TYPE GetNativeHeapType(BufferType type);
@@ -66,16 +65,11 @@ namespace Lust
 
 		Json::Value m_PipelineInfo;
 
-		InputBufferLayout m_Layout;
-		SmallBufferLayout m_SmallBufferLayout;
-		UniformLayout m_UniformLayout;
-		TextureLayout m_TextureLayout;
-		SamplerLayout m_SamplerLayout;
-
 		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
 
 		const std::shared_ptr<D3D12Context>* m_Context;
-		std::string m_ShaderDir;
+		
+		ComPointer<IDxcUtils> m_DxcLib;
 		ComPointer<IDxcBlob> m_RootBlob;
 		ComPointer<ID3D12PipelineState> m_GraphicsPipeline;
 		std::unordered_map<std::string, ComPointer<IDxcBlob>> m_ShaderBlobs;

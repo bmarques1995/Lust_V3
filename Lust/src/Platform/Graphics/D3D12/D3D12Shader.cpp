@@ -41,12 +41,13 @@ const std::list<std::string> Lust::D3D12Shader::s_GraphicsPipelineStages =
 };
 
 Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout) :
-	m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout), m_UniformLayout(uniformLayout), m_TextureLayout(textureLayout), m_SamplerLayout(samplerLayout)
+	m_Context(context), Lust::Shader(layout, smallBufferLayout, uniformLayout, textureLayout, samplerLayout)
 {
 	HRESULT hr;
 	auto device = (*m_Context)->GetDevicePtr();
 
-	InitJsonAndPaths(json_controller_path);
+	InitJsonAndPaths(json_controller_path, &(this->m_PipelineInfo), &(this->m_ShaderDir));
+	StartDXC();
 
 	auto uniforms = m_UniformLayout.GetElements();
 
@@ -207,6 +208,13 @@ void Lust::D3D12Shader::BindDescriptors()
 void Lust::D3D12Shader::UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
 {
 	MapCBuffer(data, size, shaderRegister, tableIndex);
+}
+
+void Lust::D3D12Shader::StartDXC()
+{
+	HRESULT hr;
+	hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(m_DxcLib.GetAddressOf()));
+	assert(hr == S_OK);
 }
 
 void Lust::D3D12Shader::CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture)
@@ -502,17 +510,17 @@ void Lust::D3D12Shader::BuildDepthStencil(D3D12_GRAPHICS_PIPELINE_STATE_DESC* gr
 
 void Lust::D3D12Shader::PushShader(std::string_view stage, D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc)
 {
+	HRESULT hr;
+
 	std::string shaderName = m_PipelineInfo["BinShaders"][stage.data()]["filename"].asString();
+	if ((shaderName.size() == 0))
+		return;
 	std::stringstream shaderFullPath;
 	shaderFullPath << m_ShaderDir << "/" << shaderName;
 	std::string shaderPath = shaderFullPath.str();
 
 	if (!FileHandler::FileExists(shaderPath))
 		return;
-
-	ComPointer<IDxcUtils> lib;
-	HRESULT hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(lib.GetAddressOf()));
-	assert(hr == S_OK);
 
 	size_t blobSize;
 	std::byte* blobData;
@@ -522,7 +530,7 @@ void Lust::D3D12Shader::PushShader(std::string_view stage, D3D12_GRAPHICS_PIPELI
 
 	// Create blob from memory
 	ComPointer<IDxcBlob> pBlob;
-	hr = lib->CreateBlob((void*)blobData, blobSize, DXC_CP_ACP, (IDxcBlobEncoding**)pBlob.GetAddressOf());
+	hr = m_DxcLib->CreateBlob((void*)blobData, blobSize, DXC_CP_ACP, (IDxcBlobEncoding**)pBlob.GetAddressOf());
 	assert(hr == S_OK);
 	m_ShaderBlobs[stage.data()] = pBlob;
 
@@ -531,17 +539,6 @@ void Lust::D3D12Shader::PushShader(std::string_view stage, D3D12_GRAPHICS_PIPELI
 		it->second(m_ShaderBlobs[stage.data()].GetAddressOf(), graphicsDesc);
 
 	delete[] blobData;
-}
-
-void Lust::D3D12Shader::InitJsonAndPaths(std::string json_controller_path)
-{
-	Json::Reader reader;
-	std::string jsonResult;
-	FileHandler::ReadTextFile(json_controller_path, &jsonResult);
-	reader.parse(jsonResult, m_PipelineInfo);
-
-	fs::path location = json_controller_path;
-	m_ShaderDir = location.parent_path().string();
 }
 
 DXGI_FORMAT Lust::D3D12Shader::GetNativeFormat(ShaderDataType type)

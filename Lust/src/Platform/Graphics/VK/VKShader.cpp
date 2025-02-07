@@ -30,13 +30,13 @@ const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_Enum
 };
 
 Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputBufferLayout layout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout) :
-    m_Context(context), m_Layout(layout), m_SmallBufferLayout(smallBufferLayout), m_UniformLayout(uniformLayout), m_TextureLayout(textureLayout), m_SamplerLayout(samplerLayout)
+    m_Context(context), Lust::Shader(layout, smallBufferLayout, uniformLayout, textureLayout, samplerLayout)
 {
     VkResult vkr;
     auto device = (*m_Context)->GetDevice();
     auto renderPass = (*m_Context)->GetRenderPass();
 
-    InitJsonAndPaths(json_controller_path);
+    InitJsonAndPaths(json_controller_path, &(this->m_PipelineInfo), &(this->m_ShaderDir));
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
@@ -656,17 +656,6 @@ void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCre
     graphicsDesc->pName = m_ModulesEntrypoint[stage.data()].c_str();
 
     delete[] blobData;
-}
-
-void Lust::VKShader::InitJsonAndPaths(std::string json_controller_path)
-{
-    Json::Reader reader;
-    std::string jsonResult;
-    FileHandler::ReadTextFile(json_controller_path, &jsonResult);
-    reader.parse(jsonResult, m_PipelineInfo);
-
-    fs::path location = json_controller_path;
-    m_ShaderDir = location.parent_path().string();
 }
 
 void Lust::VKShader::SetRasterizer(VkPipelineRasterizationStateCreateInfo* rasterizer)
