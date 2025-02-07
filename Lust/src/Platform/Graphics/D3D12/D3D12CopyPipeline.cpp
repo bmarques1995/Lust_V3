@@ -39,7 +39,7 @@ void Lust::D3D12CopyPipeline::Wait()
 	m_CopyFenceEvent = CreateEventW(nullptr, false, false, nullptr);
 }
 
-ID3D12GraphicsCommandList6* Lust::D3D12CopyPipeline::GetCommandList() const
+ID3D12GraphicsCommandList10* Lust::D3D12CopyPipeline::GetCommandList() const
 {
 	return m_CopyCommandList.GetConst();
 }

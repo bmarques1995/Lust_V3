@@ -3,6 +3,15 @@
 #include "D3D12Context.hpp"
 #include <cassert>
 
+const std::unordered_map<uint32_t, D3D_FEATURE_LEVEL> Lust::D3D12Context::s_AvaliableFeatureLevels =
+{
+	{0, D3D_FEATURE_LEVEL_11_0},
+	{1, D3D_FEATURE_LEVEL_11_1},
+	{2, D3D_FEATURE_LEVEL_12_0},
+	{3, D3D_FEATURE_LEVEL_12_1},
+	{4, D3D_FEATURE_LEVEL_12_2},
+};
+
 Lust::D3D12Context::D3D12Context(const Window* windowHandle, uint32_t framesInFlight) :
 	m_FramesInFlight(framesInFlight), m_IsVSyncEnabled(true)
 {
@@ -152,12 +161,12 @@ void Lust::D3D12Context::Draw(uint32_t elements)
 	m_CommandLists[m_CurrentBufferIndex]->DrawIndexedInstanced(elements, 1, 0, 0, 0);
 }
 
-ID3D12Device10* Lust::D3D12Context::GetDevicePtr() const
+ID3D12Device14* Lust::D3D12Context::GetDevicePtr() const
 {
 	return m_Device.GetConst();
 }
 
-ID3D12GraphicsCommandList6* Lust::D3D12Context::GetCurrentCommandList() const
+ID3D12GraphicsCommandList10* Lust::D3D12Context::GetCurrentCommandList() const
 {
 	return m_CommandLists[m_CurrentBufferIndex].GetConst();
 }
@@ -165,6 +174,11 @@ ID3D12GraphicsCommandList6* Lust::D3D12Context::GetCurrentCommandList() const
 ID3D12CommandQueue* Lust::D3D12Context::GetCommandQueue() const
 {
 	return m_CommandQueue.GetConst();
+}
+
+D3D_FEATURE_LEVEL Lust::D3D12Context::GetFeatureLevel() const
+{
+	return m_FeatureLevel;
 }
 
 const std::string Lust::D3D12Context::GetGPUName()
@@ -232,8 +246,22 @@ void Lust::D3D12Context::CreateAdapter()
 			continue;
 		}
 
-		hr = D3D12CreateDevice(m_DXGIAdapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr);
-		// Check to see if the adapter supports Direct3D 12, but don't create the actual device yet.
+		for (size_t i = 0; i < s_AvaliableFeatureLevels.size(); i++)
+		{
+			uint32_t index = s_AvaliableFeatureLevels.size() - 1 - i;
+			auto it = s_AvaliableFeatureLevels.find(index);
+			if (it != s_AvaliableFeatureLevels.end())
+			{
+				hr = D3D12CreateDevice(m_DXGIAdapter.Get(), it->second, _uuidof(ID3D12Device), nullptr);
+				if ((hr == S_OK) || (hr == S_FALSE))
+				{
+					m_FeatureLevel = it->second;
+					break;
+				}
+			}
+			
+		}
+
 		if ((hr == S_OK) || (hr == S_FALSE))
 		{
 			break;
@@ -244,7 +272,7 @@ void Lust::D3D12Context::CreateAdapter()
 
 void Lust::D3D12Context::CreateDevice()
 {
-	D3D12CreateDevice(m_DXGIAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(m_Device.GetAddressOf()));
+	D3D12CreateDevice(m_DXGIAdapter.Get(), m_FeatureLevel, IID_PPV_ARGS(m_Device.GetAddressOf()));
 }
 
 void Lust::D3D12Context::CreateCommandQueue()
@@ -329,7 +357,7 @@ void Lust::D3D12Context::CreateCommandAllocator()
 
 void Lust::D3D12Context::CreateCommandLists()
 {
-	m_CommandLists = new ComPointer<ID3D12GraphicsCommandList6>[m_FramesInFlight];
+	m_CommandLists = new ComPointer<ID3D12GraphicsCommandList10>[m_FramesInFlight];
 	for (size_t i = 0; i < m_FramesInFlight; i++)
 	{
 		m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocators[i].Get(), nullptr, IID_PPV_ARGS(m_CommandLists[i].GetAddressOf()));

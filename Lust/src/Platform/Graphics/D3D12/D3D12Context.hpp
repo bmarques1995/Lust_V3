@@ -39,9 +39,10 @@ namespace Lust
 
 		void Draw(uint32_t elements) override;
 
-		ID3D12Device10* GetDevicePtr() const;
-		ID3D12GraphicsCommandList6* GetCurrentCommandList() const;
+		ID3D12Device14* GetDevicePtr() const;
+		ID3D12GraphicsCommandList10* GetCurrentCommandList() const;
 		ID3D12CommandQueue* GetCommandQueue() const;
+		D3D_FEATURE_LEVEL GetFeatureLevel() const;
 
 		const std::string GetGPUName() override;
 
@@ -76,29 +77,31 @@ namespace Lust
 		std::string m_GPUName;
 		uint64_t m_RTVHeapIncrement = 0;
 
-		ComPointer<IDXGIFactory6> m_DXGIFactory;
+		ComPointer<IDXGIFactory7> m_DXGIFactory;
 		ComPointer<IDXGIAdapter4> m_DXGIAdapter;
 
-		ComPointer<ID3D12Device10> m_Device;
+		ComPointer<ID3D12Device14> m_Device;
 		ComPointer<ID3D12CommandQueue> m_CommandQueue;
 		ComPointer<ID3D12Fence> m_CommandQueueFence;
 		uint64_t m_CommandQueueFenceValue = 0;
 		HANDLE m_CommandQueueFenceEvent = nullptr;
 
 		bool m_IsVSyncEnabled;
+		static const std::unordered_map<uint32_t, D3D_FEATURE_LEVEL> s_AvaliableFeatureLevels;
 
+		D3D_FEATURE_LEVEL m_FeatureLevel;
 		ComPointer<IDXGISwapChain4> m_SwapChain;
 		ComPointer<ID3D12Resource2>* m_RenderTargets;
 		ComPointer<ID3D12DescriptorHeap> m_RTVHeap;
 		D3D12_CPU_DESCRIPTOR_HANDLE* m_RTVHandles;
-		ComPointer<ID3D12DescriptorHeap> m_DSVHeap;
 		ComPointer<ID3D12Resource2> m_DepthStencilView;
+		ComPointer<ID3D12DescriptorHeap> m_DSVHeap;
 		D3D12_CPU_DESCRIPTOR_HANDLE m_DSVHandle;
 		uint32_t m_FramesInFlight;
 		D3D12_CLEAR_VALUE m_ClearColor;
 
 		ComPointer<ID3D12CommandAllocator>* m_CommandAllocators;
-		ComPointer<ID3D12GraphicsCommandList6>* m_CommandLists;
+		ComPointer<ID3D12GraphicsCommandList10>* m_CommandLists;
 
 		UINT m_CurrentBufferIndex = -1;
 	};
