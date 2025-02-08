@@ -37,6 +37,8 @@ namespace Lust
 		uint32_t GetSmallBufferAttachment() const override;
 		uint32_t GetFramesInFlight() const override;
 
+		void FillRenderPass() override;
+		void SubmitRenderPass() override;
 		void ReceiveCommands() override;
 		void DispatchCommands() override;
 		void Present() override;

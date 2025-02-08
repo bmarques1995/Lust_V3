@@ -106,10 +106,12 @@ Lust::Application::Application()
 	m_Shader->UploadTexture2D(&m_Texture2);
 	m_VertexBuffer.reset(VertexBuffer::Instantiate(&m_Context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), layout.GetStride()));
 	m_IndexBuffer.reset(IndexBuffer::Instantiate(&m_Context, (const void*)&iBuffer[0], sizeof(iBuffer) / sizeof(uint32_t)));
+	m_Instrumentator.reset(GPUInstrumentator::Instantiate(&m_Context));
 }
 
 Lust::Application::~Application()
 {
+	m_Instrumentator.reset();
 	m_Texture2.reset();
 	m_Texture1.reset();
 	m_IndexBuffer.reset();
@@ -136,8 +138,6 @@ void Lust::Application::Run()
 		Timestep timestep = time - m_LastFrameTime;
 		m_LastFrameTime = time;
 		m_CommandEllapsed = time;
-		m_Window->OnUpdate();
-		m_ImguiWindowController->ReceiveInput();
 
 		if (Input::IsKeyPressed(Key::LUST_KEYCODE_F11) && (m_CommandEllapsed - m_LastCommand) > .2f)
 		{
@@ -147,33 +147,56 @@ void Lust::Application::Run()
 			m_Context->WindowResize(m_Window->GetWidth(), m_Window->GetHeight());
 		}
 
-		m_Context->ReceiveCommands();
-		m_Context->StageViewportAndScissors();
-		
-		m_Shader->Stage();
-		m_Shader->BindSmallBuffer(&m_SmallMVP.model(0, 0), sizeof(m_SmallMVP), 0);
-		m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 1);
-		m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 2, 1);
-		m_Shader->BindDescriptors();
-		m_VertexBuffer->Stage();
-		m_IndexBuffer->Stage();
-		m_Context->Draw(m_IndexBuffer->GetCount());
-		
-		for (Layer* layer : m_LayerStack)
-			layer->OnUpdate(timestep);
-
-		m_ImguiContext->ReceiveInput();
-		ImguiContext::StartFrame();
+		m_Window->OnUpdate();
+		if (!m_Window->IsMinimized())
 		{
-			for (Layer* layer : m_LayerStack)
-				layer->OnImGuiRender();
+			try
+			{
 
+				m_Context->ReceiveCommands();
+				m_Instrumentator->BeginQueryTime();
+				m_Context->FillRenderPass();
+				m_Context->StageViewportAndScissors();
+				m_ImguiWindowController->ReceiveInput();
+				{
+					for (Layer* layer : m_LayerStack)
+						layer->OnUpdate(timestep);
+					//m_Context->Draw(m_IndexBuffer->GetCount());
+
+					m_Shader->Stage();
+					m_Shader->BindSmallBuffer(&m_SmallMVP.model(0, 0), sizeof(m_SmallMVP), 0);
+					m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 1);
+					m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 2, 1);
+					m_Shader->BindDescriptors();
+					m_VertexBuffer->Stage();
+					m_IndexBuffer->Stage();
+					m_Context->Draw(m_IndexBuffer->GetCount());
+
+
+					m_ImguiContext->ReceiveInput();
+					ImguiContext::StartFrame();
+					{
+						for (Layer* layer : m_LayerStack)
+							layer->OnImGuiRender();
+
+					}
+					ImguiContext::EndFrame();
+					m_ImguiContext->DispatchInput();
+
+
+				}
+				m_Context->SubmitRenderPass();
+				m_Instrumentator->EndQueryTime();
+				m_Context->DispatchCommands();
+				Console::CoreLog("Ellapsed time: {}", m_Instrumentator->GetQueryTime());
+				m_Context->Present();
+			}
+			catch (GraphicsException e)
+			{
+				Console::CoreError("Caught error: {}", e.what());
+				exit(2);
+			}
 		}
-		ImguiContext::EndFrame();
-		m_ImguiContext->DispatchInput();
-
-		m_Context->DispatchCommands();
-		m_Context->Present();
 	}
 }
 

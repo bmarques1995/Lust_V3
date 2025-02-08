@@ -73,9 +73,8 @@ uint32_t Lust::D3D12Context::GetFramesInFlight() const
 	return m_FramesInFlight;
 }
 
-void Lust::D3D12Context::ReceiveCommands()
+void Lust::D3D12Context::FillRenderPass()
 {
-	m_CurrentBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
 	auto backBuffer = m_RenderTargets[m_CurrentBufferIndex];
 	auto rtvHandle = m_RTVHandles[m_CurrentBufferIndex];
 	auto dsvHandle = m_DSVHandle;
@@ -104,10 +103,9 @@ void Lust::D3D12Context::ReceiveCommands()
 	depthStencilDesc.DepthEndingAccess.Type = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 
 	m_CommandLists[m_CurrentBufferIndex]->BeginRenderPass(1, &renderTargetDesc, &depthStencilDesc, D3D12_RENDER_PASS_FLAG_NONE);
-	//m_CommandLists[m_CurrentBufferIndex]->BeginRenderPass(1, &renderTargetDesc, nullptr, D3D12_RENDER_PASS_FLAG_NONE);
 }
 
-void Lust::D3D12Context::DispatchCommands()
+void Lust::D3D12Context::SubmitRenderPass()
 {
 	auto backBuffer = m_RenderTargets[m_CurrentBufferIndex];
 
@@ -122,7 +120,15 @@ void Lust::D3D12Context::DispatchCommands()
 	m_CommandLists[m_CurrentBufferIndex]->EndRenderPass();
 
 	m_CommandLists[m_CurrentBufferIndex]->ResourceBarrier(1, &rtSetupBarrier);
+}
 
+void Lust::D3D12Context::ReceiveCommands()
+{
+	m_CurrentBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
+}
+
+void Lust::D3D12Context::DispatchCommands()
+{
 	// === Execute commands ===
 	auto hr = m_CommandLists[m_CurrentBufferIndex]->Close();
 

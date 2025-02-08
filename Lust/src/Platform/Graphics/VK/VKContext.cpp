@@ -131,6 +131,30 @@ uint32_t Lust::VKContext::GetFramesInFlight() const
     return m_FramesInFlight;
 }
 
+void Lust::VKContext::FillRenderPass()
+{
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = m_RenderPass;
+    renderPassInfo.framebuffer = m_SwapChainFramebuffers[m_CurrentImageIndex];
+    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.extent = m_SwapChainExtent;
+
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = m_ClearColor;
+    clearValues[1].depthStencil = { 1.0f, 0 };
+
+    renderPassInfo.clearValueCount = clearValues.size();
+    renderPassInfo.pClearValues = clearValues.data();
+
+    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentBufferIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void Lust::VKContext::SubmitRenderPass()
+{
+    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentBufferIndex]);
+}
+
 void Lust::VKContext::ReceiveCommands()
 {
     vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentBufferIndex], VK_TRUE, UINT64_MAX);
@@ -156,27 +180,11 @@ void Lust::VKContext::ReceiveCommands()
         throw std::runtime_error("failed to begin recording command buffer!");
     }
 
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = m_RenderPass;
-    renderPassInfo.framebuffer = m_SwapChainFramebuffers[m_CurrentImageIndex];
-    renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = m_SwapChainExtent;
-
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = m_ClearColor;
-    clearValues[1].depthStencil = { 1.0f, 0 };
-
-    renderPassInfo.clearValueCount = clearValues.size();
-    renderPassInfo.pClearValues = clearValues.data();
-
-    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentBufferIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+   
 }
 
 void Lust::VKContext::DispatchCommands()
 {
-    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentBufferIndex]);
-
     if (vkEndCommandBuffer(m_CommandBuffers[m_CurrentBufferIndex]) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
     }

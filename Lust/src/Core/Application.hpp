@@ -9,6 +9,7 @@
 #include "LayerStack.hpp"
 #include "ApplicationStarter.hpp"
 #include "GraphicsContext.hpp"
+#include "GPUInstrumentator.hpp"
 #include "CopyPipeline.hpp"
 #include "Texture.hpp"
 #include "ImguiWindowController.hpp"
@@ -96,6 +97,7 @@ namespace Lust
 		std::shared_ptr<Texture2D> m_Texture2;
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
+		std::shared_ptr<GPUInstrumentator> m_Instrumentator;
 		
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.0f;

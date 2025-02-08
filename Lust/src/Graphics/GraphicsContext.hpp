@@ -31,6 +31,8 @@ namespace Lust
 		virtual uint32_t GetSmallBufferAttachment() const = 0;
 		virtual uint32_t GetFramesInFlight() const = 0;
 
+		virtual void FillRenderPass() = 0;
+		virtual void SubmitRenderPass() = 0;
 		virtual void ReceiveCommands() = 0;
 		virtual void DispatchCommands() = 0;
 		virtual void Present() = 0;
