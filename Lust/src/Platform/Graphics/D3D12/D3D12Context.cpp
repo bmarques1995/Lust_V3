@@ -322,6 +322,7 @@ void Lust::D3D12Context::CreateSwapChain(HWND windowHandle)
 	m_DXGIFactory->CreateSwapChainForHwnd(m_CommandQueue.Get(), windowHandle, &swapChainDesc, &fullscreenDesc, nullptr, &swapChain);
 	//m_DXGIFactory->CreateSwapChainForHwnd(m_CommandQueue.Get(), windowHandle, &swapChainDesc, nullptr, nullptr, &swapChain);
 	swapChain->QueryInterface(IID_PPV_ARGS(m_SwapChain.GetAddressOf()));
+	m_SwapChain->SetMaximumFrameLatency(m_FramesInFlight);
 }
 
 void Lust::D3D12Context::CreateRenderTargetView()
