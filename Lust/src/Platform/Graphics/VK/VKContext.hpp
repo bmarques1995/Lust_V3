@@ -67,13 +67,14 @@ namespace Lust
 		//Master
 		void CreateInstance();
 
+		bool CheckLayerSupport(uint32_t vkVersion, const std::vector<const char*>& layerList);
 
 #ifdef LUST_DEBUG_MODE
 		VkDebugUtilsMessengerEXT m_DebugMessenger;
 
 		//Master
 		void SetupDebugMessage();
-		bool CheckValidationLayerSupport(uint32_t vkVersion);
+		
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 		void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);

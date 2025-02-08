@@ -13,8 +13,9 @@ const std::vector<const char*> Lust::VKContext::s_ValidationLayers =
 {
     "VK_LAYER_KHRONOS_validation"
 };
+#endif
 
-bool Lust::VKContext::CheckValidationLayerSupport(uint32_t vkVersion)
+bool Lust::VKContext::CheckLayerSupport(uint32_t vkVersion, const std::vector<const char*>& layerList)
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -22,7 +23,7 @@ bool Lust::VKContext::CheckValidationLayerSupport(uint32_t vkVersion)
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : s_ValidationLayers) {
+    for (const char* layerName : layerList) {
         bool layerFound = false;
 
         for (const auto& layerProperties : availableLayers) {
@@ -40,7 +41,7 @@ bool Lust::VKContext::CheckValidationLayerSupport(uint32_t vkVersion)
     return true;
 }
 
-#endif
+
 
 const std::vector<const char*> Lust::VKContext::deviceExtensions =
 {
@@ -50,11 +51,8 @@ const std::vector<const char*> Lust::VKContext::deviceExtensions =
 Lust::VKContext::VKContext(const Window* windowHandle, uint32_t framesInFlight) :
     m_FramesInFlight(framesInFlight), m_IsVSyncEnabled(true)
 {
-    //#d35400
-    m_ClearColor.float32[0] = 0xd3 / 255.0f;
-    m_ClearColor.float32[1] = 0x54 / 255.0f;
-    m_ClearColor.float32[2] = 0.0f;
-    m_ClearColor.float32[3] = 1.0f;
+    //#c0392b
+    SetClearColor(0xc0 / 255.0f, 0x39 / 255.0f, 0x2b / 255.0f, 1.0f);
 
     m_IsWindowClosing = windowHandle->TrackWindowClosing();
 
@@ -329,7 +327,7 @@ void Lust::VKContext::CreateInstance()
     uint32_t vkVersion = VK_MAKE_API_VERSION(0, 1, 4, 304);
     VkResult vkr;
 #ifdef LUST_DEBUG_MODE
-    assert(CheckValidationLayerSupport(vkVersion));
+    assert(CheckLayerSupport(vkVersion, s_ValidationLayers));
 #endif
 
     VkApplicationInfo appInfo{};
@@ -354,25 +352,33 @@ void Lust::VKContext::CreateInstance()
     m_InstanceExtensions.push_back("VK_EXT_debug_utils");
 #endif
 
+    m_InstanceExtensions.push_back("VK_EXT_layer_settings");
+
     createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensions.size());
     createInfo.ppEnabledExtensionNames = m_InstanceExtensions.data();
 
-#ifdef LUST_DEBUG_MODE
+    std::vector<const char*> layers;
+    layers.push_back("VK_LAYER_KHRONOS_synchronization2");
 
+    assert(CheckLayerSupport(vkVersion, layers));
+
+#ifdef RENDER_DEBUG_MODE
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
-    createInfo.enabledLayerCount = static_cast<uint32_t>(s_ValidationLayers.size());
-    createInfo.ppEnabledLayerNames = s_ValidationLayers.data();
+    layers.push_back("VK_LAYER_KHRONOS_validation");
 
     PopulateDebugMessengerCreateInfo(debugCreateInfo);
     createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 #else
 
-    createInfo.enabledLayerCount = 0;
-
     createInfo.pNext = nullptr;
+
 #endif
+
+    createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+    createInfo.ppEnabledLayerNames = layers.data();
+
     vkr = vkCreateInstance(&createInfo, nullptr, &m_Instance);
     assert(vkr == VK_SUCCESS);
 }
