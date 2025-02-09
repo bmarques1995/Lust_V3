@@ -8,7 +8,7 @@ namespace Lust {
 	class LUST_API RenderCommand
 	{
 	public:
-		static void Init(const std::shared_ptr<GraphicsContext>* context)
+		static void Init(const GraphicsContext* context)
 		{
 			s_Drawer.reset(Drawer::Instantiate(context));
 		}

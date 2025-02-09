@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-Lust::VKTexture2D::VKTexture2D(const std::shared_ptr<VKContext>* context, const TextureElement& specification) :
+Lust::VKTexture2D::VKTexture2D(const VKContext* context, const TextureElement& specification) :
     m_Context(context), m_Specification(specification)
 {
     m_Loaded = false;
@@ -17,7 +17,7 @@ Lust::VKTexture2D::VKTexture2D(const std::shared_ptr<VKContext>* context, const 
 
 Lust::VKTexture2D::~VKTexture2D()
 {
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     vkDeviceWaitIdle(device);
     vkDestroyImageView(device, m_ResourceView, nullptr);
     vkFreeMemory(device, m_Memory, nullptr);
@@ -62,7 +62,7 @@ VkImageView Lust::VKTexture2D::GetView() const
 void Lust::VKTexture2D::CreateResource()
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
     VkImageCreateInfo imageInfo{};
@@ -117,7 +117,7 @@ void Lust::VKTexture2D::CreateResource()
 void Lust::VKTexture2D::CopyBuffer()
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     std::shared_ptr<VKCopyPipeline>* copyPipeline = (std::shared_ptr<VKCopyPipeline>*)
         (Application::GetInstance()->GetCopyPipeline());
 
@@ -244,7 +244,7 @@ void Lust::VKTexture2D::CopyBuffer()
 
 uint32_t Lust::VKTexture2D::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
-    auto adapter = (*m_Context)->GetAdapter();
+    auto adapter = m_Context->GetAdapter();
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(adapter, &memProperties);
 

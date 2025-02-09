@@ -10,7 +10,7 @@ namespace Lust
 	class LUST_API D3D12Texture2D : public Texture2D
 	{
 	public:
-		D3D12Texture2D(const std::shared_ptr<D3D12Context>* context, const TextureElement& specification);
+		D3D12Texture2D(const D3D12Context* context, const TextureElement& specification);
 		~D3D12Texture2D();
 
 		const TextureElement& GetTextureDescription() const override;
@@ -29,7 +29,7 @@ namespace Lust
 
 		static D3D12_RESOURCE_DIMENSION GetNativeTensor(TextureTensor tensor);
 
-		const std::shared_ptr<D3D12Context>* m_Context;
+		const D3D12Context* m_Context;
 		bool m_Loaded;
 		TextureElement m_Specification;
 

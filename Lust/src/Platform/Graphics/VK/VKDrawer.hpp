@@ -10,13 +10,13 @@ namespace Lust
 	class LUST_API VKDrawer : public Drawer
 	{
 	public:
-		VKDrawer(const std::shared_ptr<VKContext>* context);
+		VKDrawer(const VKContext* context);
 		~VKDrawer();
 
 		void Draw(uint32_t count) override;
 		void DrawIndexed(uint32_t count) override;
 	private:
-		const std::shared_ptr<VKContext>* m_Context;
+		const VKContext* m_Context;
 	};
 }
 

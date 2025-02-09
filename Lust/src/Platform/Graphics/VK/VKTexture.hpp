@@ -8,7 +8,7 @@ namespace Lust
 	class LUST_API VKTexture2D : public Texture2D
 	{
 	public:
-		VKTexture2D(const std::shared_ptr<VKContext>* context, const TextureElement& specification);
+		VKTexture2D(const VKContext* context, const TextureElement& specification);
 		~VKTexture2D();
 
 		const TextureElement& GetTextureDescription() const override;
@@ -39,7 +39,7 @@ namespace Lust
 		static VkImageType GetNativeTensor(TextureTensor tensor);
 		static VkImageViewType GetNativeTensorView(TextureTensor tensor);
 
-		const std::shared_ptr<VKContext>* m_Context;
+		const VKContext* m_Context;
 		bool m_Loaded;
 
 		TextureElement m_Specification;

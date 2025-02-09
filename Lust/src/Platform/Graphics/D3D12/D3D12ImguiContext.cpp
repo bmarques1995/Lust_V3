@@ -5,11 +5,11 @@
 
 Lust::DescriptorHeapAllocator* Lust::D3D12ImguiContext::s_DescriptorHeapImguiAllocator = nullptr;
 
-Lust::D3D12ImguiContext::D3D12ImguiContext(const std::shared_ptr<D3D12Context>* d3d12Context) :
-	m_Context(d3d12Context)
+Lust::D3D12ImguiContext::D3D12ImguiContext(const D3D12Context* context) :
+	m_Context(context)
 {
     HRESULT hr;
-    auto device = (*m_Context)->GetDevicePtr();
+    auto device = m_Context->GetDevicePtr();
     const uint32_t APP_SRV_HEAP_SIZE = 64;
     D3D12_DESCRIPTOR_HEAP_DESC desc = {};
     desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -22,8 +22,8 @@ Lust::D3D12ImguiContext::D3D12ImguiContext(const std::shared_ptr<D3D12Context>* 
 
     ImGui_ImplDX12_InitInfo init_info = {};
     init_info.Device = device;
-    init_info.CommandQueue = (*m_Context)->GetCommandQueue();
-    init_info.NumFramesInFlight = (*m_Context)->GetFramesInFlight();
+    init_info.CommandQueue = m_Context->GetCommandQueue();
+    init_info.NumFramesInFlight = m_Context->GetFramesInFlight();
     init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     init_info.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     // Allocating SRV descriptors (for textures) is up to the application, so we provide callbacks.
@@ -55,14 +55,14 @@ Lust::D3D12ImguiContext::~D3D12ImguiContext()
 
 void Lust::D3D12ImguiContext::ReceiveInput()
 {
-    auto cmdList = (*m_Context)->GetCurrentCommandList();
+    auto cmdList = m_Context->GetCurrentCommandList();
     cmdList->SetDescriptorHeaps(1, m_ImGuiHeap.GetAddressOf());
     ImGui_ImplDX12_NewFrame();
 }
 
 void Lust::D3D12ImguiContext::DispatchInput()
 {
-    auto cmdList = (*m_Context)->GetCurrentCommandList();
+    auto cmdList = m_Context->GetCurrentCommandList();
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
 }
 

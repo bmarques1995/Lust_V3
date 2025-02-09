@@ -12,6 +12,6 @@ namespace Lust
 
 		virtual void Wait() = 0;
 
-		static CopyPipeline* Instantiate(const std::shared_ptr<GraphicsContext>* context);
+		static CopyPipeline* Instantiate(const GraphicsContext* context);
 	};
 }

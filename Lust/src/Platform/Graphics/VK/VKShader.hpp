@@ -18,7 +18,7 @@ namespace Lust
 	class LUST_API VKShader : public Shader
 	{
 	public:
-		VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputInfo inputInfo);
+		VKShader(const VKContext* context, std::string json_controller_path, InputInfo inputInfo);
 		~VKShader();
 
 		void Stage() override;
@@ -80,7 +80,7 @@ namespace Lust
 		std::unordered_map<uint32_t, VkDescriptorSet> m_DescriptorSets;
 		std::vector<VkDescriptorSet> m_BindableDescriptorSets;
 
-		const std::shared_ptr<VKContext>* m_Context;
+		const VKContext* m_Context;
 		VkPipeline m_GraphicsPipeline;
 		VkPipelineLayout m_PipelineLayout;
 	};

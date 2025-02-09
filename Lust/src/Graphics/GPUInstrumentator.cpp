@@ -5,7 +5,7 @@
 #endif
 #include "VKInstrumentator.hpp"
 
-Lust::GPUInstrumentator* Lust::GPUInstrumentator::Instantiate(const std::shared_ptr<GraphicsContext>* context)
+Lust::GPUInstrumentator* Lust::GPUInstrumentator::Instantiate(const GraphicsContext* context)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	switch (api)
@@ -13,12 +13,12 @@ Lust::GPUInstrumentator* Lust::GPUInstrumentator::Instantiate(const std::shared_
 #ifdef LUST_USES_WINDOWS
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
 	{
-		return new D3D12Instrumentator((const std::shared_ptr<D3D12Context>*)(context));
+		return new D3D12Instrumentator((const D3D12Context*)(context));
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
-		return new VKInstrumentator((const std::shared_ptr<VKContext>*)(context));
+		return new VKInstrumentator((const VKContext*)(context));
 	}
 	default:
 		break;

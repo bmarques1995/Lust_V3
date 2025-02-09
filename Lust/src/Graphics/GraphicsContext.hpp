@@ -46,5 +46,7 @@ namespace Lust
 		virtual void WindowResize(uint32_t width, uint32_t height) = 0;
 
 		static GraphicsContext* Instantiate(const Window* window, uint32_t framesInFlight = 3);
+
+	private:
 	};
 }

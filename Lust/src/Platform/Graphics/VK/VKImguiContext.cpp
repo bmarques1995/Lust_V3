@@ -13,22 +13,22 @@ int Lust::VKImguiContext::ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewpor
 }
 #endif
 
-Lust::VKImguiContext::VKImguiContext(const std::shared_ptr<VKContext>* vkContext) : 
+Lust::VKImguiContext::VKImguiContext(const VKContext* vkContext) :
 	m_Context(vkContext)
 {
 #ifdef LUST_USES_WINDOWS
 	ImGui::GetPlatformIO().Platform_CreateVkSurface = ImGui_ImplWin32_CreateVkSurface;
 #endif
 	ImGui_ImplVulkan_InitInfo vulkanInfo = {};
-	vulkanInfo.Instance = (*vkContext)->GetInstance();
-	vulkanInfo.PhysicalDevice = (*vkContext)->GetAdapter();
-	vulkanInfo.Device = (*vkContext)->GetDevice();
-	vulkanInfo.Queue = (*vkContext)->GetGraphicsQueue();
-	vulkanInfo.QueueFamily = (*vkContext)->GetGraphicsQueueFamilyIndex();
+	vulkanInfo.Instance = vkContext->GetInstance();
+	vulkanInfo.PhysicalDevice = vkContext->GetAdapter();
+	vulkanInfo.Device = vkContext->GetDevice();
+	vulkanInfo.Queue = vkContext->GetGraphicsQueue();
+	vulkanInfo.QueueFamily = vkContext->GetGraphicsQueueFamilyIndex();
 	vulkanInfo.DescriptorPoolSize = 2;
-	vulkanInfo.RenderPass = (*vkContext)->GetRenderPass();
-	vulkanInfo.MinImageCount = (*vkContext)->GetSwapchainImageCount();
-	vulkanInfo.ImageCount = (*vkContext)->GetSwapchainImageCount();
+	vulkanInfo.RenderPass = vkContext->GetRenderPass();
+	vulkanInfo.MinImageCount = vkContext->GetSwapchainImageCount();
+	vulkanInfo.ImageCount = vkContext->GetSwapchainImageCount();
 	ImGui_ImplVulkan_Init(&vulkanInfo);
 }
 
@@ -44,6 +44,6 @@ void Lust::VKImguiContext::ReceiveInput()
 
 void Lust::VKImguiContext::DispatchInput()
 {
-	auto cmdBuffer = (*m_Context)->GetCurrentCommandBuffer();
+	auto cmdBuffer = m_Context->GetCurrentCommandBuffer();
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmdBuffer);
 }

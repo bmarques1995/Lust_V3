@@ -19,7 +19,7 @@ namespace Lust
 	class LUST_API D3D12Shader : public Shader
 	{
 	public:
-		D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputInfo inputInfo);
+		D3D12Shader(const D3D12Context* context, std::string json_controller_path, InputInfo inputInfo);
 		~D3D12Shader();
 
 		void Stage() override;
@@ -70,7 +70,7 @@ namespace Lust
 
 		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
 
-		const std::shared_ptr<D3D12Context>* m_Context;
+		const D3D12Context* m_Context;
 		
 		D3D12_PRIMITIVE_TOPOLOGY m_RenderTopology;
 		ComPointer<IDxcUtils> m_DxcLib;

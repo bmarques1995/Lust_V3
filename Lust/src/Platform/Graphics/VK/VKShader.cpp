@@ -29,12 +29,12 @@ const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_Enum
     {AllowedStages::AMPLIFICATION_STAGE, VK_SHADER_STAGE_TASK_BIT_EXT},
 };
 
-Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string json_controller_path, InputInfo inputInfo) :
+Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_path, InputInfo inputInfo) :
     m_Context(context), Lust::Shader(inputInfo)
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
-    auto renderPass = (*m_Context)->GetRenderPass();
+    auto device = m_Context->GetDevice();
+    auto renderPass = m_Context->GetRenderPass();
 
     InitJsonAndPaths(json_controller_path, &(this->m_PipelineInfo), &(this->m_ShaderDir));
 
@@ -186,7 +186,7 @@ Lust::VKShader::VKShader(const std::shared_ptr<VKContext>* context, std::string 
 
 Lust::VKShader::~VKShader()
 {
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     vkDeviceWaitIdle(device);
     for (auto& i : m_Samplers)
     {
@@ -207,7 +207,7 @@ Lust::VKShader::~VKShader()
 
 void Lust::VKShader::Stage()
 {
-    auto commandBuffer = (*m_Context)->GetCurrentCommandBuffer();
+    auto commandBuffer = m_Context->GetCurrentCommandBuffer();
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 }
 
@@ -238,7 +238,7 @@ void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bin
             bindingFlag |= enumStage.second;
     }
     vkCmdPushConstants(
-        (*m_Context)->GetCurrentCommandBuffer(),
+        m_Context->GetCurrentCommandBuffer(),
         m_PipelineLayout,
         bindingFlag,
         m_SmallBufferLayout.GetElement(bindingSlot).GetOffset(), // Offset
@@ -249,7 +249,7 @@ void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bin
 
 void Lust::VKShader::BindDescriptors()
 {
-    auto commandBuffer = (*m_Context)->GetCurrentCommandBuffer();
+    auto commandBuffer = m_Context->GetCurrentCommandBuffer();
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
 }
 
@@ -265,7 +265,7 @@ void Lust::VKShader::UpdateCBuffer(const void* data, size_t size, const UniformE
 
 void Lust::VKShader::PreallocatesDescSets()
 {
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
 
     VkResult vkr;
     auto uniforms = m_UniformLayout.GetElements();
@@ -294,7 +294,7 @@ void Lust::VKShader::PreallocatesDescSets()
 void Lust::VKShader::CreateDescriptorSetLayout()
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
 
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 
@@ -369,7 +369,7 @@ void Lust::VKShader::CreateDescriptorSetLayout()
 void Lust::VKShader::CreateDescriptorPool()
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
 
     std::vector<VkDescriptorPoolSize> poolSize;
     auto uniformElements = m_UniformLayout.GetElements();
@@ -415,7 +415,7 @@ void Lust::VKShader::CreateDescriptorPool()
 void Lust::VKShader::CreateDescriptorSets()
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
 
     std::vector<VkWriteDescriptorSet> descriptorWrites;
     std::vector<VkDescriptorImageInfo> samplerInfos;
@@ -497,7 +497,7 @@ void Lust::VKShader::CreateDescriptorSets()
 void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture)
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
 
     VkWriteDescriptorSet descriptorWrite{};
     VkDescriptorImageInfo imageInfo{};
@@ -519,17 +519,17 @@ void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2
 
 bool Lust::VKShader::IsUniformValid(size_t size)
 {
-    return ((size % (*m_Context)->GetUniformAttachment()) == 0);
+    return ((size % m_Context->GetUniformAttachment()) == 0);
 }
 
 void Lust::VKShader::PreallocateUniform(const void* data, UniformElement uniformElement, uint32_t offset)
 {
     uint32_t bindingPoint = uniformElement.GetBindingSlot() + offset;
     if (!IsUniformValid(uniformElement.GetSize()))
-        throw AttachmentMismatchException(uniformElement.GetSize(), (*m_Context)->GetUniformAttachment());
+        throw AttachmentMismatchException(uniformElement.GetSize(), m_Context->GetUniformAttachment());
 
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     VkDeviceSize bufferSize = uniformElement.GetSize();
     m_Uniforms[bindingPoint] = {};
 
@@ -563,7 +563,7 @@ void Lust::VKShader::MapUniform(const void* data, size_t size, uint32_t shaderRe
 {
     VkResult vkr;
     void* gpuData;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     vkr = vkMapMemory(device, m_Uniforms[shaderRegister + offset].Memory, 0, size, 0, &gpuData);
     assert(vkr == VK_SUCCESS);
     memcpy(gpuData, data, size);
@@ -572,7 +572,7 @@ void Lust::VKShader::MapUniform(const void* data, size_t size, uint32_t shaderRe
 
 uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
-    auto adapter = (*m_Context)->GetAdapter();
+    auto adapter = m_Context->GetAdapter();
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(adapter, &memProperties);
 
@@ -588,8 +588,8 @@ uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
 void Lust::VKShader::CreateSampler(SamplerElement samplerElement)
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
-    auto adapter = (*m_Context)->GetAdapter();
+    auto device = m_Context->GetDevice();
+    auto adapter = m_Context->GetAdapter();
 
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(adapter, &properties);
@@ -626,7 +626,7 @@ void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCre
     if (m_Modules[stage.data()] != nullptr)
         return;
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
 
     std::string shaderName = m_PipelineInfo["BinShaders"][stage.data()]["filename"].asString();
     std::stringstream shaderFullPath;

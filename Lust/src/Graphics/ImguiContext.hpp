@@ -19,6 +19,6 @@ namespace Lust
 		virtual void ReceiveInput() = 0;
 		virtual void DispatchInput() = 0;
 
-		static ImguiContext* Instantiate(const std::shared_ptr<GraphicsContext>* graphicsContext);
+		static ImguiContext* Instantiate(const GraphicsContext* graphicsContext);
 	};
 }

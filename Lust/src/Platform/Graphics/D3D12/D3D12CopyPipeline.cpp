@@ -3,10 +3,10 @@
 #include "D3D12CopyPipeline.hpp"
 #include <cassert>
 
-Lust::D3D12CopyPipeline::D3D12CopyPipeline(const std::shared_ptr<D3D12Context>* context) :
+Lust::D3D12CopyPipeline::D3D12CopyPipeline(const D3D12Context* context) :
 	m_Context(context)
 {
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	m_CopyFenceEvent = CreateEventW(nullptr, false, false, nullptr);

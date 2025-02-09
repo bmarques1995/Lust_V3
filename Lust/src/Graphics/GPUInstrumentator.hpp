@@ -16,6 +16,6 @@ namespace Lust
 
 		virtual double GetQueryTime() = 0;
 
-		static GPUInstrumentator* Instantiate(const std::shared_ptr<GraphicsContext>* context);
+		static GPUInstrumentator* Instantiate(const GraphicsContext* context);
 	};
 }

@@ -27,13 +27,13 @@ namespace Lust
 	class D3D12ImguiContext : public ImguiContext
 	{
 	public:
-		D3D12ImguiContext(const std::shared_ptr<D3D12Context>* d3d12Context);
+		D3D12ImguiContext(const D3D12Context* context);
 		~D3D12ImguiContext();
 
 		void ReceiveInput() override;
         void DispatchInput() override;
 	private:
-        const std::shared_ptr<D3D12Context>* m_Context;
+        const D3D12Context* m_Context;
         ComPointer<ID3D12DescriptorHeap> m_ImGuiHeap;
         static DescriptorHeapAllocator* s_DescriptorHeapImguiAllocator;
 

@@ -47,7 +47,7 @@ void Lust::ImguiContext::EndFrame()
 	}
 }
 
-Lust::ImguiContext* Lust::ImguiContext::Instantiate(const std::shared_ptr<GraphicsContext>* graphicsContext)
+Lust::ImguiContext* Lust::ImguiContext::Instantiate(const GraphicsContext* graphicsContext)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	switch (api)
@@ -55,12 +55,12 @@ Lust::ImguiContext* Lust::ImguiContext::Instantiate(const std::shared_ptr<Graphi
 #ifdef LUST_USES_WINDOWS
 	case SAMPLE_RENDER_GRAPHICS_API_D3D12:
 	{
-		return new D3D12ImguiContext((const std::shared_ptr<D3D12Context>*)(graphicsContext));
+		return new D3D12ImguiContext((const D3D12Context*)(graphicsContext));
 	}
 #endif
 	case SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
-		return new VKImguiContext((const std::shared_ptr<VKContext>*)(graphicsContext));
+		return new VKImguiContext((const VKContext*)(graphicsContext));
 	}
 	default:
 		break;

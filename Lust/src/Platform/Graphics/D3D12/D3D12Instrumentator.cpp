@@ -4,11 +4,11 @@
 #include <cassert>
 #include <iostream>
 
-Lust::D3D12Instrumentator::D3D12Instrumentator(const std::shared_ptr<D3D12Context>* context) :
+Lust::D3D12Instrumentator::D3D12Instrumentator(const D3D12Context* context) :
 	m_Context(context), m_QueryCount(2)
 {
 	HRESULT hr;
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 
 	D3D12_QUERY_HEAP_DESC queryHeapDesc = {};
 	queryHeapDesc.Count = m_QueryCount;  // Number of queries (e.g., 2 for a start and end timestamp)
@@ -65,7 +65,7 @@ Lust::D3D12Instrumentator::D3D12Instrumentator(const std::shared_ptr<D3D12Contex
 		IID_PPV_ARGS(m_QueryVisibleBuffer.GetAddressOf()));
 	assert(hr == S_OK);
 
-	auto cmdQueue = (*m_Context)->GetCommandQueue();
+	auto cmdQueue = m_Context->GetCommandQueue();
 	cmdQueue->GetTimestampFrequency(&m_Frequency);
 }
 
@@ -75,14 +75,14 @@ Lust::D3D12Instrumentator::~D3D12Instrumentator()
 
 void Lust::D3D12Instrumentator::BeginQueryTime()
 {
-	auto cmdQueue = (*m_Context)->GetCommandQueue();
+	auto cmdQueue = m_Context->GetCommandQueue();
 	uint64_t CPUTickReference = 0;
 	cmdQueue->GetClockCalibration(&m_LastTime, &CPUTickReference);
 }
 
 void Lust::D3D12Instrumentator::EndQueryTime()
 {
-	auto cmdList = (*m_Context)->GetCurrentCommandList();
+	auto cmdList = m_Context->GetCurrentCommandList();
 	cmdList->EndQuery(m_QueryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0);
 	D3D12_RESOURCE_BARRIER barrier[2];
 

@@ -10,7 +10,7 @@ namespace Lust
 	class D3D12CopyPipeline : public CopyPipeline
 	{
 	public:
-		D3D12CopyPipeline(const std::shared_ptr<D3D12Context>* context);
+		D3D12CopyPipeline(const D3D12Context* context);
 		~D3D12CopyPipeline();
 
 		void Wait() override;
@@ -29,7 +29,7 @@ namespace Lust
 
 		void WaitCopyPipeline(UINT64 fenceValue = -1);
 
-		const std::shared_ptr<D3D12Context>* m_Context;
+		const D3D12Context* m_Context;
 	};
 }
 

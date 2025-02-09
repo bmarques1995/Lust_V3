@@ -24,13 +24,13 @@ Lust::Application::Application()
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
-	RenderCommand::Init(&m_Context);
-	m_CopyPipeline.reset(CopyPipeline::Instantiate(&m_Context));
+	RenderCommand::Init(m_Context.get());
+	m_CopyPipeline.reset(CopyPipeline::Instantiate(m_Context.get()));
 
 	ImguiContext::StartImgui();
 
 	m_ImguiWindowController.reset(ImguiWindowController::Instantiate(&m_Window));
-	m_ImguiContext.reset(ImguiContext::Instantiate(&m_Context));
+	m_ImguiContext.reset(ImguiContext::Instantiate(m_Context.get()));
 
 	std::stringstream buffer;
 	buffer << m_Window->GetTitle() <<" [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
@@ -50,7 +50,7 @@ Lust::Application::Application()
 		Console::CoreError("{}", e.what());
 	}
 
-	m_Instrumentator.reset(GPUInstrumentator::Instantiate(&m_Context));
+	m_Instrumentator.reset(GPUInstrumentator::Instantiate(m_Context.get()));
 	m_LayerStack.reset(new LayerStack());
 }
 

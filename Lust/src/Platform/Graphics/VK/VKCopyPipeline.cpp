@@ -1,11 +1,11 @@
 #include "VKCopyPipeline.hpp"
 #include <cassert>
 
-Lust::VKCopyPipeline::VKCopyPipeline(const std::shared_ptr<VKContext>* context) :
+Lust::VKCopyPipeline::VKCopyPipeline(const VKContext* context) :
     m_Context(context)
 {
-    auto device = (*m_Context)->GetDevice();
-    auto adapter = (*m_Context)->GetAdapter();
+    auto device = m_Context->GetDevice();
+    auto adapter = m_Context->GetAdapter();
     VkResult vkr;
 
     QueueFamilyIndices queueFamilyIndices = FindQueueFamilies(adapter);
@@ -32,7 +32,7 @@ Lust::VKCopyPipeline::VKCopyPipeline(const std::shared_ptr<VKContext>* context) 
 
 Lust::VKCopyPipeline::~VKCopyPipeline()
 {
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     vkDeviceWaitIdle(device);
 
     vkFreeCommandBuffers(device, m_CopyCommandPool, 1, &m_CopyCommandBuffer);
@@ -67,7 +67,7 @@ VkCommandPool Lust::VKCopyPipeline::GetCommandPool() const
 
 Lust::QueueFamilyIndices Lust::VKCopyPipeline::FindQueueFamilies(VkPhysicalDevice adapter)
 {
-    auto surface = (*m_Context)->GetSurface();
+    auto surface = m_Context->GetSurface();
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;

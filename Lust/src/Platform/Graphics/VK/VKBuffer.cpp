@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <cassert>
 
-Lust::VKBuffer::VKBuffer(const std::shared_ptr<VKContext>* context) :
+Lust::VKBuffer::VKBuffer(const VKContext* context) :
     m_Context(context)
 {
 }
@@ -10,7 +10,7 @@ Lust::VKBuffer::VKBuffer(const std::shared_ptr<VKContext>* context) :
 void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -36,9 +36,9 @@ void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
 
 void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-    auto commandPool = (*m_Context)->GetCommandPool();
-    auto device = (*m_Context)->GetDevice();
-    auto graphicsQueue = (*m_Context)->GetGraphicsQueue();
+    auto commandPool = m_Context->GetCommandPool();
+    auto device = m_Context->GetDevice();
+    auto graphicsQueue = m_Context->GetGraphicsQueue();
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -74,7 +74,7 @@ void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevice
 
 uint32_t Lust::VKBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
-    auto adapter = (*m_Context)->GetAdapter();
+    auto adapter = m_Context->GetAdapter();
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(adapter, &memProperties);
 
@@ -90,17 +90,17 @@ uint32_t Lust::VKBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
 
 void Lust::VKBuffer::DestroyBuffer()
 {
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     vkDeviceWaitIdle(device);
     vkDestroyBuffer(device, m_Buffer, nullptr);
     vkFreeMemory(device, m_BufferMemory, nullptr);
 }
 
-Lust::VKVertexBuffer::VKVertexBuffer(const std::shared_ptr<VKContext>* context, const void* data, size_t size, uint32_t stride) :
+Lust::VKVertexBuffer::VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride) :
     VKBuffer(context)
 {
     VkResult vkr;
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
@@ -126,17 +126,17 @@ Lust::VKVertexBuffer::~VKVertexBuffer()
 
 void Lust::VKVertexBuffer::Stage() const
 {
-    auto commandBuffer = (*m_Context)->GetCurrentCommandBuffer();
+    auto commandBuffer = m_Context->GetCurrentCommandBuffer();
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_Buffer, &offset);
 }
 
-Lust::VKIndexBuffer::VKIndexBuffer(const std::shared_ptr<VKContext>* context, const void* data, size_t count) :
+Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, size_t count) :
     VKBuffer(context)
 {
     m_Count = (uint32_t)count;
 
-    auto device = (*m_Context)->GetDevice();
+    auto device = m_Context->GetDevice();
 
     VkDeviceSize bufferSize = sizeof(uint32_t) * m_Count;
 
@@ -164,7 +164,7 @@ Lust::VKIndexBuffer::~VKIndexBuffer()
 
 void Lust::VKIndexBuffer::Stage() const
 {
-    auto commandBuffer = (*m_Context)->GetCurrentCommandBuffer();
+    auto commandBuffer = m_Context->GetCurrentCommandBuffer();
     vkCmdBindIndexBuffer(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 }
 

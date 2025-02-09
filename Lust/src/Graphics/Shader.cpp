@@ -61,7 +61,7 @@ const Lust::SamplerLayout& Lust::Shader::GetSamplerLayout() const
 	return m_SamplerLayout;
 }
 
-Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, const InputInfo& inputInfo)
+Lust::Shader* Lust::Shader::Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	std::stringstream controller_path;
@@ -73,14 +73,14 @@ Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* 
 	{
 		controller_path << ".d3d12.json";
 		std::string json_controller_path = controller_path.str();
-		return new D3D12Shader((const std::shared_ptr<D3D12Context>*)(context), json_controller_path, inputInfo);
+		return new D3D12Shader((const D3D12Context*)(context), json_controller_path, inputInfo);
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
 		controller_path << ".vk.json";
 		std::string json_controller_path = controller_path.str();
-		return new VKShader((const std::shared_ptr<VKContext>*)(context), json_controller_path, inputInfo);
+		return new VKShader((const VKContext*)(context), json_controller_path, inputInfo);
 	}
 	default:
 		break;

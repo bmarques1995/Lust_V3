@@ -3,7 +3,7 @@
 #include "D3D12Buffer.hpp"
 #include <cassert>
 
-Lust::D3D12Buffer::D3D12Buffer(const std::shared_ptr<D3D12Context>* context) :
+Lust::D3D12Buffer::D3D12Buffer(const D3D12Context* context) :
 	m_Context(context)
 {
 }
@@ -30,7 +30,7 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size)
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	
 	D3D12_RANGE readRange = { 0 };
 	hr = device->CreateCommittedResource2(
@@ -55,7 +55,7 @@ void Lust::D3D12Buffer::DestroyBuffer()
 	m_Buffer.Release();
 }
 
-Lust::D3D12VertexBuffer::D3D12VertexBuffer(const std::shared_ptr<D3D12Context>* context, const void* data, size_t size, uint32_t stride) :
+Lust::D3D12VertexBuffer::D3D12VertexBuffer(const D3D12Context* context, const void* data, size_t size, uint32_t stride) :
 	D3D12Buffer(context)
 {
 	CreateBuffer(data, size);
@@ -73,11 +73,11 @@ Lust::D3D12VertexBuffer::~D3D12VertexBuffer()
 
 void Lust::D3D12VertexBuffer::Stage() const
 {
-	auto cmdList = (*m_Context)->GetCurrentCommandList();
+	auto cmdList = m_Context->GetCurrentCommandList();
 	cmdList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
 }
 
-Lust::D3D12IndexBuffer::D3D12IndexBuffer(const std::shared_ptr<D3D12Context>* context, const void* data, size_t count) :
+Lust::D3D12IndexBuffer::D3D12IndexBuffer(const D3D12Context* context, const void* data, size_t count) :
 	D3D12Buffer(context)
 {
 	CreateBuffer(data, count * sizeof(uint32_t));
@@ -95,7 +95,7 @@ Lust::D3D12IndexBuffer::~D3D12IndexBuffer()
 
 void Lust::D3D12IndexBuffer::Stage() const
 {
-	auto cmdList = (*m_Context)->GetCurrentCommandList();
+	auto cmdList = m_Context->GetCurrentCommandList();
 	cmdList->IASetIndexBuffer(&m_IndexBufferView);
 }
 

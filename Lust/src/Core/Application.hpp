@@ -43,9 +43,9 @@ namespace Lust
 			return m_Window;
 		}
 
-		inline const std::shared_ptr<GraphicsContext>* GetContext() const
+		inline const GraphicsContext* GetContext() const
 		{
-			return (const std::shared_ptr<GraphicsContext>*) (&m_Context);
+			return m_Context.get();
 		}
 
 		void PushLayer(Layer* layer);

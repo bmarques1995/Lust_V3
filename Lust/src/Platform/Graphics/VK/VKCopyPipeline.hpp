@@ -8,7 +8,7 @@ namespace Lust
 	class LUST_API VKCopyPipeline : public CopyPipeline
 	{
 	public:
-		VKCopyPipeline(const std::shared_ptr<VKContext>* context);
+		VKCopyPipeline(const VKContext* context);
 		~VKCopyPipeline();
 
 		void Wait() override;
@@ -19,7 +19,7 @@ namespace Lust
 
 	private:
 		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice adapter);
-		const std::shared_ptr<VKContext>* m_Context;
+		const VKContext* m_Context;
 
 		VkCommandPool m_CopyCommandPool;
 		VkCommandBuffer m_CopyCommandBuffer;

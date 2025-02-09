@@ -6,7 +6,7 @@
 #include "Application.hpp"
 #include <vector>
 
-Lust::D3D12Texture2D::D3D12Texture2D(const std::shared_ptr<D3D12Context>* context, const TextureElement& specification) :
+Lust::D3D12Texture2D::D3D12Texture2D(const D3D12Context* context, const TextureElement& specification) :
 	m_Context(context), m_Specification(specification)
 {
 	m_Loaded = false;
@@ -56,7 +56,7 @@ void Lust::D3D12Texture2D::UpdateTextureInfo(const D3D12_RESOURCE_DESC1& desc)
 
 void Lust::D3D12Texture2D::CreateResource()
 {
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	D3D12_RESOURCE_DESC1 textureBufferDesc = {};
@@ -94,7 +94,7 @@ void Lust::D3D12Texture2D::CreateResource()
 void Lust::D3D12Texture2D::CopyBuffer()
 {
 	HRESULT hr;
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	ComPointer<ID3D12Resource2> textureBuffer;
 	std::shared_ptr<D3D12CopyPipeline>* copyPipeline = (std::shared_ptr<D3D12CopyPipeline>*)
 		(Application::GetInstance()->GetCopyPipeline());

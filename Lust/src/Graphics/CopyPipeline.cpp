@@ -5,7 +5,7 @@
 #endif
 #include "VKCopyPipeline.hpp"
 
-Lust::CopyPipeline* Lust::CopyPipeline::Instantiate(const std::shared_ptr<GraphicsContext>* context)
+Lust::CopyPipeline* Lust::CopyPipeline::Instantiate(const GraphicsContext* context)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	switch (api)
@@ -13,12 +13,12 @@ Lust::CopyPipeline* Lust::CopyPipeline::Instantiate(const std::shared_ptr<Graphi
 #ifdef LUST_USES_WINDOWS
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
 	{
-		return new D3D12CopyPipeline((const std::shared_ptr<D3D12Context>*)(context));
+		return new D3D12CopyPipeline((const D3D12Context*)(context));
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
-		return new VKCopyPipeline((const std::shared_ptr<VKContext>*)(context));
+		return new VKCopyPipeline((const VKContext*)(context));
 	}
 	default:
 		break;

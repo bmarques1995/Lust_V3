@@ -52,7 +52,7 @@ namespace Lust
 		virtual void BindDescriptors() = 0;
 		virtual void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) = 0;
 
-		static Shader* Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, const InputInfo& inputInfo);
+		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo);
 
 	protected:
 

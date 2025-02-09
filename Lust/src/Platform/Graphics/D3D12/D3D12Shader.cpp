@@ -40,11 +40,11 @@ const std::list<std::string> Lust::D3D12Shader::s_GraphicsPipelineStages =
 	"hs",
 };
 
-Lust::D3D12Shader::D3D12Shader(const std::shared_ptr<D3D12Context>* context, std::string json_controller_path, InputInfo inputInfo) :
+Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_controller_path, InputInfo inputInfo) :
 	m_Context(context), Lust::Shader(inputInfo)
 {
 	HRESULT hr;
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 
 	InitJsonAndPaths(json_controller_path, &(this->m_PipelineInfo), &(this->m_ShaderDir));
 	StartDXC();
@@ -154,7 +154,7 @@ Lust::D3D12Shader::~D3D12Shader()
 
 void Lust::D3D12Shader::Stage()
 {
-	auto cmdList = (*m_Context)->GetCurrentCommandList();
+	auto cmdList = m_Context->GetCurrentCommandList();
 	cmdList->IASetPrimitiveTopology(m_RenderTopology);
 	cmdList->SetGraphicsRootSignature(m_RootSignature.Get());
 	cmdList->SetPipelineState(m_GraphicsPipeline.Get());
@@ -179,15 +179,15 @@ void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t 
 {
 	if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
 		throw SizeMismatchException(size, m_SmallBufferLayout.GetElement(bindingSlot).GetSize());
-	auto cmdList = (*m_Context)->GetCurrentCommandList();
-	auto smallStride = (*m_Context)->GetSmallBufferAttachment();
+	auto cmdList = m_Context->GetCurrentCommandList();
+	auto smallStride = m_Context->GetSmallBufferAttachment();
 	cmdList->SetGraphicsRoot32BitConstants(bindingSlot, size / smallStride, data, m_SmallBufferLayout.GetElement(bindingSlot).GetOffset() / smallStride);
 }
 
 void Lust::D3D12Shader::BindDescriptors()
 {
 	
-	auto cmdList = (*m_Context)->GetCurrentCommandList();
+	auto cmdList = m_Context->GetCurrentCommandList();
 	for (auto& rootDescriptor : m_RootDescriptors)
 	{
 		uint64_t bufferLocation = (((uint64_t)rootDescriptor.first << 32) + 1);
@@ -222,7 +222,7 @@ void Lust::D3D12Shader::StartDXC()
 
 void Lust::D3D12Shader::CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture)
 {
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 
 	auto srvHeapStartHandle = m_TabledDescriptors[(*texture)->GetTextureDescription().GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
 	UINT srvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -244,7 +244,7 @@ void Lust::D3D12Shader::CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture
 
 void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex)
 {
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	D3D12_DESCRIPTOR_HEAP_DESC srvDescriptorHeapDesc{};
@@ -259,7 +259,7 @@ void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, ui
 
 void Lust::D3D12Shader::CreateSampler(SamplerElement samplerElement)
 {
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	D3D12_SAMPLER_DESC samplerDesc = {};
@@ -282,7 +282,7 @@ void Lust::D3D12Shader::CreateSampler(SamplerElement samplerElement)
 
 void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex)
 {
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	D3D12_DESCRIPTOR_HEAP_DESC srvDescriptorHeapDesc{};
@@ -297,16 +297,16 @@ void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, ui
 
 bool Lust::D3D12Shader::IsCBufferValid(size_t size)
 {
-	return ((size % (*m_Context)->GetUniformAttachment()) == 0);
+	return ((size % m_Context->GetUniformAttachment()) == 0);
 }
 
 void Lust::D3D12Shader::PreallocateRootCBuffer(const void* data, UniformElement uniformElement)
 {
 	uint64_t bufferLocation = (((uint64_t)uniformElement.GetShaderRegister() << 32) + 1);
 	if (!IsCBufferValid(uniformElement.GetSize()))
-		throw AttachmentMismatchException(uniformElement.GetSize(), (*m_Context)->GetSmallBufferAttachment());
+		throw AttachmentMismatchException(uniformElement.GetSize(), m_Context->GetSmallBufferAttachment());
 
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	m_CBVResources[bufferLocation] = nullptr;
@@ -366,9 +366,9 @@ void Lust::D3D12Shader::PreallocateRootCBuffer(const void* data, UniformElement 
 void Lust::D3D12Shader::PreallocateTabledCBuffer(const void* data, UniformElement uniformElement)
 {
 	if (!IsCBufferValid(uniformElement.GetSize()))
-		throw AttachmentMismatchException(uniformElement.GetSize(), (*m_Context)->GetSmallBufferAttachment());
+		throw AttachmentMismatchException(uniformElement.GetSize(), m_Context->GetSmallBufferAttachment());
 
-	auto device = (*m_Context)->GetDevicePtr();
+	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	// 4. Create the descriptor heap for CBVs
