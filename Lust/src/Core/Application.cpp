@@ -7,6 +7,7 @@
 #include "Input.hpp"
 #include "TextureLayout.hpp"
 #include "SamplerLayout.hpp"
+#include "Operations.hpp"
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -28,6 +29,7 @@ Lust::Application::Application()
 
 	m_Starter.reset(new ApplicationStarter("controller.json"));
 	Console::Init();
+	Renderer::Init();
 	m_Window.reset(Window::Instantiate());
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
@@ -42,6 +44,8 @@ Lust::Application::Application()
 	std::stringstream buffer;
 	buffer << "SampleRender Window [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
 	m_Window->ResetTitle(buffer.str());
+
+	m_Camera.reset(new OrthographicCamera(m_Window->GetWidth() * -.5f, m_Window->GetWidth() * .5f, m_Window->GetHeight() * -.5f, m_Window->GetHeight() *.5f));
 
 	try
 	{
@@ -72,13 +76,15 @@ Lust::Application::Application()
 
 	UniformLayout uniformsLayout(
 		{
-			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, m_Context->GetUniformAttachment() }, //
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, m_Context->GetUniformAttachment() } //
+			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
+			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, m_Context->GetUniformAttachment(), 1 }, //
+			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, m_Context->GetUniformAttachment(), 1 } //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	m_Texture1.reset(Texture2D::Instantiate(&m_Context, "./assets/textures/yor.png", 3, 0, 3, 0));
 	m_Texture2.reset(Texture2D::Instantiate(&m_Context, "./assets/textures/sample.png", 4, 0, 3, 1));
+
+	m_SmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), Eigen::Vector<float, 3>(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f));
 
 	TextureLayout textureLayout(
 		{
@@ -100,8 +106,8 @@ Lust::Application::Application()
 
 	m_Shader.reset(Shader::Instantiate(&m_Context, "./assets/shaders/HelloTriangle", inputInfoController));
 
-	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 1);
-	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 2, 1);
+	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
+	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(2));
 	m_Shader->UploadTexture2D(&m_Texture1);
 	m_Shader->UploadTexture2D(&m_Texture2);
 	m_VertexBuffer.reset(VertexBuffer::Instantiate(&m_Context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), layout.GetStride()));
@@ -124,6 +130,7 @@ Lust::Application::~Application()
 	m_Context.reset();
 	m_Window.reset();
 	m_Starter.reset();
+	Renderer::Shutdown();
 	Console::End();
 }
 
@@ -162,14 +169,11 @@ void Lust::Application::Run()
 					for (Layer* layer : m_LayerStack)
 						layer->OnUpdate(timestep);
 					//m_Context->Draw(m_IndexBuffer->GetCount());
-
-					m_Shader->Stage();
-					m_Shader->BindSmallBuffer(&m_SmallMVP.model(0, 0), sizeof(m_SmallMVP), 0);
-					m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 1, 1);
-					m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), 2, 1);
-					m_Shader->BindDescriptors();
-					m_VertexBuffer->Stage();
-					m_IndexBuffer->Stage();
+					Renderer::BeginScene(*(m_Camera.get()));
+					Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(1));
+					Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(2));
+					Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer, m_SmallMVP.model);
+					Renderer::EndScene();
 					m_Context->Draw(m_IndexBuffer->GetCount());
 
 

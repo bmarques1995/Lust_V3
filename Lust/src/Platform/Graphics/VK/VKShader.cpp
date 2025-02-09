@@ -253,8 +253,10 @@ void Lust::VKShader::BindDescriptors()
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
 }
 
-void Lust::VKShader::UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
+void Lust::VKShader::UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV)
 {
+    uint32_t shaderRegister = uploadCBV.GetShaderRegister();
+    uint32_t tableIndex = uploadCBV.GetTableIndex();
     if (m_UniformLayout.GetElement(shaderRegister).GetAccessLevel() == AccessLevel::ROOT_BUFFER)
         MapUniform(data, size, shaderRegister, 0);
     else

@@ -69,15 +69,13 @@ download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${LUST_HDRS} ${LUST_SRCS})
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Core>
-	$<INSTALL_INTERFACE:./Lust/Core>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Events>
-	$<INSTALL_INTERFACE:./Lust/Events>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Window>
-	$<INSTALL_INTERFACE:./Lust/Window>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics>
-	$<INSTALL_INTERFACE:./Lust/Graphics>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/MathOperations>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public>
 	$<INSTALL_INTERFACE:./Lust/third_party/imgui/public>
+	$<INSTALL_INTERFACE:./>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Window>
@@ -146,10 +144,12 @@ target_installation_behaviour(
 	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/ 
 				 ${CMAKE_CURRENT_SOURCE_DIR}/src/Events/
 				 ${CMAKE_CURRENT_SOURCE_DIR}/src/Window/
+				 ${CMAKE_CURRENT_SOURCE_DIR}/src/MathOperations/
 				 ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public
 	HEADER_OUTPUT ./include/Lust/Core
 				  ./include/Lust/Events
-				  ./include/Lust/Events
+				  ./include/Lust/Window
+				  ./include/Lust/MathOperations
 				  ./include/Lust/third_party/imgui/public)
 
 # TODO: Adicione testes e instale destinos, se necessário.

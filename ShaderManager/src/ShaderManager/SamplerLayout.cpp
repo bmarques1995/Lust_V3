@@ -1,5 +1,7 @@
 #include "SamplerLayout.hpp"
 
+Lust::SamplerElement Lust::SamplerLayout::s_EmptyElement = SamplerElement();
+
 Lust::SamplerElement::SamplerElement()
 {
 	m_AddressMode = AddressMode::REPEAT;
@@ -73,13 +75,17 @@ Lust::SamplerLayout::SamplerLayout(std::initializer_list<SamplerElement> element
 	}
 }
 
-const Lust::SamplerElement& Lust::SamplerLayout::GetElement(uint32_t shaderRegister, uint32_t samplerIndex)
+const Lust::SamplerElement& Lust::SamplerLayout::GetElement(uint32_t shaderRegister, uint32_t samplerIndex) const
 {
 	uint64_t samplerLocation = ((uint64_t)shaderRegister << 32) + samplerIndex;
-	return m_Samplers[samplerLocation];
+	auto it = m_Samplers.find(samplerLocation);
+	if (it != m_Samplers.end())
+		return it->second;
+	else
+		return s_EmptyElement;
 }
 
-const std::unordered_map<uint64_t, Lust::SamplerElement>& Lust::SamplerLayout::GetElements()
+const std::unordered_map<uint64_t, Lust::SamplerElement>& Lust::SamplerLayout::GetElements() const
 {
 	return m_Samplers;
 }

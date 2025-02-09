@@ -32,7 +32,7 @@ namespace Lust
 
 		void BindDescriptors() override;
 
-		void UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex) override;
+		void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) override;
 
 	private:
 		void StartDXC();

@@ -206,8 +206,10 @@ void Lust::D3D12Shader::BindDescriptors()
 	}
 }
 
-void Lust::D3D12Shader::UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
+void Lust::D3D12Shader::UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV)
 {
+	uint32_t shaderRegister = uploadCBV.GetShaderRegister();
+	uint32_t tableIndex = uploadCBV.GetTableIndex();
 	MapCBuffer(data, size, shaderRegister, tableIndex);
 }
 

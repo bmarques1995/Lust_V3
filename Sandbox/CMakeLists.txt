@@ -15,7 +15,7 @@ add_library(${TARGET_NAME} ${BUILD_TYPE} ${SANDBOX_HDRS} ${SANDBOX_SRCS})
 target_link_libraries(${TARGET_NAME} PUBLIC Lust)
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Sandbox>
-	$<INSTALL_INTERFACE:./Lust/Sandbox>
+	$<INSTALL_INTERFACE:./>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
 )

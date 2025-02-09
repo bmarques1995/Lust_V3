@@ -16,6 +16,7 @@
 #include "ImguiContext.hpp"
 #include "CSOCompiler.hpp"
 #include "SPVCompiler.hpp"
+#include "Renderer.hpp"
 #include "Shader.hpp"
 #include "Buffer.hpp"
 #include <Eigen/Eigen>
@@ -98,7 +99,8 @@ namespace Lust
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		std::shared_ptr<GPUInstrumentator> m_Instrumentator;
-		
+		std::shared_ptr<OrthographicCamera> m_Camera;
+
 		LayerStack m_LayerStack;
 		float m_LastFrameTime = 0.0f;
 		float m_LastCommand = .0f;

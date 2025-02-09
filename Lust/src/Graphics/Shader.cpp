@@ -36,6 +36,31 @@ Lust::Shader::Shader(InputInfo inputInfo)
 {
 }
 
+const Lust::InputBufferLayout& Lust::Shader::GetInputLayout() const
+{
+	return m_Layout;
+}
+
+const Lust::SmallBufferLayout& Lust::Shader::GetSmallBufferLayout() const
+{
+	return m_SmallBufferLayout;
+}
+
+const Lust::UniformLayout& Lust::Shader::GetUniformLayout() const
+{
+	return m_UniformLayout;
+}
+
+const Lust::TextureLayout& Lust::Shader::GetTextureLayout() const
+{
+	return m_TextureLayout;
+}
+
+const Lust::SamplerLayout& Lust::Shader::GetSamplerLayout() const
+{
+	return m_SamplerLayout;
+}
+
 Lust::Shader* Lust::Shader::Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, const InputInfo& inputInfo)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();

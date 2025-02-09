@@ -1,5 +1,6 @@
 set(TARGET_NAME Tests)
 
+file(GLOB_RECURSE TESTS_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE TESTS_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 if(WIN32)
@@ -10,8 +11,8 @@ endif()
 
 enable_testing()
 add_executable(${TARGET_NAME} ${TESTS_SRCS})
-target_include_directories(${TARGET_NAME} PRIVATE "${CMAKE_PREFIX_PATH}/include")
-target_link_libraries(${TARGET_NAME} PRIVATE GTest::gtest_main GTest::gtest GTest::gmock_main GTest::gmock glm::glm-header-only Eigen3::Eigen)
+target_include_directories(${TARGET_NAME} PRIVATE "${CMAKE_PREFIX_PATH}/include" "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(${TARGET_NAME} PRIVATE GTest::gtest_main GTest::gtest GTest::gmock_main GTest::gmock glm::glm-header-only Eigen3::Eigen Lust)
 set_cxx_project_standards(${TARGET_NAME} 20 FALSE)
 add_test(
     ${TARGET_NAME}

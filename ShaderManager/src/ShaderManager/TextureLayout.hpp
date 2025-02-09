@@ -55,13 +55,14 @@ namespace Lust
 	public:
 		TextureLayout(std::initializer_list<TextureElement> elements, uint32_t allowedStages);
 
-		const TextureElement& GetElement(uint32_t shaderRegister, uint32_t textureIndex);
-		const std::unordered_map<uint64_t, TextureElement>& GetElements();
+		const TextureElement& GetElement(uint32_t shaderRegister, uint32_t textureIndex) const;
+		const std::unordered_map<uint64_t, TextureElement>& GetElements() const;
 
 		uint32_t GetStages() const;
 
 	private:
 		std::unordered_map<uint64_t, TextureElement> m_Textures;
 		uint32_t m_Stages;
+		static TextureElement s_EmptyElement;
 	};
 }

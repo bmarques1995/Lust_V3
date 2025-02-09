@@ -34,6 +34,13 @@ namespace Lust
 	{
 	public:
 		Shader(InputInfo inputInfo);
+
+		const InputBufferLayout& GetInputLayout() const;
+		const SmallBufferLayout& GetSmallBufferLayout() const;
+		const UniformLayout& GetUniformLayout() const;
+		const TextureLayout& GetTextureLayout() const;
+		const SamplerLayout& GetSamplerLayout() const;
+
 		virtual ~Shader() = default;
 		virtual void Stage() = 0;
 		virtual uint32_t GetStride() const = 0;
@@ -43,7 +50,7 @@ namespace Lust
 
 		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot) = 0;
 		virtual void BindDescriptors() = 0;
-		virtual void UpdateCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex) = 0;
+		virtual void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) = 0;
 
 		static Shader* Instantiate(const std::shared_ptr<GraphicsContext>* context, std::string json_basepath, const InputInfo& inputInfo);
 

@@ -17,7 +17,7 @@ add_library(${TARGET_NAME} ${LIB_TYPE} ${SHADER_MNG_HDRS} ${SHADER_MNG_SRCS})
 target_include_directories(${TARGET_NAME} PUBLIC 
 
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/ShaderManager>
-	$<INSTALL_INTERFACE:./Lust/ShaderManager>
+	$<INSTALL_INTERFACE:./>
 	$<BUILD_INTERFACE:${CMAKE_PREFIX_PATH}/include/dxc>
 )
 if(WIN32)

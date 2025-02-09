@@ -1,6 +1,9 @@
 #include "UniformsLayout.hpp"
 #include <sstream>
 
+Lust::SmallBufferElement Lust::SmallBufferLayout::s_EmptyElement = Lust::SmallBufferElement();
+Lust::UniformElement Lust::UniformLayout::s_EmptyElement = Lust::UniformElement();
+
 Lust::AttachmentMismatchException::AttachmentMismatchException(size_t bufferSize, size_t expectedBufferAttachment)
 {
 	std::stringstream buffer;
@@ -59,12 +62,16 @@ Lust::SmallBufferLayout::SmallBufferLayout(std::initializer_list<SmallBufferElem
 	}
 }
 
-const Lust::SmallBufferElement& Lust::SmallBufferLayout::GetElement(uint32_t bindingSlot)
+const Lust::SmallBufferElement& Lust::SmallBufferLayout::GetElement(uint32_t bindingSlot) const
 {
-	return m_Buffers[bindingSlot];
+	auto it = m_Buffers.find(bindingSlot);
+	if (it != m_Buffers.end())
+		return it->second;
+	else
+		return s_EmptyElement;
 }
 
-const std::unordered_map<uint32_t, Lust::SmallBufferElement>& Lust::SmallBufferLayout::GetElements()
+const std::unordered_map<uint32_t, Lust::SmallBufferElement>& Lust::SmallBufferLayout::GetElements() const
 {
 	return m_Buffers;
 }
@@ -83,12 +90,13 @@ Lust::UniformElement::UniformElement()
 	m_SpaceSet = 0;
 	m_AccessLevel = AccessLevel::ROOT_BUFFER;
 	m_NumberOfBuffers = 1;
+	m_TableIndex = 1;
 }
 
 
 //BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferAttachment
-Lust::UniformElement::UniformElement(BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment) :
-	m_BufferType(bufferType), m_Size(size), m_BindingSlot(bindingSlot), m_SpaceSet(spaceSet), m_ShaderRegister(shaderRegister), m_AccessLevel(accessLevel), m_NumberOfBuffers(numberOfBuffers)
+Lust::UniformElement::UniformElement(BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex) :
+	m_BufferType(bufferType), m_Size(size), m_BindingSlot(bindingSlot), m_SpaceSet(spaceSet), m_ShaderRegister(shaderRegister), m_AccessLevel(accessLevel), m_NumberOfBuffers(numberOfBuffers), m_TableIndex(tableIndex)
 {
 	if (!IsSizeValid(bufferAttachment))
 		throw AttachmentMismatchException(size, bufferAttachment);
@@ -131,6 +139,11 @@ uint32_t Lust::UniformElement::GetNumberOfBuffers() const
 	return m_NumberOfBuffers;
 }
 
+uint32_t Lust::UniformElement::GetTableIndex() const
+{
+	return m_TableIndex;
+}
+
 bool Lust::UniformElement::IsSizeValid(uint32_t bufferAttachment)
 {
 	return ((m_Size % bufferAttachment) == 0);
@@ -145,12 +158,16 @@ Lust::UniformLayout::UniformLayout(std::initializer_list<UniformElement> m_Eleme
 	}
 }
 
-const Lust::UniformElement& Lust::UniformLayout::GetElement(uint32_t shaderRegister)
+const Lust::UniformElement& Lust::UniformLayout::GetElement(uint32_t shaderRegister) const
 {
-	return m_Buffers[shaderRegister];
+	auto it = m_Buffers.find(shaderRegister);
+	if (it != m_Buffers.end())
+		return it->second;
+	else
+		return s_EmptyElement;
 }
 
-const std::unordered_map<uint32_t, Lust::UniformElement>& Lust::UniformLayout::GetElements()
+const std::unordered_map<uint32_t, Lust::UniformElement>& Lust::UniformLayout::GetElements() const
 {
 	return m_Buffers;
 }

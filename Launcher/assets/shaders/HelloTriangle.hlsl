@@ -80,8 +80,8 @@ PSInput vs_main(VSInput vsInput)
 {
     PSInput vsoutput;
     vsoutput.pos = mul(float4(vsInput.pos, 1.0f), m_SmallMVP.M);
-    vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.M);
-    vsoutput.pos = mul(vsoutput.pos, m_SSBO.M);
+    vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
+    vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
     vsoutput.col = vsInput.col;
     vsoutput.txc = vsInput.txc;
     return vsoutput;

@@ -1,6 +1,8 @@
 #include "TextureLayout.hpp"
 #include <algorithm>
 
+Lust::TextureElement Lust::TextureLayout::s_EmptyElement = TextureElement();
+
 Lust::TextureElement::TextureElement()
 {
 	uint32_t whitePixel = 0xffffffff;
@@ -11,6 +13,10 @@ Lust::TextureElement::TextureElement()
 	m_ShaderRegister = 0;
 	m_SpaceSet = 0;
 	m_TextureIndex = 0;
+	m_Width = 1;
+	m_Height = 1;
+	m_MipsLevel = 1;
+	m_Channels = 4;
 }
 
 //std::shared_ptr<Image> img, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t samplerRegister, TextureTensor tensor, size_t depth = 1
@@ -101,7 +107,7 @@ void Lust::TextureElement::FreeImage()
 Lust::TextureLayout::TextureLayout(std::initializer_list<TextureElement> elements, uint32_t allowedStages) :
 	m_Stages(allowedStages)
 {
-		
+	s_EmptyElement = TextureElement();
 	for (auto& element : elements)
 	{
 		uint64_t textureLocation = ((uint64_t)element.GetShaderRegister() << 32) + element.GetTextureIndex();
@@ -109,13 +115,17 @@ Lust::TextureLayout::TextureLayout(std::initializer_list<TextureElement> element
 	}
 }
 
-const Lust::TextureElement& Lust::TextureLayout::GetElement(uint32_t shaderRegister, uint32_t textureIndex)
+const Lust::TextureElement& Lust::TextureLayout::GetElement(uint32_t shaderRegister, uint32_t textureIndex) const
 {
 	uint64_t textureLocation = ((uint64_t)shaderRegister << 32) + textureIndex;
-	return m_Textures[textureLocation];
+	auto it = m_Textures.find(textureLocation);
+	if (it != m_Textures.end())
+		return it->second;
+	else
+		return s_EmptyElement;
 }
 
-const std::unordered_map<uint64_t, Lust::TextureElement>& Lust::TextureLayout::GetElements()
+const std::unordered_map<uint64_t, Lust::TextureElement>& Lust::TextureLayout::GetElements() const
 {
 	return m_Textures;
 }
