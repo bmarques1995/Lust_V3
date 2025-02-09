@@ -2,6 +2,7 @@
 
 - [SDL3_v3.2.2](https://github.com/libsdl-org/SDL.git): License zlib
 - [Spdlog_v1.15.1](https://github.com/gabime/spdlog.git): License MIT
+- [JsonCpp_v1.96](https://github.com/open-source-parsers/jsoncpp.git): License MIT
 - [D3D12Core_v1.615.0](https://devblogs.microsoft.com/directx/gettingstarted-dx12agility/): Binary format, only downloaded
 - [Vulkan-Headers_v1.4.304](https://github.com/KhronosGroup/Vulkan-Headers.git): Licenses Apache 2.0 or MIT
 - [Vulkan-Loader_v1.4.304](https://github.com/KhronosGroup/Vulkan-Loader.git): Licenses Apache 2.0 or MIT
