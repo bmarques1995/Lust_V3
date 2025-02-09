@@ -41,6 +41,8 @@ namespace Lust
 		
 		void OnUpdate() override;
 
+		const std::string& GetTitle() const override;
+
 	private:
 
 		void StartGamepads();

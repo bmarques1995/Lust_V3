@@ -139,6 +139,11 @@ void Lust::SDL3Window::OnUpdate()
 	}
 }
 
+const std::string& Lust::SDL3Window::GetTitle() const
+{
+	return m_Title;
+}
+
 void Lust::SDL3Window::StartGamepads()
 {
 	int gamepadNumber;

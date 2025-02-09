@@ -33,6 +33,8 @@ namespace Lust
 
 		virtual void OnUpdate() = 0;
 
+		virtual const std::string& GetTitle() const = 0;
+
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
 

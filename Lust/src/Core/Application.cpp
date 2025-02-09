@@ -33,7 +33,7 @@ Lust::Application::Application()
 	m_ImguiContext.reset(ImguiContext::Instantiate(&m_Context));
 
 	std::stringstream buffer;
-	buffer << "SampleRender Window [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
+	buffer << m_Window->GetTitle() <<" [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
 	m_Window->ResetTitle(buffer.str());
 
 	try
