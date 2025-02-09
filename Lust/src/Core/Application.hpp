@@ -11,7 +11,7 @@
 #include "GraphicsContext.hpp"
 #include "GPUInstrumentator.hpp"
 #include "CopyPipeline.hpp"
-#include "Texture.hpp"
+
 #include "ImguiWindowController.hpp"
 #include "ImguiContext.hpp"
 #include "CSOCompiler.hpp"
@@ -43,65 +43,38 @@ namespace Lust
 			return m_Window;
 		}
 
+		inline const std::shared_ptr<GraphicsContext>* GetContext() const
+		{
+			return (const std::shared_ptr<GraphicsContext>*) (&m_Context);
+		}
+
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 
 		std::shared_ptr<CopyPipeline>* GetCopyPipeline();
-
-		static void EnableSingleton(Application* ptr);
+		
 		static Application* GetInstance();
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
-		Eigen::Vector<float, 9> m_VBuffer[4] =
-		{
-			{-.5f, -.5f, .2f, 1.0f, .0f, .0f, 1.0f,  0.0f, 1.0f },
-			{-.5f, .5f, .2f, .0f, 1.0f, .0f, 1.0f,  0.0f, 0.0f },
-			{.5f, -.5f, .2f, .0f, .0f, 1.0f, 1.0f,  1.0f, 1.0f},
-			{.5f, .5f, .2f, 1.0f, 1.0f, .0f, 1.0f,  1.0f, 0.0f},
-		};
+		static void EnableSingleton(Application* ptr);
 
-		uint32_t iBuffer[6] =
-		{
-			3,2,1,
-			1,2,0
-		};
-
-		struct SmallMVP
-		{
-			Eigen::Matrix4f model;
-		};
-
-		struct CompleteMVP
-		{
-			Eigen::Matrix4f model;
-			Eigen::Matrix4f view;
-			Eigen::Matrix4f projection;
-			Eigen::Matrix4f mipLevel;
-		};
-
-		SmallMVP m_SmallMVP;
-		CompleteMVP m_CompleteMVP;
+		
 
 		std::shared_ptr<CSOCompiler> m_CSOCompiler;
 		std::shared_ptr<SPVCompiler> m_SPVCompiler;
 
 		std::shared_ptr<Window> m_Window;
 		std::shared_ptr<ImguiWindowController> m_ImguiWindowController;
+		std::shared_ptr<GPUInstrumentator> m_Instrumentator;
 
 		std::shared_ptr<GraphicsContext> m_Context;
 		std::shared_ptr<ImguiContext> m_ImguiContext;
-		std::shared_ptr<Shader> m_Shader;
 		std::shared_ptr<CopyPipeline> m_CopyPipeline;
-		std::shared_ptr<Texture2D> m_Texture1;
-		std::shared_ptr<Texture2D> m_Texture2;
-		std::shared_ptr<VertexBuffer> m_VertexBuffer;
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;
-		std::shared_ptr<GPUInstrumentator> m_Instrumentator;
-		std::shared_ptr<OrthographicCamera> m_Camera;
+		
 
-		LayerStack m_LayerStack;
+		std::unique_ptr<LayerStack> m_LayerStack;
 		float m_LastFrameTime = 0.0f;
 		float m_LastCommand = .0f;
 		float m_CommandEllapsed = .0f;

@@ -8,6 +8,7 @@
 #include "TextureLayout.hpp"
 #include "SamplerLayout.hpp"
 #include "Operations.hpp"
+#include "RenderCommand.hpp"
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -16,24 +17,14 @@ Lust::Application::Application()
 {
 	EnableSingleton(this);
 
-	m_SmallMVP = {
-		Eigen::Matrix4f::Identity()
-	};
-
-	m_CompleteMVP = {
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity()
-	};
-
-	m_Starter.reset(new ApplicationStarter("controller.json"));
 	Console::Init();
 	Renderer::Init();
+	m_Starter.reset(new ApplicationStarter("controller.json"));
 	m_Window.reset(Window::Instantiate());
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
+	RenderCommand::Init(&m_Context);
 	m_CopyPipeline.reset(CopyPipeline::Instantiate(&m_Context));
 
 	ImguiContext::StartImgui();
@@ -44,8 +35,6 @@ Lust::Application::Application()
 	std::stringstream buffer;
 	buffer << "SampleRender Window [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
 	m_Window->ResetTitle(buffer.str());
-
-	m_Camera.reset(new OrthographicCamera(m_Window->GetWidth() * -.5f, m_Window->GetWidth() * .5f, m_Window->GetHeight() * -.5f, m_Window->GetHeight() *.5f));
 
 	try
 	{
@@ -61,72 +50,19 @@ Lust::Application::Application()
 		Console::CoreError("{}", e.what());
 	}
 
-	InputBufferLayout layout(
-		{
-			{ShaderDataType::Float3, "POSITION", false},
-			{ShaderDataType::Float4, "COLOR", false},
-			{ShaderDataType::Float2, "TEXCOORD", false},
-		});
-
-	SmallBufferLayout smallBufferLayout(
-		{
-			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 64, 0, m_Context->GetSmallBufferAttachment() }
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	UniformLayout uniformsLayout(
-		{
-			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, m_Context->GetUniformAttachment(), 1 }, //
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, m_Context->GetUniformAttachment(), 1 } //
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	m_Texture1.reset(Texture2D::Instantiate(&m_Context, "./assets/textures/yor.png", 3, 0, 3, 0));
-	m_Texture2.reset(Texture2D::Instantiate(&m_Context, "./assets/textures/sample.png", 4, 0, 3, 1));
-
-	m_SmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), Eigen::Vector<float, 3>(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f));
-
-	TextureLayout textureLayout(
-		{
-			m_Texture1->GetTextureDescription(),
-			m_Texture2->GetTextureDescription(),
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-
-
-	SamplerLayout samplerLayout(
-		{
-			//SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t samplerIndex
-			{SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 5, 0, 4, 0},
-			{SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 6, 0, 4, 1},
-		}
-		);
-
-	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout);
-
-	m_Shader.reset(Shader::Instantiate(&m_Context, "./assets/shaders/HelloTriangle", inputInfoController));
-
-	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
-	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(2));
-	m_Shader->UploadTexture2D(&m_Texture1);
-	m_Shader->UploadTexture2D(&m_Texture2);
-	m_VertexBuffer.reset(VertexBuffer::Instantiate(&m_Context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), layout.GetStride()));
-	m_IndexBuffer.reset(IndexBuffer::Instantiate(&m_Context, (const void*)&iBuffer[0], sizeof(iBuffer) / sizeof(uint32_t)));
 	m_Instrumentator.reset(GPUInstrumentator::Instantiate(&m_Context));
+	m_LayerStack.reset(new LayerStack());
 }
 
 Lust::Application::~Application()
 {
+	m_LayerStack.reset();
 	m_Instrumentator.reset();
-	m_Texture2.reset();
-	m_Texture1.reset();
-	m_IndexBuffer.reset();
-	m_VertexBuffer.reset();
-	m_Shader.reset();
 	m_ImguiContext.reset();
 	m_ImguiWindowController.reset();
 	ImguiContext::EndImgui();
 	m_CopyPipeline.reset();
+	RenderCommand::Shutdown();
 	m_Context.reset();
 	m_Window.reset();
 	m_Starter.reset();
@@ -166,21 +102,13 @@ void Lust::Application::Run()
 				m_Context->StageViewportAndScissors();
 				m_ImguiWindowController->ReceiveInput();
 				{
-					for (Layer* layer : m_LayerStack)
+					for (Layer* layer : (*m_LayerStack))
 						layer->OnUpdate(timestep);
-					//m_Context->Draw(m_IndexBuffer->GetCount());
-					Renderer::BeginScene(*(m_Camera.get()));
-					Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(1));
-					Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(2));
-					Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer, m_SmallMVP.model);
-					Renderer::EndScene();
-					m_Context->Draw(m_IndexBuffer->GetCount());
-
 
 					m_ImguiContext->ReceiveInput();
 					ImguiContext::StartFrame();
 					{
-						for (Layer* layer : m_LayerStack)
+						for (Layer* layer : (*m_LayerStack))
 							layer->OnImGuiRender();
 
 					}
@@ -209,16 +137,21 @@ void Lust::Application::OnEvent(Event& e)
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
 	dispatcher.Dispatch<WindowResizeEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
+
+	for (auto it = m_LayerStack->rbegin(); it != m_LayerStack->rend(); ++it)
+	{
+		(*it)->OnEvent(e);
+	}
 }
 
 void Lust::Application::PushLayer(Layer* layer)
 {
-	m_LayerStack.PushLayer(layer);
+	m_LayerStack->PushLayer(layer);
 }
 
 void Lust::Application::PushOverlay(Layer* layer)
 {
-	m_LayerStack.PushOverlay(layer);
+	m_LayerStack->PushOverlay(layer);
 }
 
 std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()

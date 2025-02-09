@@ -259,11 +259,6 @@ bool Lust::VKContext::IsVSyncEnabled() const
     return false;
 }
 
-void Lust::VKContext::Draw(uint32_t elements)
-{
-    vkCmdDrawIndexed(m_CommandBuffers[m_CurrentBufferIndex], elements, 1, 0, 0, 0);
-}
-
 const std::string Lust::VKContext::GetGPUName()
 {
     VkPhysicalDeviceProperties adapterProperties;

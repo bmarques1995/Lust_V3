@@ -39,8 +39,6 @@ namespace Lust
 		uint32_t GetSmallBufferAttachment() const override;
 		uint32_t GetFramesInFlight() const override;
 
-		void Draw(uint32_t elements) override;
-
 		ID3D12Device14* GetDevicePtr() const;
 		ID3D12GraphicsCommandList10* GetCurrentCommandList() const;
 		ID3D12CommandQueue* GetCommandQueue() const;

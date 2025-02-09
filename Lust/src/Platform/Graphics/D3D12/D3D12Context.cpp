@@ -162,10 +162,6 @@ bool Lust::D3D12Context::IsVSyncEnabled() const
 	return m_IsVSyncEnabled;
 }
 
-void Lust::D3D12Context::Draw(uint32_t elements)
-{
-	m_CommandLists[m_CurrentBufferIndex]->DrawIndexedInstanced(elements, 1, 0, 0, 0);
-}
 
 ID3D12Device14* Lust::D3D12Context::GetDevicePtr() const
 {

@@ -15,7 +15,7 @@ namespace Lust
 		Eigen::Matrix4f mipLevel;
 	};
 
-	class Renderer
+	class LUST_API Renderer
 	{
 	public:
 		static void Init();
