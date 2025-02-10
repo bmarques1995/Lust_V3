@@ -93,7 +93,9 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	if (Input::IsMouseButtonPressed(Mouse::LUST_BUTTON_LEFT))
 		Console::CoreDebug("({}, {})", Input::GetMousePosition().first, Input::GetMousePosition().second);
 	if (Input::IsGamepadKeyPressed(Gamepad::LUST_GAMEPAD_BUTTON_SOUTH))
-		Console::CoreDebug("A/Cross button pressed");
+		Console::CoreDebug("A/Cross button pressed by player 1");
+	if (Input::IsGamepadKeyPressed(Gamepad::LUST_GAMEPAD_BUTTON_SOUTH, 2))
+		Console::CoreDebug("A/Cross button pressed by player 2");
 	int16_t leftStickX = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
 	int16_t leftStickY = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
 	if ((leftStickX > 980) && (leftStickY > 980))

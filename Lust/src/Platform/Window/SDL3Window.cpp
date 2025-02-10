@@ -74,11 +74,8 @@ bool Lust::SDL3Window::IsCursorDisplayed() const
 
 void Lust::SDL3Window::DisplayCursor(bool display)
 {
-	if (!m_FullScreen && !m_CursorDisplayed)
+	if (!m_FullScreen)
 	{
-		m_CursorDisplayed = true;
-		SDL_WarpMouseInWindow(m_Window, m_Width / 2.0f, m_Height / 2.0f);
-		SDL_SetWindowRelativeMouseMode(m_Window, !m_CursorDisplayed);
 		return;
 	}
 	if(display == m_CursorDisplayed)
@@ -209,8 +206,13 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		m_ExecuteCallback(e);
 		break;
 	}
-	
-
+	case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+	{
+		m_CursorDisplayed = true;
+		SDL_WarpMouseInWindow(m_Window, m_Width / 2.0f, m_Height / 2.0f);
+		SDL_SetWindowRelativeMouseMode(m_Window, !m_CursorDisplayed);
+		break;
+	}
 	case SDL_EVENT_GAMEPAD_ADDED:
 	{
 		const SDL_JoystickID which = eventData->jdevice.which;
@@ -311,4 +313,12 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	default:
 		break;
 	}
+}
+
+void Lust::SDL3Window::RemoveGamepad(GamepadWrapper* gamepad)
+{
+}
+
+void Lust::SDL3Window::AddGamepad(GamepadWrapper* gamepad)
+{
 }

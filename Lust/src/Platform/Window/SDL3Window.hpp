@@ -2,6 +2,7 @@
 
 #include "Window.hpp"
 #include <SDL3/SDL.h>
+#include <queue>
 
 namespace Lust
 {
@@ -52,6 +53,9 @@ namespace Lust
 
 		void ProcessEvents(SDL_Event* eventData);
 
+		void RemoveGamepad(GamepadWrapper* gamepad);
+		void AddGamepad(GamepadWrapper* gamepad);
+
 		uint32_t m_Width;
 		uint32_t m_Height;
 		std::string m_Title;
@@ -62,6 +66,8 @@ namespace Lust
 		bool m_FullScreen;
 		bool m_CursorDisplayed;
 
+		std::unordered_map<SDL_JoystickID, uint32_t> m_LustGamepadIndex;
 		std::unordered_map<SDL_JoystickID, GamepadWrapper> m_Gamepads;
+		std::queue<GamepadWrapper> m_WaitingGamepads;
 	};
 }
