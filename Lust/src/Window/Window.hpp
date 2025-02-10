@@ -49,6 +49,9 @@ namespace Lust
 
 		virtual bool IsFullscreen() const = 0;
 
+		virtual bool IsCursorDisplayed() const = 0;
+		virtual void DisplayCursor(bool display) = 0;
+
 		virtual std::any GetNativePointer() const = 0;
 		virtual std::any GetInstance() const = 0;
 		virtual std::any GetWindow() const = 0;

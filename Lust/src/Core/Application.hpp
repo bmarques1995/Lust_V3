@@ -53,14 +53,13 @@ namespace Lust
 
 		std::shared_ptr<CopyPipeline>* GetCopyPipeline();
 		
+		double GetGPUTime() const { return m_GPUTime; }
 		static Application* GetInstance();
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
 		static void EnableSingleton(Application* ptr);
-
-		
 
 		std::shared_ptr<CSOCompiler> m_CSOCompiler;
 		std::shared_ptr<SPVCompiler> m_SPVCompiler;
@@ -78,6 +77,7 @@ namespace Lust
 		float m_LastFrameTime = 0.0f;
 		float m_LastCommand = .0f;
 		float m_CommandEllapsed = .0f;
+		double m_GPUTime = 0.0f;
 
 		static Application* s_AppSingleton;
 		static bool s_SingletonEnabled;

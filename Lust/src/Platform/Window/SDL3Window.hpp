@@ -24,6 +24,9 @@ namespace Lust
 		bool ShouldClose() const override;
 		const bool* TrackWindowClosing() const override;
 
+		bool IsCursorDisplayed() const override;
+		void DisplayCursor(bool display) override;
+
 		std::any GetNativePointer() const override;
 		std::any GetInstance() const override;
 		std::any GetWindow() const override;
@@ -57,6 +60,7 @@ namespace Lust
 		bool m_ShouldClose;
 		bool m_Minimized;
 		bool m_FullScreen;
+		bool m_CursorDisplayed;
 
 		std::unordered_map<SDL_JoystickID, GamepadWrapper> m_Gamepads;
 	};

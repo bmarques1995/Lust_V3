@@ -310,9 +310,9 @@ std::pair<float, float> Lust::SDL3Input::GetMousePositionImpl()
 
 bool Lust::SDL3Input::IsGamepadKeyPressedImpl(GamepadKeyCode keycode, uint32_t player)
 {
-	//GetController
-	auto gamepad = std::any_cast<SDL_Gamepad*>(Application::GetInstance()->GetWindow()->GetGamepad(player));
-	if(gamepad == nullptr)
+	auto rawGamepad = Application::GetInstance()->GetWindow()->GetGamepad(player);
+	auto gamepad = rawGamepad.has_value() ? std::any_cast<SDL_Gamepad*>(rawGamepad) : nullptr;
+	if (gamepad == nullptr)
 		return false;
 	//MapKey
 	auto it = s_GamepadKeyMap.find(keycode);
@@ -325,7 +325,8 @@ Lust::GamepadAxisValue Lust::SDL3Input::GetGamepadAxisImpl(GamepadAxisCode axis,
 {
 	//SDL_GetGamepadAxis();
 	//MapAxis
-	auto gamepad = std::any_cast<SDL_Gamepad*>(Application::GetInstance()->GetWindow()->GetGamepad(player));
+	auto rawGamepad = Application::GetInstance()->GetWindow()->GetGamepad(player);
+	auto gamepad = rawGamepad.has_value() ? std::any_cast<SDL_Gamepad*>(rawGamepad) : nullptr;
 	if (gamepad == nullptr)
 		return false;
 	//MapKey

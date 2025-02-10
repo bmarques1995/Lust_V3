@@ -120,7 +120,7 @@ void Lust::Application::Run()
 				m_Context->SubmitRenderPass();
 				m_Instrumentator->EndQueryTime();
 				m_Context->DispatchCommands();
-				Console::CoreLog("Ellapsed time: {}", m_Instrumentator->GetQueryTime());
+				m_GPUTime = m_Instrumentator->GetQueryTime();
 				m_Context->Present();
 			}
 			catch (GraphicsException e)

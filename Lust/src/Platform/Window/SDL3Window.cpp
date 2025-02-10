@@ -8,8 +8,9 @@
 #include <InputEvent.hpp>
 #include "Console.hpp"
 #include <imgui_impl_sdl3.h>
+#include <mutex>
 
-Lust::SDL3Window::SDL3Window(WindowProps props)
+Lust::SDL3Window::SDL3Window(WindowProps props) : m_Gamepads()
 {
 	m_Width = props.Width;
 	m_Height = props.Height;
@@ -17,6 +18,7 @@ Lust::SDL3Window::SDL3Window(WindowProps props)
 	m_ShouldClose = false;
 	m_FullScreen = false;
 	m_Minimized = false;
+	m_CursorDisplayed = true;
 
 	bool result;
 	result = SDL_Init(SDL_INIT_EVENTS | SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK);
@@ -65,6 +67,28 @@ const bool* Lust::SDL3Window::TrackWindowClosing() const
 	return &m_ShouldClose;
 }
 
+bool Lust::SDL3Window::IsCursorDisplayed() const
+{
+	return m_CursorDisplayed;
+}
+
+void Lust::SDL3Window::DisplayCursor(bool display)
+{
+	if (!m_FullScreen && !m_CursorDisplayed)
+	{
+		m_CursorDisplayed = true;
+		SDL_WarpMouseInWindow(m_Window, m_Width / 2.0f, m_Height / 2.0f);
+		SDL_SetWindowRelativeMouseMode(m_Window, !m_CursorDisplayed);
+		return;
+	}
+	if(display == m_CursorDisplayed)
+		return;
+	m_CursorDisplayed = display;
+	if (m_CursorDisplayed)
+		SDL_WarpMouseInWindow(m_Window, m_Width / 2.0f, m_Height / 2.0f);	
+	SDL_SetWindowRelativeMouseMode(m_Window, !m_CursorDisplayed);
+}
+
 std::any Lust::SDL3Window::GetNativePointer() const
 {
 #ifdef LUST_USES_WINDOWS
@@ -92,7 +116,7 @@ std::any Lust::SDL3Window::GetGamepad(uint32_t player) const
 {
 	auto it = m_Gamepads.find(player);
 	if (it == m_Gamepads.end())
-		return nullptr;
+		return {};
 	return it->second.Gamepad;
 }
 
@@ -111,6 +135,8 @@ void Lust::SDL3Window::SetFullScreen(bool fullScreen)
 	SDL_GetWindowSize(m_Window, &width, &height);
 	m_Height = height;
 	m_Width = width;
+	if(!m_FullScreen)
+		DisplayCursor(!m_FullScreen);
 }
 
 bool Lust::SDL3Window::IsFullscreen() const
@@ -197,11 +223,13 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_GAMEPAD_REMOVED:
 	{
 		const SDL_JoystickID which = eventData->jdevice.which;
+		std::mutex m_Mutex;
 		SDL_CloseGamepad(m_Gamepads[which].Gamepad);  /* the joystick was unplugged. */
 		auto it = m_Gamepads.find(which);
 		if (it != m_Gamepads.end())
 			m_Gamepads.erase(it);
 		Console::CoreDebug("Gamepad Removed");
+		DisplayCursor(true);
 		break;
 	}
 	case SDL_EVENT_GAMEPAD_AXIS_MOTION:
@@ -217,6 +245,7 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		*/
 		const SDL_JoystickID which = eventData->gaxis.which;
 		GamepadAxisMovedEvent e(which, eventData->gaxis.axis, eventData->gaxis.value);
+		DisplayCursor(false);
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -231,6 +260,7 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	{
 		const SDL_JoystickID which = eventData->gbutton.which;
 		GamepadKeyReleasedEvent e(which, eventData->gbutton.button, eventData->gbutton.down ? 1 : 0);
+		DisplayCursor(false);
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -255,12 +285,14 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_MOUSE_MOTION:
 	{
 		MouseMovedEvent e(eventData->motion.x, eventData->motion.y);
+		DisplayCursor(true);
 		m_ExecuteCallback(e);
 		break;
 	}
 	case SDL_EVENT_MOUSE_BUTTON_DOWN:
 	{
 		MouseButtonPressedEvent e(eventData->button.button);
+		DisplayCursor(true);
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -273,6 +305,7 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_MOUSE_WHEEL:
 	{
 		MouseScrolledEvent e(eventData->wheel.x, eventData->wheel.y);
+		DisplayCursor(true);
 		m_ExecuteCallback(e);
 		break;
 	}
