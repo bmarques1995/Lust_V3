@@ -38,9 +38,9 @@ namespace Lust
 			return m_Starter->GetCurrentAPI();;
 		}
 
-		inline const std::shared_ptr<Window>& GetWindow() const
+		inline const Window* GetWindow() const
 		{
-			return m_Window;
+			return m_Window.get();
 		}
 
 		inline const GraphicsContext* GetContext() const
@@ -65,12 +65,12 @@ namespace Lust
 		std::shared_ptr<CSOCompiler> m_CSOCompiler;
 		std::shared_ptr<SPVCompiler> m_SPVCompiler;
 
-		std::shared_ptr<Window> m_Window;
-		std::shared_ptr<ImguiWindowController> m_ImguiWindowController;
+		std::unique_ptr<Window> m_Window;
+		std::unique_ptr<ImguiWindowController> m_ImguiWindowController;
 		std::shared_ptr<GPUInstrumentator> m_Instrumentator;
 
-		std::shared_ptr<GraphicsContext> m_Context;
-		std::shared_ptr<ImguiContext> m_ImguiContext;
+		std::unique_ptr<GraphicsContext> m_Context;
+		std::unique_ptr<ImguiContext> m_ImguiContext;
 		std::shared_ptr<CopyPipeline> m_CopyPipeline;
 		
 

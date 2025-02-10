@@ -13,6 +13,6 @@ namespace Lust
 
 		virtual void ReceiveInput() = 0;
 
-		static ImguiWindowController* Instantiate(const std::shared_ptr<Window>* window);
+		static ImguiWindowController* Instantiate(const Window* window);
 	};
 }

@@ -29,7 +29,7 @@ Lust::Application::Application()
 
 	ImguiContext::StartImgui();
 
-	m_ImguiWindowController.reset(ImguiWindowController::Instantiate(&m_Window));
+	m_ImguiWindowController.reset(ImguiWindowController::Instantiate(m_Window.get()));
 	m_ImguiContext.reset(ImguiContext::Instantiate(m_Context.get()));
 
 	std::stringstream buffer;
