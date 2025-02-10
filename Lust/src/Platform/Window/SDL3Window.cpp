@@ -28,7 +28,7 @@ Lust::SDL3Window::SDL3Window(WindowProps props) : m_Gamepads()
 	m_Window = SDL_CreateWindow(m_Title.c_str(), m_Width, m_Height, window_flags);
 	assert(m_Window != nullptr);
 
-	StartGamepads();
+	//StartGamepads();
 
 	SDL_StartTextInput(m_Window);
 
@@ -41,7 +41,7 @@ Lust::SDL3Window::~SDL3Window()
 	
 	for (auto& gamepad : m_Gamepads)
 	{
-		SDL_CloseGamepad(gamepad.second.Gamepad);
+		SDL_CloseGamepad(gamepad.Gamepad);
 	}
 
 	SDL_DestroyWindow(m_Window);
@@ -111,10 +111,12 @@ std::any Lust::SDL3Window::GetWindow() const
 
 std::any Lust::SDL3Window::GetGamepad(uint32_t player) const
 {
-	auto it = m_Gamepads.find(player);
-	if (it == m_Gamepads.end())
+	uint32_t i = 0;
+	
+	if ((player - 1) < m_Gamepads.size())
+		return m_Gamepads[(player - 1)].Gamepad;
+	else
 		return {};
-	return it->second.Gamepad;
 }
 
 void Lust::SDL3Window::SetEventCallback(const EventCallbackFn& callback)
@@ -167,6 +169,15 @@ const std::string& Lust::SDL3Window::GetTitle() const
 	return m_Title;
 }
 
+std::vector<Lust::GamepadWrapper>::iterator Lust::SDL3Window::GetGamepad(uint32_t nativeIndex)
+{
+	std::vector<Lust::GamepadWrapper>::iterator it = m_Gamepads.begin();
+	for (auto it =  m_Gamepads.begin(); (it != m_Gamepads.end()); it++)
+		if((it->NativeIndex == nativeIndex))
+			return it;
+	return it;
+}
+
 void Lust::SDL3Window::StartGamepads()
 {
 	int gamepadNumber;
@@ -174,11 +185,14 @@ void Lust::SDL3Window::StartGamepads()
 
 	for (size_t i = 0; i < gamepadNumber; i++)
 	{
-		m_Gamepads[gamepadIDs[i]].Gamepad = SDL_OpenGamepad(gamepadIDs[i]);
-		assert(m_Gamepads[gamepadIDs[i]].Gamepad != nullptr);
+		GamepadWrapper gamepad;
+		gamepad.Gamepad = SDL_OpenGamepad(gamepadIDs[i]);
+		assert(gamepad.Gamepad != nullptr);
 		//usb_ids.h l.42
-		m_Gamepads[gamepadIDs[i]].GamepadVendor = SDL_GetGamepadVendor(m_Gamepads[gamepadIDs[i]].Gamepad);
-		m_Gamepads[gamepadIDs[i]].GamepadProduct = SDL_GetGamepadProduct(m_Gamepads[gamepadIDs[i]].Gamepad);
+		gamepad.GamepadVendor = SDL_GetGamepadVendor(gamepad.Gamepad);
+		gamepad.GamepadProduct = SDL_GetGamepadProduct(gamepad.Gamepad);
+		gamepad.NativeIndex = i;
+		m_Gamepads.push_back(gamepad);
 	}
 
 	Console::CoreDebug("Gamepads Avaliable: {}", gamepadNumber);
@@ -216,10 +230,14 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_GAMEPAD_ADDED:
 	{
 		const SDL_JoystickID which = eventData->jdevice.which;
-		m_Gamepads[which].Gamepad = SDL_OpenGamepad(which);
-		m_Gamepads[which].GamepadVendor = SDL_GetGamepadVendor(m_Gamepads[which].Gamepad);
-		m_Gamepads[which].GamepadProduct = SDL_GetGamepadProduct(m_Gamepads[which].Gamepad);
-		GamepadConnectedEvent e(which, m_Gamepads[which].GamepadVendor, m_Gamepads.size());
+		GamepadWrapper gamepad;
+		gamepad.Gamepad = SDL_OpenGamepad(which);
+		assert(gamepad.Gamepad != nullptr);
+		gamepad.GamepadVendor = SDL_GetGamepadVendor(gamepad.Gamepad);
+		gamepad.GamepadProduct = SDL_GetGamepadProduct(gamepad.Gamepad);
+		gamepad.NativeIndex = which;
+		m_Gamepads.push_back(gamepad);
+		GamepadConnectedEvent e(which, gamepad.GamepadVendor, m_Gamepads.size());
 		m_ExecuteCallback(e);
 		Console::CoreDebug("Gamepad Added");
 		break;
@@ -228,13 +246,16 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	{
 		const SDL_JoystickID which = eventData->jdevice.which;
 		std::mutex m_Mutex;
-		SDL_CloseGamepad(m_Gamepads[which].Gamepad);  /* the joystick was unplugged. */
-		auto it = m_Gamepads.find(which);
+		auto it = GetGamepad(which);
+		uint32_t gamepadVendor = it->GamepadVendor;
 		if (it != m_Gamepads.end())
+		{
+			SDL_CloseGamepad(it->Gamepad);
 			m_Gamepads.erase(it);
+		}
 		Console::CoreDebug("Gamepad Removed");
 		DisplayCursor(true);
-		GamepadDisconnectedEvent e(which, m_Gamepads[which].GamepadVendor, m_Gamepads.size());
+		GamepadDisconnectedEvent e(which, gamepadVendor, m_Gamepads.size());
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -315,10 +336,11 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	}
 }
 
-void Lust::SDL3Window::RemoveGamepad(GamepadWrapper* gamepad)
+void Lust::SDL3Window::RemoveGamepad(GamepadWrapper* gamepad, uint32_t nativeIndex)
 {
 }
 
-void Lust::SDL3Window::AddGamepad(GamepadWrapper* gamepad)
+void Lust::SDL3Window::AddGamepad(GamepadWrapper* gamepad, uint32_t nativeIndex)
 {
+
 }

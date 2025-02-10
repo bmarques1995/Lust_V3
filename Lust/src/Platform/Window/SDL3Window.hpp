@@ -11,6 +11,7 @@ namespace Lust
 		SDL_Gamepad* Gamepad;
 		uint16_t GamepadVendor;
 		uint16_t GamepadProduct;
+		uint32_t NativeIndex;
 	};
 	
 	class LUST_API SDL3Window : public Window
@@ -47,14 +48,15 @@ namespace Lust
 
 		const std::string& GetTitle() const override;
 
+		std::vector<GamepadWrapper>::iterator GetGamepad(uint32_t nativeIndex);
 	private:
 
 		void StartGamepads();
 
 		void ProcessEvents(SDL_Event* eventData);
 
-		void RemoveGamepad(GamepadWrapper* gamepad);
-		void AddGamepad(GamepadWrapper* gamepad);
+		void RemoveGamepad(GamepadWrapper* gamepad, uint32_t nativeIndex);
+		void AddGamepad(GamepadWrapper* gamepad, uint32_t nativeIndex);
 
 		uint32_t m_Width;
 		uint32_t m_Height;
@@ -66,8 +68,7 @@ namespace Lust
 		bool m_FullScreen;
 		bool m_CursorDisplayed;
 
-		std::unordered_map<SDL_JoystickID, uint32_t> m_LustGamepadIndex;
-		std::unordered_map<SDL_JoystickID, GamepadWrapper> m_Gamepads;
+		std::vector<GamepadWrapper> m_Gamepads;
 		std::queue<GamepadWrapper> m_WaitingGamepads;
 	};
 }
