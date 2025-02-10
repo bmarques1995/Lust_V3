@@ -5,10 +5,10 @@
 
 namespace Lust {
 
-	class WindowResizeEvent : public Event
+	class WindowResizedEvent : public Event
 	{
 	public:
-		WindowResizeEvent(unsigned int width, unsigned int height)
+		WindowResizedEvent(unsigned int width, unsigned int height)
 			: m_Width(width), m_Height(height) {
 		}
 
@@ -28,10 +28,10 @@ namespace Lust {
 		unsigned int m_Width, m_Height;
 	};
 
-	class WindowCloseEvent : public Event
+	class WindowClosedEvent : public Event
 	{
 	public:
-		WindowCloseEvent() = default;
+		WindowClosedEvent() = default;
 
 		EVENT_CLASS_TYPE(WindowClosed)
 		EVENT_CLASS_CATEGORY(LUST_EVENT_CATEGORY_APPLICATION)

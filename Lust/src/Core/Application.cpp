@@ -135,11 +135,19 @@ void Lust::Application::Run()
 void Lust::Application::OnEvent(Event& e)
 {
 	EventDispatcher dispatcher(e);
-	dispatcher.Dispatch<WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
-	dispatcher.Dispatch<WindowResizeEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
+	dispatcher.Dispatch<WindowClosedEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<WindowResizedEvent>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1), true);
+	dispatcher.Dispatch<GamepadKeyPressedEvent>(std::bind(&Application::OnGamepadKeydown, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<GamepadAxisMovedEvent>(std::bind(&Application::OnGamepadAxisMotion, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<MouseMovedEvent>(std::bind(&Application::OnMouseMove, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<MouseButtonPressedEvent>(std::bind(&Application::OnMouseButtonPress, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<MouseScrolledEvent>(std::bind(&Application::OnMouseWheel, this, std::placeholders::_1), false);
+
 
 	for (auto it = m_LayerStack->rbegin(); it != m_LayerStack->rend(); ++it)
 	{
+		if (e.IsHandled())
+			break;
 		(*it)->OnEvent(e);
 	}
 }
@@ -159,15 +167,45 @@ std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
 	return &m_CopyPipeline;
 }
 
-bool Lust::Application::OnWindowClose(WindowCloseEvent& e)
+bool Lust::Application::OnWindowClose(WindowClosedEvent& e)
 {
 	m_Running = false;
 	return true;
 }
 
-bool Lust::Application::OnWindowResize(WindowResizeEvent& e)
+bool Lust::Application::OnWindowResize(WindowResizedEvent& e)
 {
 	m_Context->WindowResize(e.GetWidth(), e.GetHeight());
+	return true;
+}
+
+bool Lust::Application::OnGamepadKeydown(GamepadKeyPressedEvent& e)
+{
+	m_Window->DisplayCursor(false);
+	return true;
+}
+
+bool Lust::Application::OnGamepadAxisMotion(GamepadAxisMovedEvent& e)
+{
+	m_Window->DisplayCursor(false);
+	return true;
+}
+
+bool Lust::Application::OnMouseMove(MouseMovedEvent& e)
+{
+	m_Window->DisplayCursor(true);
+	return true;
+}
+
+bool Lust::Application::OnMouseButtonPress(MouseButtonPressedEvent& e)
+{
+	m_Window->DisplayCursor(true);
+	return true;
+}
+
+bool Lust::Application::OnMouseWheel(MouseScrolledEvent& e)
+{
+	m_Window->DisplayCursor(true);
 	return true;
 }
 

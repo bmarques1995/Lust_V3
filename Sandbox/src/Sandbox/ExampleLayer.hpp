@@ -33,7 +33,7 @@ namespace Lust
 		
 		std::shared_ptr<OrthographicCamera> m_Camera;
 
-		bool OnWindowResize(WindowResizeEvent& e);
+		bool OnWindowResize(WindowResizedEvent& e);
 
 		Eigen::Vector<float, 9> m_VBuffer[4] =
 		{

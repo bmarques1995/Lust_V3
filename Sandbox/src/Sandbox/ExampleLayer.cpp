@@ -116,10 +116,10 @@ void Lust::ExampleLayer::OnImGuiRender()
 void Lust::ExampleLayer::OnEvent(Event& event)
 {
 	EventDispatcher dispatcher(event);
-	dispatcher.Dispatch<WindowResizeEvent>(std::bind(&ExampleLayer::OnWindowResize, this, std::placeholders::_1));
+	dispatcher.Dispatch<WindowResizedEvent>(std::bind(&ExampleLayer::OnWindowResize, this, std::placeholders::_1), true);
 }
 
-bool Lust::ExampleLayer::OnWindowResize(WindowResizeEvent& e)
+bool Lust::ExampleLayer::OnWindowResize(WindowResizedEvent& e)
 {
 	m_Camera->SetProjection(e.GetWidth() * -.5f, e.GetWidth() *.5f, e.GetHeight() * -.5f, e.GetHeight() * .5f);
 	return true;

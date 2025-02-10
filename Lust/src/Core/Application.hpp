@@ -56,8 +56,13 @@ namespace Lust
 		double GetGPUTime() const { return m_GPUTime; }
 		static Application* GetInstance();
 	private:
-		bool OnWindowClose(WindowCloseEvent& e);
-		bool OnWindowResize(WindowResizeEvent& e);
+		bool OnWindowClose(WindowClosedEvent& e);
+		bool OnWindowResize(WindowResizedEvent& e);
+		bool OnGamepadKeydown(GamepadKeyPressedEvent& e);
+		bool OnGamepadAxisMotion(GamepadAxisMovedEvent& e);
+		bool OnMouseMove(MouseMovedEvent& e);
+		bool OnMouseButtonPress(MouseButtonPressedEvent& e);
+		bool OnMouseWheel(MouseScrolledEvent& e);
 
 		static void EnableSingleton(Application* ptr);
 

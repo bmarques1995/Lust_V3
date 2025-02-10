@@ -68,6 +68,8 @@ namespace Lust
 		virtual uint32_t GetCategoryFlags() const = 0;
 		virtual std::string ToString() const { return GetName(); }
 		
+		bool IsHandled() const { return m_Handled; }
+
 		inline bool IsInCategory(EventCategory category)
 		{
 			return GetCategoryFlags() & category;
@@ -87,11 +89,13 @@ namespace Lust
 		}
 
 		template<typename T, typename F>
-		bool Dispatch(const F& func)
+		bool Dispatch(const F& func, bool isGlobal)
 		{
 			if(m_Event.GetEventType() == T::GetStaticType())
 			{
 				m_Event.m_Handled |= func(static_cast<T&>(m_Event));
+				if (isGlobal)
+					m_Event.m_Handled = false;
 				return true;
 			}
 			return false;

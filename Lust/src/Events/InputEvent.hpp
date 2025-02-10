@@ -181,14 +181,18 @@ namespace Lust
 		EVENT_CLASS_TYPE(MouseButtonReleased)
 	};
 
-	class JoystickConnectedEvent : public Event
+	class GamepadConnectedEvent : public Event
 	{
 	public:
-		JoystickConnectedEvent(const uint32_t joystickNumber, const uint32_t vendor) :
-			m_JoystickNumber(joystickNumber), m_Vendor(vendor)
+		GamepadConnectedEvent(const uint32_t joystickNumber, const uint32_t vendor, const uint32_t totalJoysticks) :
+			m_JoystickNumber(joystickNumber), m_Vendor(vendor), m_TotalJoysticks(totalJoysticks)
 		{
 		}
 		
+		uint32_t GetJoystickNumber() const { return m_JoystickNumber; }
+		uint32_t GetVendor() const { return m_Vendor; }
+		uint32_t GetTotalJoysticks() const { return m_TotalJoysticks; }
+
 		std::string ToString() const override
 		{
 			std::stringstream ss;
@@ -202,15 +206,20 @@ namespace Lust
 	private:
 		uint32_t m_JoystickNumber;
 		uint32_t m_Vendor;
+		uint32_t m_TotalJoysticks;
 	};
 
-	class JoystickDisconnectedEvent : public Event
+	class GamepadDisconnectedEvent : public Event
 	{
 	public:
-		JoystickDisconnectedEvent(const uint32_t joystickNumber) :
-			m_JoystickNumber(joystickNumber)
+		GamepadDisconnectedEvent(const uint32_t joystickNumber, const uint32_t vendor, const uint32_t remainingJoysticks) :
+			m_JoystickNumber(joystickNumber), m_Vendor(vendor), m_RemainingJoysticks(remainingJoysticks)
 		{
 		}
+
+		uint32_t GetJoystickNumber() const { return m_JoystickNumber; }
+		uint32_t GetVendor() const { return m_Vendor; }
+		uint32_t GetRemainingJoysticks() const { return m_RemainingJoysticks; }
 
 		std::string ToString() const override
 		{
@@ -224,6 +233,8 @@ namespace Lust
 			LUST_EVENT_CATEGORY_JOYSTICK)
 	private:
 		uint32_t m_JoystickNumber;
+		uint32_t m_Vendor;
+		uint32_t m_RemainingJoysticks;
 	};
 
 	class JoystickInputEvent : public Event

@@ -196,14 +196,14 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 	case SDL_EVENT_QUIT:
 	{
-		WindowCloseEvent e;
+		WindowClosedEvent e;
 		m_ShouldClose = true;
 		m_ExecuteCallback(e);
 		break;
 	}
 	case SDL_EVENT_WINDOW_RESIZED:
 	{
-		WindowResizeEvent e(eventData->window.data1, eventData->window.data2);
+		WindowResizedEvent e(eventData->window.data1, eventData->window.data2);
 		m_Width = eventData->window.data1;
 		m_Height = eventData->window.data2;
 		m_ExecuteCallback(e);
@@ -217,6 +217,8 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		m_Gamepads[which].Gamepad = SDL_OpenGamepad(which);
 		m_Gamepads[which].GamepadVendor = SDL_GetGamepadVendor(m_Gamepads[which].Gamepad);
 		m_Gamepads[which].GamepadProduct = SDL_GetGamepadProduct(m_Gamepads[which].Gamepad);
+		GamepadConnectedEvent e(which, m_Gamepads[which].GamepadVendor, m_Gamepads.size());
+		m_ExecuteCallback(e);
 		Console::CoreDebug("Gamepad Added");
 		break;
 	}
@@ -230,6 +232,8 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 			m_Gamepads.erase(it);
 		Console::CoreDebug("Gamepad Removed");
 		DisplayCursor(true);
+		GamepadDisconnectedEvent e(which, m_Gamepads[which].GamepadVendor, m_Gamepads.size());
+		m_ExecuteCallback(e);
 		break;
 	}
 	case SDL_EVENT_GAMEPAD_AXIS_MOTION:
@@ -245,7 +249,6 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		*/
 		const SDL_JoystickID which = eventData->gaxis.which;
 		GamepadAxisMovedEvent e(which, eventData->gaxis.axis, eventData->gaxis.value);
-		DisplayCursor(false);
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -260,7 +263,6 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	{
 		const SDL_JoystickID which = eventData->gbutton.which;
 		GamepadKeyReleasedEvent e(which, eventData->gbutton.button, eventData->gbutton.down ? 1 : 0);
-		DisplayCursor(false);
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -285,14 +287,12 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_MOUSE_MOTION:
 	{
 		MouseMovedEvent e(eventData->motion.x, eventData->motion.y);
-		DisplayCursor(true);
 		m_ExecuteCallback(e);
 		break;
 	}
 	case SDL_EVENT_MOUSE_BUTTON_DOWN:
 	{
 		MouseButtonPressedEvent e(eventData->button.button);
-		DisplayCursor(true);
 		m_ExecuteCallback(e);
 		break;
 	}
@@ -305,7 +305,6 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_MOUSE_WHEEL:
 	{
 		MouseScrolledEvent e(eventData->wheel.x, eventData->wheel.y);
-		DisplayCursor(true);
 		m_ExecuteCallback(e);
 		break;
 	}
