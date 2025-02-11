@@ -42,6 +42,8 @@ namespace Lust
 
 		virtual const bool* TrackWindowClosing() const = 0;
 
+		virtual void DisplayWindow() = 0;
+
 		// Window attributes
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 

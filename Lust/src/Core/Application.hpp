@@ -56,6 +56,7 @@ namespace Lust
 		double GetGPUTime() const { return m_GPUTime; }
 		static Application* GetInstance();
 	private:
+		void RenderAction();
 		bool OnWindowClose(WindowClosedEvent& e);
 		bool OnWindowResize(WindowResizedEvent& e);
 		bool OnGamepadKeydown(GamepadKeyPressedEvent& e);

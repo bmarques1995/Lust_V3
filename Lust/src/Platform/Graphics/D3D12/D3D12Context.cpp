@@ -37,14 +37,20 @@ Lust::D3D12Context::D3D12Context(const Window* windowHandle, uint32_t framesInFl
 Lust::D3D12Context::~D3D12Context()
 {
 	FlushQueue();
+	m_CommandQueueFence.Release();
 	delete[] m_CommandLists;
 	delete[] m_CommandAllocators;
 	m_DepthStencilView.Release();
+	m_DSVHeap.Release();
 	delete[] m_RenderTargets;
 	delete[] m_RTVHandles;
+	m_RTVHeap.Release();
 	m_SwapChain.Release();
 	m_CommandQueue.Release();
 	m_Device.Release();
+
+	m_DXGIAdapter.Release();
+	m_DXGIFactory.Release();
 #ifdef LUST_DEBUG_MODE
 	DisableDebug();
 #endif

@@ -52,6 +52,9 @@ Lust::Application::Application()
 
 	m_Instrumentator.reset(GPUInstrumentator::Instantiate(m_Context.get()));
 	m_LayerStack.reset(new LayerStack());
+
+	RenderAction();
+	m_Window->DisplayWindow();
 }
 
 Lust::Application::~Application()
@@ -72,63 +75,10 @@ Lust::Application::~Application()
 
 void Lust::Application::Run()
 {	
+	
 	while (m_Running)
 	{
-
-		Uint64 now = SDL_GetPerformanceCounter();
-		Uint64 frequency = SDL_GetPerformanceFrequency();
-		double time = (double)now / (double)frequency;
-		Timestep timestep = time - m_LastFrameTime;
-		m_LastFrameTime = time;
-		m_CommandEllapsed = time;
-
-		if (Input::IsKeyPressed(Key::LUST_KEYCODE_F11) && (m_CommandEllapsed - m_LastCommand) > .2f)
-		{
-			m_LastCommand = time;
-			m_Window->SetFullScreen(!m_Window->IsFullscreen());
-			m_Starter->SetFullscreenMode(m_Window->IsFullscreen());
-			m_Context->WindowResize(m_Window->GetWidth(), m_Window->GetHeight());
-		}
-
-		m_Window->OnUpdate();
-		if (!m_Window->IsMinimized())
-		{
-			try
-			{
-
-				m_Context->ReceiveCommands();
-				m_Instrumentator->BeginQueryTime();
-				m_Context->FillRenderPass();
-				m_Context->StageViewportAndScissors();
-				m_ImguiWindowController->ReceiveInput();
-				{
-					for (Layer* layer : (*m_LayerStack))
-						layer->OnUpdate(timestep);
-
-					m_ImguiContext->ReceiveInput();
-					ImguiContext::StartFrame();
-					{
-						for (Layer* layer : (*m_LayerStack))
-							layer->OnImGuiRender();
-
-					}
-					ImguiContext::EndFrame();
-					m_ImguiContext->DispatchInput();
-
-
-				}
-				m_Context->SubmitRenderPass();
-				m_Instrumentator->EndQueryTime();
-				m_Context->DispatchCommands();
-				m_GPUTime = m_Instrumentator->GetQueryTime();
-				m_Context->Present();
-			}
-			catch (GraphicsException e)
-			{
-				Console::CoreError("Caught error: {}", e.what());
-				exit(2);
-			}
-		}
+		RenderAction();
 	}
 }
 
@@ -165,6 +115,64 @@ void Lust::Application::PushOverlay(Layer* layer)
 std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
 {
 	return &m_CopyPipeline;
+}
+
+void Lust::Application::RenderAction()
+{
+	Uint64 now = SDL_GetPerformanceCounter();
+	Uint64 frequency = SDL_GetPerformanceFrequency();
+	double time = (double)now / (double)frequency;
+	Timestep timestep = time - m_LastFrameTime;
+	m_LastFrameTime = time;
+	m_CommandEllapsed = time;
+
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_F11) && (m_CommandEllapsed - m_LastCommand) > .2f)
+	{
+		m_LastCommand = time;
+		m_Window->SetFullScreen(!m_Window->IsFullscreen());
+		m_Starter->SetFullscreenMode(m_Window->IsFullscreen());
+		m_Context->WindowResize(m_Window->GetWidth(), m_Window->GetHeight());
+	}
+
+	m_Window->OnUpdate();
+	if (!m_Window->IsMinimized())
+	{
+		try
+		{
+
+			m_Context->ReceiveCommands();
+			m_Instrumentator->BeginQueryTime();
+			m_Context->FillRenderPass();
+			m_Context->StageViewportAndScissors();
+			m_ImguiWindowController->ReceiveInput();
+			{
+				for (Layer* layer : (*m_LayerStack))
+					layer->OnUpdate(timestep);
+
+				m_ImguiContext->ReceiveInput();
+				ImguiContext::StartFrame();
+				{
+					for (Layer* layer : (*m_LayerStack))
+						layer->OnImGuiRender();
+
+				}
+				ImguiContext::EndFrame();
+				m_ImguiContext->DispatchInput();
+
+
+			}
+			m_Context->SubmitRenderPass();
+			m_Instrumentator->EndQueryTime();
+			m_Context->DispatchCommands();
+			m_GPUTime = m_Instrumentator->GetQueryTime();
+			m_Context->Present();
+		}
+		catch (GraphicsException e)
+		{
+			Console::CoreError("Caught error: {}", e.what());
+			exit(2);
+		}
+	}
 }
 
 bool Lust::Application::OnWindowClose(WindowClosedEvent& e)

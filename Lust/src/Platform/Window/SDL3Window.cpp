@@ -28,11 +28,7 @@ Lust::SDL3Window::SDL3Window(WindowProps props) : m_Gamepads()
 	m_Window = SDL_CreateWindow(m_Title.c_str(), m_Width, m_Height, window_flags);
 	assert(m_Window != nullptr);
 
-	//StartGamepads();
-
 	SDL_StartTextInput(m_Window);
-
-	SDL_ShowWindow(m_Window);
 }
 
 Lust::SDL3Window::~SDL3Window()
@@ -65,6 +61,11 @@ bool Lust::SDL3Window::ShouldClose() const
 const bool* Lust::SDL3Window::TrackWindowClosing() const
 {
 	return &m_ShouldClose;
+}
+
+void Lust::SDL3Window::DisplayWindow()
+{
+	SDL_ShowWindow(m_Window);
 }
 
 bool Lust::SDL3Window::IsCursorDisplayed() const

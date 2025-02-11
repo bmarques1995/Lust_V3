@@ -26,6 +26,8 @@ namespace Lust
 		bool ShouldClose() const override;
 		const bool* TrackWindowClosing() const override;
 
+		void DisplayWindow() override;
+
 		bool IsCursorDisplayed() const override;
 		void DisplayCursor(bool display) override;
 
