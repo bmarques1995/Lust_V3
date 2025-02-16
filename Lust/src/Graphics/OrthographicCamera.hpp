@@ -30,7 +30,7 @@ namespace Lust
 		Eigen::Matrix4f m_ViewMatrix;
 		Eigen::Matrix4f m_ViewProjectionMatrix;
 
-		Eigen::Vector3f m_Position;
+		Eigen::Vector3f m_CameraPosition;
 		float m_Rotation;
 	};
 }

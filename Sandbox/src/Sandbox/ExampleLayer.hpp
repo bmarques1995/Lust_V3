@@ -19,9 +19,11 @@ namespace Lust
 
 		void OnUpdate(Timestep ts) override;
 
-		virtual void OnImGuiRender() override;
+		void OnImGuiRender() override;
 
 		void OnEvent(Event& event) override;
+
+		void SampleInput();
 	private:
 		bool m_ShowDemoWindow = true;
 
@@ -32,6 +34,10 @@ namespace Lust
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		
 		std::shared_ptr<OrthographicCamera> m_Camera;
+		Eigen::Vector3f m_CameraPosition = { 0.0f, 0.0f, 0.0f };
+		float m_CameraTranslationSpeed = 200.0f;
+		float m_CameraRotation = 0.0f;
+		float m_CameraRotationSpeed = 2.0f;
 
 		bool OnWindowResize(WindowResizedEvent& e);
 

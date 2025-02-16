@@ -167,6 +167,7 @@ namespace Lust
 		VkSemaphore* m_RenderFinishedSemaphores;
 		VkFence* m_InFlightFences;
 
+		std::vector<const char*> m_Layers;
 
 		uint32_t m_FramesInFlight;
 		uint32_t m_CurrentBufferIndex = 0;

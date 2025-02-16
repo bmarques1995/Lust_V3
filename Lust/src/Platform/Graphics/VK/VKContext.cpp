@@ -355,21 +355,15 @@ void Lust::VKContext::CreateInstance()
     m_InstanceExtensions.push_back("VK_EXT_debug_utils");
 #endif
 
-    m_InstanceExtensions.push_back("VK_EXT_layer_settings");
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensions.size());
     createInfo.ppEnabledExtensionNames = m_InstanceExtensions.data();
 
-    std::vector<const char*> layers;
-    layers.push_back("VK_LAYER_KHRONOS_synchronization2");
-
-    assert(CheckLayerSupport(vkVersion, layers));
-
-#ifdef RENDER_DEBUG_MODE
+#ifdef LUST_DEBUG_MODE
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
-    layers.push_back("VK_LAYER_KHRONOS_validation");
+    m_Layers.push_back("VK_LAYER_KHRONOS_validation");
 
     PopulateDebugMessengerCreateInfo(debugCreateInfo);
     createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
@@ -379,8 +373,8 @@ void Lust::VKContext::CreateInstance()
 
 #endif
 
-    createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
-    createInfo.ppEnabledLayerNames = layers.data();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(m_Layers.size());
+    createInfo.ppEnabledLayerNames = m_Layers.size() > 0 ? m_Layers.data() : nullptr;
 
     vkr = vkCreateInstance(&createInfo, nullptr, &m_Instance);
     assert(vkr == VK_SUCCESS);
@@ -552,6 +546,11 @@ void Lust::VKContext::CreateDevice()
 
     VkPhysicalDeviceFeatures deviceFeatures{};
 
+    VkPhysicalDeviceSynchronization2Features sync2Features{};
+    sync2Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
+    sync2Features.synchronization2 = VK_TRUE;
+    sync2Features.pNext = nullptr;
+
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
@@ -563,12 +562,11 @@ void Lust::VKContext::CreateDevice()
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-#ifdef LUST_DEBUG_MODE
-    createInfo.enabledLayerCount = static_cast<uint32_t>(s_ValidationLayers.size());
-    createInfo.ppEnabledLayerNames = s_ValidationLayers.data();
-#else
-    createInfo.enabledLayerCount = 0;
-#endif
+    createInfo.enabledLayerCount = static_cast<uint32_t>(m_Layers.size());
+    createInfo.ppEnabledLayerNames = m_Layers.size() > 0 ? m_Layers.data() : nullptr;;
+
+    createInfo.pNext = &sync2Features;
+
     vkr = vkCreateDevice(m_Adapter, &createInfo, nullptr, &m_Device);
     assert(vkr == VK_SUCCESS);
 
@@ -816,7 +814,7 @@ void Lust::VKContext::CreateFramebuffers()
         framebufferInfo.pAttachments = attachments;
         framebufferInfo.width = (uint32_t)m_Viewport.width;
         framebufferInfo.height = (uint32_t)m_Viewport.height;
-        framebufferInfo.layers = 1;
+        framebufferInfo.m_Layers = 1;
 
         vkr = vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]);
         assert(vkr == VK_SUCCESS);

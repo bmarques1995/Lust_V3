@@ -15,7 +15,7 @@ void Lust::OrthographicCamera::SetProjection(float left, float right, float bott
 
 void Lust::OrthographicCamera::SetPosition(const Eigen::Vector3f& position)
 {
-	m_Position = position;
+	m_CameraPosition = position;
 	RecalculateViewMatrix();
 }
 
@@ -27,7 +27,7 @@ void Lust::OrthographicCamera::SetRotation(float rotation)
 
 const Eigen::Vector3f& Lust::OrthographicCamera::GetPosition() const
 {
-	return m_Position;
+	return m_CameraPosition;
 }
 
 float Lust::OrthographicCamera::GetRotation(float rotation) const
@@ -54,7 +54,7 @@ void Lust::OrthographicCamera::RecalculateViewMatrix()
 {
 	Eigen::Quaternionf q(Eigen::AngleAxisf(m_Rotation, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
 	Eigen::Matrix4f transform = Rotate<float>(Eigen::Matrix4f::Identity(), q) *
-		Translate<float>(Eigen::Matrix4f::Identity(), m_Position);
+		Translate<float>(Eigen::Matrix4f::Identity(), m_CameraPosition);
 
 	m_ViewMatrix = transform.inverse();
 	m_ViewProjectionMatrix = m_ViewMatrix * m_ProjectionMatrix;

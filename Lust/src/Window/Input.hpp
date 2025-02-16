@@ -17,6 +17,11 @@ namespace Lust
 		static bool IsGamepadKeyPressed(GamepadKeyCode button, uint32_t player = 1) { return s_Instance->IsGamepadKeyPressedImpl(button, player); }
 		static int16_t GetGamepadAxis(GamepadAxisCode axis, uint32_t player = 1) { return s_Instance->GetGamepadAxisImpl(axis, player); }
 
+		static void SetGamepadLowerDeadZone(float deadZonePercent) { s_GamepadLowerDeadZonePercent = deadZonePercent; }
+		static float GetGamepadLowerDeadZone() { return s_GamepadLowerDeadZonePercent; }
+		static void SetGamepadUpperDeadZone(float deadZonePercent) { s_GamepadUpperDeadZonePercent = deadZonePercent; }
+		static float GetGamepadUpperDeadZone() { return s_GamepadUpperDeadZonePercent; }
+
 		static Input* CreateInstance();
 
 	protected:
@@ -28,5 +33,7 @@ namespace Lust
 		virtual int16_t GetGamepadAxisImpl(GamepadAxisCode axis, uint32_t player = 1) = 0;
 	private:
 		static Input* s_Instance;
+		static float s_GamepadLowerDeadZonePercent;
+		static float s_GamepadUpperDeadZonePercent;
 	};
 }

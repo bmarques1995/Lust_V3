@@ -79,6 +79,7 @@ void Lust::ExampleLayer::OnAttach()
 
 void Lust::ExampleLayer::OnDetach()
 {
+	m_Camera.reset();
 	m_Texture2.reset();
 	m_Texture1.reset();
 	m_IndexBuffer.reset();
@@ -88,18 +89,44 @@ void Lust::ExampleLayer::OnDetach()
 
 void Lust::ExampleLayer::OnUpdate(Timestep ts)
 {
-	if (Input::IsKeyPressed(Key::LUST_KEYCODE_ESCAPE))
-		Console::CoreDebug("Escape key pressed");
-	if (Input::IsMouseButtonPressed(Mouse::LUST_BUTTON_LEFT))
-		Console::CoreDebug("({}, {})", Input::GetMousePosition().first, Input::GetMousePosition().second);
-	if (Input::IsGamepadKeyPressed(Gamepad::LUST_GAMEPAD_BUTTON_SOUTH))
-		Console::CoreDebug("A/Cross button pressed by player 1");
-	if (Input::IsGamepadKeyPressed(Gamepad::LUST_GAMEPAD_BUTTON_SOUTH, 2))
-		Console::CoreDebug("A/Cross button pressed by player 2");
-	int16_t leftStickX = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
-	int16_t leftStickY = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
-	if ((leftStickX > 980) && (leftStickY > 980))
-		Console::CoreDebug("Left joystick moved ({},{})", leftStickX, leftStickY);
+	static float maxAxis = 32768.0f;
+	float rightStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTX);
+	float rightStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTY);
+	Eigen::Vector2f rightStick(rightStickX, rightStickY);
+	if((rightStick.norm() > maxAxis * Input::GetGamepadLowerDeadZone()) && (rightStick.norm() < maxAxis * Input::GetGamepadUpperDeadZone()))
+	{
+		rightStick.normalize();
+		m_CameraRotation += rightStick(0) * m_CameraRotationSpeed * ts;
+	}
+
+	if(Input::IsKeyPressed(Key::LUST_KEYCODE_J))
+		m_CameraRotation += m_CameraRotationSpeed * ts;
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_L))
+		m_CameraRotation -= m_CameraRotationSpeed * ts;
+
+	float leftStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
+	float leftStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
+	Eigen::Vector2f leftStick(leftStickX, leftStickY);
+	if ((leftStick.norm() > maxAxis * Input::GetGamepadLowerDeadZone()) && (leftStick.norm() < maxAxis * Input::GetGamepadUpperDeadZone()))
+	{
+		leftStick.normalize();
+		m_CameraPosition.block<2, 1>(0,0) += leftStick * m_CameraTranslationSpeed * ts;
+	}
+
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_A))
+		m_CameraPosition(0) -= m_CameraTranslationSpeed * ts;
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_D))
+		m_CameraPosition(0) += m_CameraTranslationSpeed * ts;
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_S))
+		m_CameraPosition(1) -= m_CameraTranslationSpeed * ts;
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_W))
+		m_CameraPosition(1) += m_CameraTranslationSpeed * ts;
+	
+
+	//SampleInput();
+
+	m_Camera->SetPosition(m_CameraPosition);
+	m_Camera->SetRotation(m_CameraRotation);
 
 	Renderer::BeginScene(*(m_Camera.get()));
 	Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(1));
@@ -119,6 +146,22 @@ void Lust::ExampleLayer::OnEvent(Event& event)
 {
 	EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<WindowResizedEvent>(std::bind(&ExampleLayer::OnWindowResize, this, std::placeholders::_1), true);
+}
+
+void Lust::ExampleLayer::SampleInput()
+{
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_ESCAPE))
+		Console::CoreDebug("Escape key pressed");
+	if (Input::IsMouseButtonPressed(Mouse::LUST_BUTTON_LEFT))
+		Console::CoreDebug("({}, {})", Input::GetMousePosition().first, Input::GetMousePosition().second);
+	if (Input::IsGamepadKeyPressed(Gamepad::LUST_GAMEPAD_BUTTON_SOUTH))
+		Console::CoreDebug("A/Cross button pressed by player 1");
+	if (Input::IsGamepadKeyPressed(Gamepad::LUST_GAMEPAD_BUTTON_SOUTH, 2))
+		Console::CoreDebug("A/Cross button pressed by player 2");
+	int16_t leftStickX = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
+	int16_t leftStickY = Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
+	if ((leftStickX > 980) && (leftStickY > 980))
+		Console::CoreDebug("Left joystick moved ({},{})", leftStickX, leftStickY);
 }
 
 bool Lust::ExampleLayer::OnWindowResize(WindowResizedEvent& e)
