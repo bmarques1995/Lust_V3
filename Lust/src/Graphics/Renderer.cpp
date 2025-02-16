@@ -32,15 +32,19 @@ void Lust::Renderer::EndScene()
 {
 }
 
+void Lust::Renderer::SubmitSmallBuffer(const std::shared_ptr<Shader>& shader, const void* data, size_t size, uint32_t bindingSlot, size_t offset)
+{
+	shader->BindSmallBuffer(data, size, 0, offset);
+}
+
 void Lust::Renderer::SubmitCBV(const std::shared_ptr<Shader>& shader, const UniformElement& uploadCBV)
 {
 	shader->UpdateCBuffer((void *)s_SceneData.get(), sizeof(SceneData), uploadCBV);
 }
 
-void Lust::Renderer::SubmitShader(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexBuffer>& vertexBuffer, const std::shared_ptr<IndexBuffer>& indexBuffer, const Eigen::Matrix4f& transform)
+void Lust::Renderer::SubmitShader(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexBuffer>& vertexBuffer, const std::shared_ptr<IndexBuffer>& indexBuffer)
 {
 	shader->Stage();
-	shader->BindSmallBuffer(transform.data(), sizeof(transform), 0);
 	shader->BindDescriptors();
 	vertexBuffer->Stage();
 	indexBuffer->Stage();

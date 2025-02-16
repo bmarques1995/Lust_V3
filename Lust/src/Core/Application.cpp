@@ -44,6 +44,8 @@ Lust::Application::Application()
 		m_CSOCompiler.reset(new CSOCompiler("_main", "_6_8"));
 		m_SPVCompiler->PushShaderPath("./assets/shaders/HelloTriangle.hlsl", PipelineType::Graphics);
 		m_CSOCompiler->PushShaderPath("./assets/shaders/HelloTriangle.hlsl", PipelineType::Graphics);
+		m_SPVCompiler->PushShaderPath("./assets/shaders/FlatColor.hlsl", PipelineType::Graphics);
+		m_CSOCompiler->PushShaderPath("./assets/shaders/FlatColor.hlsl", PipelineType::Graphics);
 		m_SPVCompiler->CompilePackedShader();
 		m_CSOCompiler->CompilePackedShader();
 	}

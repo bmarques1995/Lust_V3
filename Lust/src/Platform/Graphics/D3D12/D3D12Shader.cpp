@@ -64,12 +64,12 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 	}
 
 	auto textureCount = m_TextureLayout.GetElements().size();
-	auto rootSigIndex = m_TextureLayout.GetElements().begin()->second.GetShaderRegister();
+	auto rootSigIndex = m_TextureLayout.GetElements().size() > 0 ? m_TextureLayout.GetElements().begin()->second.GetShaderRegister() : 0;
 	if (textureCount > 0)
 		m_RootSignatureSize += 4;
 
 	auto samplerCount = m_SamplerLayout.GetElements().size();
-	auto samplerRootSigIndex = m_SamplerLayout.GetElements().begin()->second.GetShaderRegister();
+	auto samplerRootSigIndex = m_SamplerLayout.GetElements().size() > 0 ? m_SamplerLayout.GetElements().begin()->second.GetShaderRegister() : 0;
 	if (samplerCount > 0)
 		m_RootSignatureSize += 4;
 
@@ -117,14 +117,16 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 		i++;
 	}
 
-	PreallocateSamplerDescriptors(samplerCount, samplerRootSigIndex);
+	if(samplerCount > 0)
+		PreallocateSamplerDescriptors(samplerCount, samplerRootSigIndex);
 
 	for (auto& sampler : m_SamplerLayout.GetElements())
 	{
 		CreateSampler(sampler.second);
 	}
 
-	PreallocateTextureDescriptors(textureCount, rootSigIndex);
+	if(textureCount > 0)
+		PreallocateTextureDescriptors(textureCount, rootSigIndex);
 
 	for (auto& desc : m_TabledDescriptors)
 		m_MergedHeaps.push_back(desc.second.Get());
@@ -175,13 +177,13 @@ void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* textur
 	CreateSRV((const std::shared_ptr<D3D12Texture2D>*) texture);
 }
 
-void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot)
+void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
 {
 	if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
 		throw SizeMismatchException(size, m_SmallBufferLayout.GetElement(bindingSlot).GetSize());
 	auto cmdList = m_Context->GetCurrentCommandList();
 	auto smallStride = m_Context->GetSmallBufferAttachment();
-	cmdList->SetGraphicsRoot32BitConstants(bindingSlot, size / smallStride, data, m_SmallBufferLayout.GetElement(bindingSlot).GetOffset() / smallStride);
+	cmdList->SetGraphicsRoot32BitConstants(bindingSlot, size / smallStride, data, offset / smallStride);
 }
 
 void Lust::D3D12Shader::BindDescriptors()
@@ -281,7 +283,7 @@ void Lust::D3D12Shader::CreateSampler(SamplerElement samplerElement)
 }
 
 void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex)
-{
+{	
 	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 

@@ -28,7 +28,7 @@ namespace Lust
 
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture) override;
 
-		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot) override;
+		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
 
 		void BindDescriptors() override;
 

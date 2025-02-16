@@ -48,7 +48,7 @@ namespace Lust
 
 		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture) = 0;
 
-		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot) = 0;
+		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;
 		virtual void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) = 0;
 

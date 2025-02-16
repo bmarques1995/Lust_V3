@@ -9,6 +9,19 @@
 
 namespace Lust
 {
+	struct SmallMVP
+	{
+		Eigen::Matrix4f model;
+	};
+
+	struct CompleteMVP
+	{
+		Eigen::Matrix4f model;
+		Eigen::Matrix4f view;
+		Eigen::Matrix4f projection;
+		Eigen::Matrix4f mipLevel;
+	};
+
 	class ExampleLayer : public Layer
 	{
 	public:
@@ -33,6 +46,10 @@ namespace Lust
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		
+		std::shared_ptr<Shader> m_SquareShader;
+		std::shared_ptr<VertexBuffer> m_SquareVertexBuffer;
+		std::shared_ptr<IndexBuffer> m_SquareIndexBuffer;
+
 		std::shared_ptr<OrthographicCamera> m_Camera;
 		Eigen::Vector3f m_CameraPosition = { 0.0f, 0.0f, 0.0f };
 		float m_CameraTranslationSpeed = 200.0f;
@@ -49,27 +66,24 @@ namespace Lust
 			{.5f, .5f, .2f, 1.0f, 1.0f, .0f, 1.0f,  1.0f, 0.0f},
 		};
 
-		uint32_t iBuffer[6] =
+		uint32_t m_IBuffer[6] =
 		{
 			3,2,1,
 			1,2,0
 		};
 
-		struct SmallMVP
-		{
-			Eigen::Matrix4f model;
+		float squareVertices[5 * 4] = {
+			-.5f, -.5f, .1f, 0.0f, 1.0f,
+			-.5f, .5f, .1f, 0.0f, 0.0f,
+			.5f, -.5f, .1f, 1.0f, 1.0f,
+			.5f, .5f, .1f, 1.0f, 0.0f
 		};
 
-		struct CompleteMVP
-		{
-			Eigen::Matrix4f model;
-			Eigen::Matrix4f view;
-			Eigen::Matrix4f projection;
-			Eigen::Matrix4f mipLevel;
-		};
+		uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
 
 		SmallMVP m_SmallMVP;
 		CompleteMVP m_CompleteMVP;
-
+		SmallMVP m_SquareSmallMVP;
+		Eigen::Vector3f m_SquareColor = { 1.0f, .5f, .25f };
 	};
 }

@@ -226,7 +226,7 @@ void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture)
     CreateTextureDescriptorSet((const std::shared_ptr<VKTexture2D>*) texture);
 }
 
-void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot)
+void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
 {
     if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
         throw SizeMismatchException(size, m_SmallBufferLayout.GetElement(bindingSlot).GetSize());
@@ -241,7 +241,7 @@ void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bin
         m_Context->GetCurrentCommandBuffer(),
         m_PipelineLayout,
         bindingFlag,
-        m_SmallBufferLayout.GetElement(bindingSlot).GetOffset(), // Offset
+        offset, // Offset
         size,
         data
     );

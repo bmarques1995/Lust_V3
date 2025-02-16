@@ -73,12 +73,53 @@ void Lust::ExampleLayer::OnAttach()
 	m_Shader->UploadTexture2D(&m_Texture1);
 	m_Shader->UploadTexture2D(&m_Texture2);
 	m_VertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), layout.GetStride()));
-	m_IndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)&iBuffer[0], sizeof(iBuffer) / sizeof(uint32_t)));
+	m_IndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)&m_IBuffer[0], sizeof(m_IBuffer) / sizeof(uint32_t)));
 	
+	InputBufferLayout squareLayout(
+		{
+			{ShaderDataType::Float3, "POSITION", false},
+			{ShaderDataType::Float2, "TEXCOORD", false},
+		});
+
+	SmallBufferLayout squareSmallBufferLayout(
+		{
+			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
+			{ 0, 76, 0, context->GetSmallBufferAttachment() }
+		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+	UniformLayout squareUniformsLayout(
+		{
+			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
+			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1 } //
+		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+	m_SquareSmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), 50.0f, 50.0f, 1.0f);
+
+	TextureLayout squareTextureLayout(
+		{
+		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+
+
+	SamplerLayout squareSamplerLayout(
+		{
+		}
+		);
+
+	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout);
+
+	m_SquareShader.reset(Shader::Instantiate(context, "./assets/shaders/FlatColor", squareInputInfoController));
+
+	m_SquareShader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), squareUniformsLayout.GetElement(1));
+	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&squareVertices[0], sizeof(squareVertices), squareLayout.GetStride()));
+	m_SquareIndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)&squareIndices[0], sizeof(squareIndices) / sizeof(uint32_t)));
 }
 
 void Lust::ExampleLayer::OnDetach()
 {
+	m_SquareIndexBuffer.reset();
+	m_SquareVertexBuffer.reset();
+	m_SquareShader.reset();
 	m_Camera.reset();
 	m_Texture2.reset();
 	m_Texture1.reset();
@@ -90,6 +131,7 @@ void Lust::ExampleLayer::OnDetach()
 void Lust::ExampleLayer::OnUpdate(Timestep ts)
 {
 	static float maxAxis = 32768.0f;
+	static uint8_t squareSmallBuffer[76];
 	float rightStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTX);
 	float rightStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTY);
 	Eigen::Vector2f rightStick(rightStickX, rightStickY);
@@ -131,9 +173,19 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	Renderer::BeginScene(*(m_Camera.get()));
 	Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(1));
 	Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(2));
-	Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer, m_SmallMVP.model);
+	Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer);
+	Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), 0);
 	Renderer::EndScene();
 	RenderCommand::DrawIndexed(m_IndexBuffer->GetCount());
+	Renderer::BeginScene(*(m_Camera.get()));
+	Renderer::SubmitCBV(m_SquareShader, m_SquareShader->GetUniformLayout().GetElement(1));
+	Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);
+	memcpy(&squareSmallBuffer[0], m_SquareSmallMVP.model.data(), sizeof(m_SquareSmallMVP.model));
+	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
+	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), 0);
+	//Renderer::SubmitSmallBuffer(m_SquareShader, m_SquareColor.data(), sizeof(m_SquareColor), 64);
+	Renderer::EndScene();
+	RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount());
 }
 
 void Lust::ExampleLayer::OnImGuiRender()
