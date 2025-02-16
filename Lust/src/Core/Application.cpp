@@ -24,6 +24,8 @@ Lust::Application::Application()
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
+	
+	Console::CoreLog("Current GPU: {}", m_Context->GetGPUName().c_str());
 	RenderCommand::Init(m_Context.get());
 	m_CopyPipeline.reset(CopyPipeline::Instantiate(m_Context.get()));
 

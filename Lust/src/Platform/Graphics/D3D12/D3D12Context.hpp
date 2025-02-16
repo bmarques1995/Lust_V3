@@ -44,7 +44,7 @@ namespace Lust
 		ID3D12CommandQueue* GetCommandQueue() const;
 		D3D_FEATURE_LEVEL GetFeatureLevel() const;
 
-		const std::string GetGPUName() override;
+		const std::string& GetGPUName() override;
 
 		void WindowResize(uint32_t width, uint32_t height) override;
 

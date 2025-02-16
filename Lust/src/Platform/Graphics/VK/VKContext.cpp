@@ -259,7 +259,7 @@ bool Lust::VKContext::IsVSyncEnabled() const
     return false;
 }
 
-const std::string Lust::VKContext::GetGPUName()
+const std::string& Lust::VKContext::GetGPUName()
 {
     VkPhysicalDeviceProperties adapterProperties;
     vkGetPhysicalDeviceProperties(m_Adapter, &adapterProperties);

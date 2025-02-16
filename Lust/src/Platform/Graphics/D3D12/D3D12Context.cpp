@@ -189,7 +189,7 @@ D3D_FEATURE_LEVEL Lust::D3D12Context::GetFeatureLevel() const
 	return m_FeatureLevel;
 }
 
-const std::string Lust::D3D12Context::GetGPUName()
+const std::string& Lust::D3D12Context::GetGPUName()
 {
 	DXGI_ADAPTER_DESC gpuDescription;
 	m_DXGIAdapter->GetDesc(&gpuDescription);
