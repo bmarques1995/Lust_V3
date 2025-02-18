@@ -38,7 +38,7 @@ namespace Lust
 
 		void SampleInput();
 	private:
-		bool m_ShowDemoWindow = true;
+		bool m_ShowCameraWindow = true;
 
 		std::shared_ptr<Shader> m_Shader;
 		std::shared_ptr<Texture2D> m_Texture1;
@@ -73,10 +73,10 @@ namespace Lust
 		};
 
 		float squareVertices[5 * 4] = {
-			-.5f, -.5f, .1f, 0.0f, 1.0f,
-			-.5f, .5f, .1f, 0.0f, 0.0f,
-			.5f, -.5f, .1f, 1.0f, 1.0f,
-			.5f, .5f, .1f, 1.0f, 0.0f
+			-.5f, -.5f, .2f, 0.0f, 1.0f,
+			-.5f, .5f, .2f, 0.0f, 0.0f,
+			.5f, -.5f, .2f, 1.0f, 1.0f,
+			.5f, .5f, .2f, 1.0f, 0.0f
 		};
 
 		uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };

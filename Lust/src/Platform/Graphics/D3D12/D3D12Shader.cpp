@@ -196,15 +196,18 @@ void Lust::D3D12Shader::BindDescriptors()
 		cmdList->SetGraphicsRootConstantBufferView(rootDescriptor.first, m_CBVResources[bufferLocation]->GetGPUVirtualAddress());
 	}
 
-	cmdList->SetDescriptorHeaps(m_MergedHeaps.size(), m_MergedHeaps.data());
+	if (m_MergedHeaps.size() > 0)
+	{
+		cmdList->SetDescriptorHeaps(m_MergedHeaps.size(), m_MergedHeaps.data());
 
-	for (auto& tabledDescriptor : m_TabledDescriptors)
-	{
-		cmdList->SetGraphicsRootDescriptorTable(tabledDescriptor.first, tabledDescriptor.second->GetGPUDescriptorHandleForHeapStart());
-	}
-	for (auto& samplerDescriptor : m_SamplerDescriptors)
-	{
-		cmdList->SetGraphicsRootDescriptorTable(samplerDescriptor.first, samplerDescriptor.second->GetGPUDescriptorHandleForHeapStart());
+		for (auto& tabledDescriptor : m_TabledDescriptors)
+		{
+			cmdList->SetGraphicsRootDescriptorTable(tabledDescriptor.first, tabledDescriptor.second->GetGPUDescriptorHandleForHeapStart());
+		}
+		for (auto& samplerDescriptor : m_SamplerDescriptors)
+		{
+			cmdList->SetGraphicsRootDescriptorTable(samplerDescriptor.first, samplerDescriptor.second->GetGPUDescriptorHandleForHeapStart());
+		}
 	}
 }
 
