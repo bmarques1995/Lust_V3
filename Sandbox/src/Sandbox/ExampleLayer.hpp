@@ -45,7 +45,7 @@ namespace Lust
 		std::shared_ptr<Texture2D> m_Texture2;
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
-		
+
 		std::shared_ptr<Shader> m_SquareShader;
 		std::shared_ptr<VertexBuffer> m_SquareVertexBuffer;
 		std::shared_ptr<IndexBuffer> m_SquareIndexBuffer;
@@ -84,6 +84,9 @@ namespace Lust
 		SmallMVP m_SmallMVP;
 		CompleteMVP m_CompleteMVP;
 		SmallMVP m_SquareSmallMVP;
-		Eigen::Vector3f m_SquareColor = { 1.0f, .5f, .25f };
+		//#f1c40f
+		Eigen::Vector3f m_SquareColor = { 0xf1 / 255.0f, 0xc4 / 255.0f, 0x0f / 255.0f };
+		//#9b59b6
+		Eigen::Vector3f m_SquareColor2 = { 0x9b / 255.0f, 0x59 / 255.0f, 0Xb6 / 255.0f };
 	};
 }

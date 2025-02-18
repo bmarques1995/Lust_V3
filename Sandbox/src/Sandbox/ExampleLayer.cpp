@@ -93,7 +93,7 @@ void Lust::ExampleLayer::OnAttach()
 			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1 } //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
-	m_SquareSmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), m_Texture1->GetWidth() * .6f, m_Texture1->GetHeight() * .6f, 1.0f);
+	m_SquareSmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), 50.0f, 50.0f, 1.0f);
 
 	TextureLayout squareTextureLayout(
 		{
@@ -171,20 +171,35 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	m_Camera->SetRotation(m_CameraRotation);
 
 	Renderer::BeginScene(*(m_Camera.get()));
-	Renderer::SubmitCBV(m_SquareShader, m_SquareShader->GetUniformLayout().GetElement(1));
-	Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);
-	memcpy(&squareSmallBuffer[0], m_SquareSmallMVP.model.data(), sizeof(m_SquareSmallMVP.model));
-	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
-	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), 0);
+	Eigen::Matrix4f squareSmallBufferMatrix;
+	for (size_t i = 0; i < 20; i++)
+	{
+		for (size_t j = 0; j < 20; j++)
+		{
+			Renderer::SubmitCBV(m_SquareShader, m_SquareShader->GetUniformLayout().GetElement(1));
+			Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);
+			squareSmallBufferMatrix = Translate<float>(m_SquareSmallMVP.model, i * 60.0f, j * 60.0f, 0.0f);
+			memcpy(&squareSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
+			if((i+j)%2 == 0)
+				memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
+			else
+				memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor2.data(), sizeof(m_SquareColor2));
+			Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), 0);
+			RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount());
+		}
+	}
+	
 	Renderer::EndScene();
-	RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount());
+	
+	
 	Renderer::BeginScene(*(m_Camera.get()));
 	Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(1));
 	Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(2));
 	Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer);
 	Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), 0);
-	Renderer::EndScene();
 	RenderCommand::DrawIndexed(m_IndexBuffer->GetCount());
+	Renderer::EndScene();
+	
 }
 
 void Lust::ExampleLayer::OnImGuiRender()
