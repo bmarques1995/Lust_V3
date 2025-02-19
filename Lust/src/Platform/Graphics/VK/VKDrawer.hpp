@@ -13,8 +13,8 @@ namespace Lust
 		VKDrawer(const VKContext* context);
 		~VKDrawer();
 
-		void Draw(uint32_t count) override;
-		void DrawIndexed(uint32_t count) override;
+		void Draw(uint32_t count, uint32_t instances = 1) override;
+		void DrawIndexed(uint32_t count, uint32_t instances = 1) override;
 	private:
 		const VKContext* m_Context;
 	};

@@ -37,7 +37,7 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size)
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
+		D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
 		nullptr,
 		IID_PPV_ARGS(m_Buffer.GetAddressOf()));

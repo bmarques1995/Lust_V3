@@ -9,14 +9,14 @@ Lust::VKDrawer::~VKDrawer()
 {
 }
 
-void Lust::VKDrawer::Draw(uint32_t count)
+void Lust::VKDrawer::Draw(uint32_t count, uint32_t instances)
 {
 	auto cmdBuffer = m_Context->GetCurrentCommandBuffer();
-	vkCmdDraw(cmdBuffer, count, 1, 0, 0);
+	vkCmdDraw(cmdBuffer, count, instances, 0, 0);
 }
 
-void Lust::VKDrawer::DrawIndexed(uint32_t count)
+void Lust::VKDrawer::DrawIndexed(uint32_t count, uint32_t instances)
 {
 	auto cmdBuffer = m_Context->GetCurrentCommandBuffer();
-	vkCmdDrawIndexed(cmdBuffer, count, 1, 0, 0, 0);
+	vkCmdDrawIndexed(cmdBuffer, count, instances, 0, 0, 0);
 }

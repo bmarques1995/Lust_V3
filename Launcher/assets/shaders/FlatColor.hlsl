@@ -38,7 +38,8 @@ RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT\
 	| DENY_HULL_SHADER_ROOT_ACCESS \
 	| DENY_DOMAIN_SHADER_ROOT_ACCESS), \
 RootConstants(num32BitConstants=19, b0), \
-CBV(b1),
+CBV(b1),\
+SRV(t0)
 
 struct VSInput{
 	[[vk::location(0)]]float3 pos : POSITION;
@@ -48,6 +49,7 @@ struct VSInput{
 struct PSInput{
 	float4 pos : SV_POSITION;
 	float2 txc : TEXCOORD;
+	uint instanceID : INSTANCE;
 };
 
 struct SmallBuffer{
@@ -81,13 +83,16 @@ cbuffer u_SmallMVP : register(b0)
 	CompleteMVP m_CompleteMVP;
 };
 
-PSInput vs_main(VSInput vsinput)
+[[vk::binding(2, 0)]] StructuredBuffer<float4x4> u_InstancedMVP : register(t0);
+
+PSInput vs_main(VSInput vsinput, uint instanceID : SV_INSTANCEID)
 {
 	PSInput vsoutput;
 	vsoutput.pos = mul(float4(vsinput.pos, 1.0f), m_SmallMVP.Model);
 	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
 	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
 	vsoutput.txc = vsinput.txc;
+	vsoutput.instanceID = instanceID;
 	return vsoutput;
 }
 

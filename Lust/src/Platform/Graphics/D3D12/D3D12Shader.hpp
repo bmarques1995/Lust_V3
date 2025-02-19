@@ -34,6 +34,7 @@ namespace Lust
 
 		void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) override;
 
+		void UpdateSSBO(const StructuredBufferElement& uploadBuffer) override;
 	private:
 		void StartDXC();
 		void CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture);
@@ -41,10 +42,16 @@ namespace Lust
 		void CreateSampler(SamplerElement samplerElement);
 		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);
 
-		bool IsCBufferValid(size_t size);
+		void CreateBuffer(size_t bufferSize, DXGI_FORMAT format, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_DIMENSION dimension, ID3D12Resource2** buffer);
+
+		bool IsBufferValid(size_t size);
 		void PreallocateRootCBuffer(const void* data, UniformElement uniformElement);
 		void PreallocateTabledCBuffer(const void* data, UniformElement uniformElement);
 		void MapCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex = 1);
+
+		void PreallocateRootSSBO(const StructuredBufferElement& structuredBufferElement);
+		void PreallocateTabledSSBO(const StructuredBufferElement& structuredBufferElement);
+		void MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex = 1);
 
 		void CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device);
 		void BuildBlender(D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc);
@@ -69,6 +76,7 @@ namespace Lust
 		Json::Value m_PipelineInfo;
 
 		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
+		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_SSBOResources;
 
 		const D3D12Context* m_Context;
 		
@@ -79,7 +87,8 @@ namespace Lust
 		std::unordered_map<std::string, ComPointer<IDxcBlob>> m_ShaderBlobs;
 		
 		ComPointer<ID3D12RootSignature> m_RootSignature;
-		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_RootDescriptors;
+		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_RootCBVDescriptors;
+		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_RootSRVDescriptors;
 		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_TabledDescriptors;
 		std::unordered_map<uint32_t, ComPointer<ID3D12DescriptorHeap>> m_SamplerDescriptors;
 		std::vector<ID3D12DescriptorHeap*> m_MergedHeaps;

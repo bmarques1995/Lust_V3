@@ -5,10 +5,12 @@
 #include "UniformsLayout.hpp"
 #include "SamplerLayout.hpp"
 #include "TextureLayout.hpp"
+#include "StructuredBufferLayout.hpp"
 #include "Topology.hpp"
 #include "Texture.hpp"
 #include "GraphicsContext.hpp"
 #include <json/json.h>
+
 
 namespace Lust
 {
@@ -25,15 +27,16 @@ namespace Lust
 		UniformLayout m_UniformLayout;
 		TextureLayout m_TextureLayout;
 		SamplerLayout m_SamplerLayout;
+		StructuredBufferLayout m_StructuredBufferLayout;
 		Topology m_Topology = Topology::LUST_TOPOLOGY_TRIANGLELIST;
 
-		InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout);
+		InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout, StructuredBufferLayout structuredBufferLayout);
 	};
 
 	class LUST_API Shader
 	{
 	public:
-		Shader(InputInfo inputInfo);
+		Shader(const InputInfo& inputInfo);
 
 		const InputBufferLayout& GetInputLayout() const;
 		const SmallBufferLayout& GetSmallBufferLayout() const;
@@ -51,6 +54,7 @@ namespace Lust
 		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;
 		virtual void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) = 0;
+		virtual void UpdateSSBO(const StructuredBufferElement& uploadBuffer) = 0;
 
 		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo);
 
@@ -64,6 +68,7 @@ namespace Lust
 		UniformLayout m_UniformLayout;
 		TextureLayout m_TextureLayout;
 		SamplerLayout m_SamplerLayout;
+		StructuredBufferLayout m_StructuredBufferLayout;
 
 		static void InitJsonAndPaths(std::string json_controller_path, Json::Value* pipelineInfo, std::string* shaderDir);
 	};

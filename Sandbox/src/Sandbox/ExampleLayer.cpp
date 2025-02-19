@@ -64,7 +64,12 @@ void Lust::ExampleLayer::OnAttach()
 		}
 		);
 
-	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout);
+	StructuredBufferLayout structuredBufferLayout(
+		{
+		}
+		, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout, structuredBufferLayout);
 
 	m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/HelloTriangle", inputInfoController));
 
@@ -106,7 +111,12 @@ void Lust::ExampleLayer::OnAttach()
 		}
 		);
 
-	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout);
+	StructuredBufferLayout squareStructuredBufferLayout(
+		{
+		}
+	, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout, squareStructuredBufferLayout);
 
 	m_SquareShader.reset(Shader::Instantiate(context, "./assets/shaders/FlatColor", squareInputInfoController));
 

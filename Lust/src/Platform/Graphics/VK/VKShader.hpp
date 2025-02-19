@@ -33,6 +33,7 @@ namespace Lust
 
 		void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) override;
 
+		void UpdateSSBO(const StructuredBufferElement& uploadBuffer) override;
 	private:
 
 		void PreallocatesDescSets();
@@ -41,11 +42,16 @@ namespace Lust
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
 
+		void CreateBuffer(size_t bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
+
 		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture);
 
 		bool IsUniformValid(size_t size);
 		void PreallocateUniform(const void* data, UniformElement uniformElement, uint32_t offset);
 		void MapUniform(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset);
+
+		void PreallocateSSBO(const StructuredBufferElement& structuredBufferElement, uint32_t offset);
+		void MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset);
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		void CreateSampler(SamplerElement samplerElement);
@@ -73,6 +79,7 @@ namespace Lust
 
 
 		std::unordered_map<uint32_t, RM> m_Uniforms;
+		std::unordered_map<uint32_t, RM> m_SSBOs;
 		std::unordered_map<uint32_t, VkSampler> m_Samplers;
 
 		VkDescriptorSetLayout m_RootSignature;

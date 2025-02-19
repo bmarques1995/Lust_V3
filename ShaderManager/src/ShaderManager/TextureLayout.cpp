@@ -107,7 +107,6 @@ void Lust::TextureElement::FreeImage()
 Lust::TextureLayout::TextureLayout(std::initializer_list<TextureElement> elements, uint32_t allowedStages) :
 	m_Stages(allowedStages)
 {
-	s_EmptyElement = TextureElement();
 	for (auto& element : elements)
 	{
 		uint64_t textureLocation = ((uint64_t)element.GetShaderRegister() << 32) + element.GetTextureIndex();

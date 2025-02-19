@@ -83,7 +83,7 @@ void Lust::D3D12Texture2D::CreateResource()
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&textureBufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
+		D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
 		nullptr,
 		IID_PPV_ARGS(m_Texture.GetAddressOf()));
@@ -152,7 +152,7 @@ void Lust::D3D12Texture2D::CopyBuffer()
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Transition.pResource = m_Texture;
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_GENERIC_READ;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	copyCommandList->ResourceBarrier(1, &barrier);

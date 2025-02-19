@@ -9,14 +9,14 @@ Lust::D3D12Drawer::~D3D12Drawer()
 {
 }
 
-void Lust::D3D12Drawer::Draw(uint32_t count)
+void Lust::D3D12Drawer::Draw(uint32_t count, uint32_t instances)
 {
 	auto cmdList = m_Context->GetCurrentCommandList();
-	cmdList->DrawInstanced(count, 1, 0, 0);
+	cmdList->DrawInstanced(count, instances, 0, 0);
 }
 
-void Lust::D3D12Drawer::DrawIndexed(uint32_t count)
+void Lust::D3D12Drawer::DrawIndexed(uint32_t count, uint32_t instances)
 {
 	auto cmdList = m_Context->GetCurrentCommandList();
-	cmdList->DrawIndexedInstanced(count, 1, 0, 0, 0);
+	cmdList->DrawIndexedInstanced(count, instances, 0, 0, 0);
 }

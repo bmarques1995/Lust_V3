@@ -18,21 +18,23 @@ Lust::SizeMismatchException::SizeMismatchException(size_t layoutSize, size_t pro
 	m_Reason = buffer.str();
 }
 
-Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout) :
+Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout, StructuredBufferLayout structuredBufferLayout) :
 	m_InputLayout(inputLayout),
 	m_SmallBufferLayout(smallBufferLayout),
 	m_UniformLayout(uniformLayout),
 	m_TextureLayout(textureLayout),
-	m_SamplerLayout(samplerLayout)
+	m_SamplerLayout(samplerLayout),
+	m_StructuredBufferLayout(structuredBufferLayout)
 {
 }
 
-Lust::Shader::Shader(InputInfo inputInfo)
+Lust::Shader::Shader(const InputInfo& inputInfo)
 	: m_Layout(inputInfo.m_InputLayout),
 	m_SmallBufferLayout(inputInfo.m_SmallBufferLayout),
 	m_UniformLayout(inputInfo.m_UniformLayout),
 	m_TextureLayout(inputInfo.m_TextureLayout),
-	m_SamplerLayout(inputInfo.m_SamplerLayout)
+	m_SamplerLayout(inputInfo.m_SamplerLayout),
+	m_StructuredBufferLayout(inputInfo.m_StructuredBufferLayout)
 {
 }
 

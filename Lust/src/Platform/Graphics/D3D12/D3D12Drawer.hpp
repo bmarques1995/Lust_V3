@@ -13,8 +13,8 @@ namespace Lust
 		D3D12Drawer(const D3D12Context* context);
 		~D3D12Drawer();
 
-		void Draw(uint32_t count) override;
-		void DrawIndexed(uint32_t count) override;
+		void Draw(uint32_t count, uint32_t instances = 1) override;
+		void DrawIndexed(uint32_t count, uint32_t instances = 1) override;
 	private:
 		const D3D12Context* m_Context;
 	};
