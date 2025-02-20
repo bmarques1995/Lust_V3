@@ -98,7 +98,7 @@ void Lust::ExampleLayer::OnAttach()
 			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1 } //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
-	m_SquareSmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), 50.0f, 50.0f, 1.0f);
+	m_SquareSmallMVP.model = Eigen::Matrix4f::Identity();
 
 	TextureLayout squareTextureLayout(
 		{
@@ -123,12 +123,13 @@ void Lust::ExampleLayer::OnAttach()
 	squareStructuredBufferLayout.GetElementPointer(2, 0)->SetBuffer(&m_SSBO);
 
 	Eigen::Matrix4f squareSmallBufferMatrix;
+	Eigen::Matrix4f baseScale = Scale<float>(Eigen::Matrix4f::Identity(), 50.0f, 50.0f, 1.0f);
 	for (size_t i = 0; i < rows; i++)
 	{
 		for (size_t j = 0; j < cols; j++)
 		{
 			auto structuredBuffer = squareStructuredBufferLayout.GetElementPointer(2, 0);
-			squareSmallBufferMatrix = Translate<float>(m_SquareSmallMVP.model, i * 60.0f, j * 60.0f, 0.0f);
+			squareSmallBufferMatrix = Translate<float>(baseScale, i * 60.0f, j * 60.0f, 0.0f);
 			structuredBuffer->CopyToBuffer(squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f), i * rows +j);
 		}
 	}
@@ -138,8 +139,8 @@ void Lust::ExampleLayer::OnAttach()
 	m_SquareShader.reset(Shader::Instantiate(context, "./assets/shaders/FlatColor", squareInputInfoController));
 
 	m_SquareShader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), squareUniformsLayout.GetElement(1));
-	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&squareVertices[0], sizeof(squareVertices), squareLayout.GetStride()));
-	m_SquareIndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)&squareIndices[0], sizeof(squareIndices) / sizeof(uint32_t)));
+	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), squareLayout.GetStride()));
+	m_SquareIndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)squareIndices, sizeof(squareIndices)/ sizeof(uint32_t)));
 }
 
 void Lust::ExampleLayer::OnDetach()
@@ -199,24 +200,15 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	m_Camera->SetRotation(m_CameraRotation);
 
 	Renderer::BeginScene(*(m_Camera.get()));
-	Eigen::Matrix4f squareSmallBufferMatrix;
-	for (size_t i = 0; i < 20; i++)
-	{
-		for (size_t j = 0; j < 20; j++)
-		{
-			Renderer::SubmitCBV(m_SquareShader, m_SquareShader->GetUniformLayout().GetElement(1));
-			Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);
-			squareSmallBufferMatrix = Translate<float>(m_SquareSmallMVP.model, i * 60.0f, j * 60.0f, 0.0f);
-			memcpy(&squareSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
-			if((i+j)%2 == 0)
-				memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
-			else
-				memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor2.data(), sizeof(m_SquareColor2));
-			Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), 0);
-			RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount());
-		}
-	}
-	
+	Eigen::Matrix4f squareSmallBufferMatrix = Eigen::Matrix4f::Identity();
+
+	Renderer::SubmitCBV(m_SquareShader, m_SquareShader->GetUniformLayout().GetElement(1));
+	Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);
+	memcpy(&squareSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
+	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor2.data(), sizeof(m_SquareColor2));
+	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), 0);
+	RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount(), 400);
+
 	Renderer::EndScene();
 	
 	

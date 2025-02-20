@@ -85,11 +85,13 @@ cbuffer u_SmallMVP : register(b0)
 
 [[vk::binding(2, 0)]] StructuredBuffer<float4x4> u_InstancedMVP : register(t0);
 
-PSInput vs_main(VSInput vsinput, uint instanceID : SV_INSTANCEID)
+PSInput vs_main(VSInput vsinput, uint instanceID : SV_InstanceID)
 {
 	PSInput vsoutput;
+	float4x4 elementModelMatrix = u_InstancedMVP[instanceID];
 	vsoutput.pos = mul(float4(vsinput.pos, 1.0f), m_SmallMVP.Model);
 	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
+	vsoutput.pos = mul(vsoutput.pos, elementModelMatrix);
 	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
 	vsoutput.txc = vsinput.txc;
 	vsoutput.instanceID = instanceID;

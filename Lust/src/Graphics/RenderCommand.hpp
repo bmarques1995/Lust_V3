@@ -18,14 +18,14 @@ namespace Lust {
 			s_Drawer.reset();
 		}
 
-		static void Draw(uint32_t elementCount)
+		static void Draw(uint32_t elementCount, uint32_t instanceCount = 1)
 		{
-			s_Drawer->Draw(elementCount);
+			s_Drawer->Draw(elementCount, instanceCount);
 		}
 
-		static void DrawIndexed(uint32_t indexCount)
+		static void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1)
 		{
-			s_Drawer->DrawIndexed(indexCount);
+			s_Drawer->DrawIndexed(indexCount, instanceCount);
 		}
 		
 	private:
