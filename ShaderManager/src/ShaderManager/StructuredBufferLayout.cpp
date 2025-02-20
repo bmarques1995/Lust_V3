@@ -12,22 +12,28 @@ Lust::StructuredBufferElement::StructuredBufferElement()
 	m_BindingSlot = 0;
 	m_ShaderRegister = 0;
 	m_BufferIndex = 0;
+	m_BufferAlignment = 0;
+	m_NumberOfElements = 1;
 }
 
-Lust::StructuredBufferElement::StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel) :
-	m_Buffer(nullptr), m_Stride(stride), m_NumberOfBuffers(numberOfBuffers), m_AccessLevel(accessLevel), m_SpaceSet(spaceSet), m_BindingSlot(bindingSlot), m_ShaderRegister(shaderRegister), m_BufferIndex(bufferIndex)
+Lust::StructuredBufferElement::StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride,
+	size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, uint32_t numberOfElements) :
+	m_Buffer(nullptr), m_Stride(stride), m_NumberOfBuffers(numberOfBuffers), m_AccessLevel(accessLevel), m_SpaceSet(spaceSet), m_BindingSlot(bindingSlot),
+	m_ShaderRegister(shaderRegister), m_BufferIndex(bufferIndex), m_BufferAlignment(bufferAlignment), m_NumberOfElements(numberOfElements)
 {
-	m_Buffer = new uint8_t[stride * numberOfBuffers];
+	size_t bufferCorrection = 0;
+	if((m_Stride*m_NumberOfBuffers) % m_BufferAlignment != 0)
+		bufferCorrection = m_BufferAlignment - ((m_Stride*m_NumberOfBuffers) % m_BufferAlignment);
 }
 
 Lust::StructuredBufferElement::~StructuredBufferElement()
 {
-	delete[] m_Buffer;
+	m_Buffer = nullptr;
 }
 
 const uint8_t* Lust::StructuredBufferElement::GetRawBuffer() const
 {
-	return m_Buffer;
+	return *m_Buffer;
 }
 
 Lust::BufferType Lust::StructuredBufferElement::GetBufferType() const
@@ -45,6 +51,11 @@ uint32_t Lust::StructuredBufferElement::GetShaderRegister() const
 	return m_ShaderRegister;
 }
 
+uint32_t Lust::StructuredBufferElement::GetNumberOfElements() const
+{
+	return m_NumberOfElements;
+}
+
 uint32_t Lust::StructuredBufferElement::GetSpaceSet() const
 {
 	return m_SpaceSet;
@@ -58,6 +69,11 @@ uint32_t Lust::StructuredBufferElement::GetBufferIndex() const
 Lust::AccessLevel Lust::StructuredBufferElement::GetAccessLevel() const
 {
 	return m_AccessLevel;
+}
+
+void Lust::StructuredBufferElement::SetBuffer(uint8_t** buffer)
+{
+	m_Buffer = buffer;
 }
 
 size_t Lust::StructuredBufferElement::GetStride() const
@@ -75,11 +91,19 @@ size_t Lust::StructuredBufferElement::GetSize() const
 	return m_Stride * m_NumberOfBuffers;
 }
 
+size_t Lust::StructuredBufferElement::GetBufferAlignment() const
+{
+	return m_BufferAlignment;
+}
+
 void Lust::StructuredBufferElement::CopyToBuffer(const void* buffer, size_t size, size_t offset) const
 {
+	if(m_Buffer == nullptr)
+		return;
+	uint8_t* rawBuffer = *m_Buffer;
 	if ((size + offset) <= (m_Stride * m_NumberOfBuffers))
 	{
-		memcpy(&m_Buffer[offset], buffer, size);
+		memcpy(&rawBuffer[offset * m_Stride], buffer, size);
 	}
 }
 
@@ -106,6 +130,16 @@ const Lust::StructuredBufferElement& Lust::StructuredBufferLayout::GetElement(ui
 const std::unordered_map<uint64_t, Lust::StructuredBufferElement>& Lust::StructuredBufferLayout::GetElements() const
 {
 	return m_StructuredBuffers;
+}
+
+Lust::StructuredBufferElement* Lust::StructuredBufferLayout::GetElementPointer(uint32_t shaderRegister, uint32_t textureIndex)
+{
+	uint64_t bufferLocation = ((uint64_t)shaderRegister << 32) + textureIndex;
+	auto it = m_StructuredBuffers.find(bufferLocation);
+	if (it != m_StructuredBuffers.end())
+		return &(it->second);
+	else
+		return nullptr;
 }
 
 uint32_t Lust::StructuredBufferLayout::GetStages() const

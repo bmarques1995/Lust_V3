@@ -50,12 +50,29 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 	StartDXC();
 	m_RenderTopology = GetNativeTopology(inputInfo.m_Topology);
 
+	auto smallBuffers = m_SmallBufferLayout.GetElements();
 	auto uniforms = m_UniformLayout.GetElements();
 	auto structuredBuffers = m_StructuredBufferLayout.GetElements();
+
+	for (auto& smallBuffer : smallBuffers)
+	{
+		m_RootSignatureSize += smallBuffer.second.GetSize();
+	}
 
 	for (auto& uniform : uniforms)
 	{
 		if (uniform.second.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
+			m_RootSignatureSize += 8;
+		else
+		{
+			m_RootSignatureSize += 4;
+			break;
+		}
+	}
+
+	for (auto& structuredBuffer : structuredBuffers)
+	{
+		if (structuredBuffer.second.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
 			m_RootSignatureSize += 8;
 		else
 		{
@@ -486,14 +503,14 @@ void Lust::D3D12Shader::PreallocateRootSSBO(const StructuredBufferElement& struc
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;  // Structured Buffers have no format
 	srvDesc.Buffer.FirstElement = 0;
-	srvDesc.Buffer.NumElements = structuredBufferElement.GetNumberOfBuffers();
+	srvDesc.Buffer.NumElements = 1;
 	srvDesc.Buffer.StructureByteStride = structuredBufferElement.GetSize();
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
 
 	device->CreateShaderResourceView(m_SSBOResources[bufferLocation].Get(), &srvDesc, srvHeapStartHandle);
 
-	MapCBuffer(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetShaderRegister());
+	MapSSBO(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetShaderRegister());
 }
 
 void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& structuredBufferElement)
@@ -506,7 +523,7 @@ void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& str
 
 	// 4. Create the descriptor heap for CBVs
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.NumDescriptors = structuredBufferElement.GetNumberOfBuffers(); // Two descriptors
+	heapDesc.NumDescriptors = structuredBufferElement.GetNumberOfElements();
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
@@ -529,7 +546,7 @@ void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& str
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Format = DXGI_FORMAT_UNKNOWN;  // Structured Buffers have no format
 		srvDesc.Buffer.FirstElement = 0;
-		srvDesc.Buffer.NumElements = structuredBufferElement.GetNumberOfBuffers();
+		srvDesc.Buffer.NumElements = 1;
 		srvDesc.Buffer.StructureByteStride = structuredBufferElement.GetSize();
 		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
@@ -537,12 +554,20 @@ void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& str
 		
 		srvHandle.ptr += srvDescriptorSize;
 
-		MapCBuffer(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetShaderRegister(), i + 1);
+		MapSSBO(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetShaderRegister(), i + 1);
 	}
 }
 
 void Lust::D3D12Shader::MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
 {
+	HRESULT hr;
+	uint64_t bufferLocation = (((uint64_t)shaderRegister << 32) + tableIndex);
+	D3D12_RANGE readRange = { 0 };
+	void* gpuData = nullptr;
+	hr = m_SSBOResources[bufferLocation]->Map(0, &readRange, &gpuData);
+	assert(hr == S_OK);
+	memcpy(gpuData, data, size);
+	m_SSBOResources[bufferLocation]->Unmap(0, NULL);
 }
 
 void Lust::D3D12Shader::CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device)
@@ -685,6 +710,7 @@ D3D12_RESOURCE_DIMENSION Lust::D3D12Shader::GetNativeDimension(BufferType type)
 	switch (type)
 	{
 	case BufferType::UNIFORM_CONSTANT_BUFFER:
+	case BufferType::STRUCTURED_BUFFER:
 		return D3D12_RESOURCE_DIMENSION_BUFFER;
 	default:
 	case BufferType::INVALID_BUFFER_TYPE:

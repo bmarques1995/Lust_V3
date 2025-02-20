@@ -102,17 +102,14 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
             delete[] data;
         }
 
-        auto structuredBuffers = m_UniformLayout.GetElements();
+        auto structuredBuffers = m_StructuredBufferLayout.GetElements();
 
         for (const auto& element : structuredBuffers)
         {
-
-            unsigned char* data = new unsigned char[element.second.GetSize()];
-            for (size_t i = 0; i < element.second.GetNumberOfBuffers(); i++)
+            for (size_t i = 0; i < element.second.GetNumberOfElements(); i++)
             {
-                PreallocateUniform(data, element.second, i);
+                PreallocateSSBO(element.second, i);
             }
-            delete[] data;
         }
 
         auto samplers = m_SamplerLayout.GetElements();
@@ -691,9 +688,9 @@ void Lust::VKShader::PreallocateSSBO(const StructuredBufferElement& structuredBu
     VkDeviceSize bufferSize = structuredBufferElement.GetSize();
     m_SSBOs[bindingPoint] = {};
 
-    CreateBuffer(structuredBufferElement.GetSize(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &(m_Uniforms[bindingPoint].Resource), &(m_Uniforms[bindingPoint].Memory));
+    CreateBuffer(structuredBufferElement.GetSize(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &(m_SSBOs[bindingPoint].Resource), &(m_SSBOs[bindingPoint].Memory));
 
-    MapUniform(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetBindingSlot(), offset);
+    MapSSBO(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetBindingSlot(), offset);
 }
 
 void Lust::VKShader::MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset)

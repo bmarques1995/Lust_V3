@@ -111,10 +111,27 @@ void Lust::ExampleLayer::OnAttach()
 		}
 		);
 
+	size_t rows = 20, cols = 20;
 	StructuredBufferLayout squareStructuredBufferLayout(
 		{
+			//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment
+			{ 2, 2, 0, 0, sizeof(Eigen::Matrix4f), rows * cols, AccessLevel::ROOT_BUFFER, Application::GetInstance()->GetContext()->GetUniformAttachment() }
 		}
 	, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
+
+	m_SSBO = new uint8_t[squareStructuredBufferLayout.GetElementPointer(2, 0)->GetSize()];
+	squareStructuredBufferLayout.GetElementPointer(2, 0)->SetBuffer(&m_SSBO);
+
+	Eigen::Matrix4f squareSmallBufferMatrix;
+	for (size_t i = 0; i < rows; i++)
+	{
+		for (size_t j = 0; j < cols; j++)
+		{
+			auto structuredBuffer = squareStructuredBufferLayout.GetElementPointer(2, 0);
+			squareSmallBufferMatrix = Translate<float>(m_SquareSmallMVP.model, i * 60.0f, j * 60.0f, 0.0f);
+			structuredBuffer->CopyToBuffer(squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f), i * rows +j);
+		}
+	}
 
 	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout, squareStructuredBufferLayout);
 
@@ -136,6 +153,7 @@ void Lust::ExampleLayer::OnDetach()
 	m_IndexBuffer.reset();
 	m_VertexBuffer.reset();
 	m_Shader.reset();
+	delete[] m_SSBO;
 }
 
 void Lust::ExampleLayer::OnUpdate(Timestep ts)

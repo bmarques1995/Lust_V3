@@ -56,6 +56,8 @@ namespace Lust
 		float m_CameraRotation = 0.0f;
 		float m_CameraRotationSpeed = 2.0f;
 
+		uint8_t* m_SSBO = nullptr;
+
 		bool OnWindowResize(WindowResizedEvent& e);
 
 		Eigen::Vector<float, 9> m_VBuffer[4] =
