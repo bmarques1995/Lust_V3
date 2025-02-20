@@ -89,7 +89,7 @@ void Lust::ExampleLayer::OnAttach()
 	SmallBufferLayout squareSmallBufferLayout(
 		{
 			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 76, 0, context->GetSmallBufferAttachment() }
+			{ 0, 88, 0, context->GetSmallBufferAttachment() }
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	UniformLayout squareUniformsLayout(
@@ -160,7 +160,7 @@ void Lust::ExampleLayer::OnDetach()
 void Lust::ExampleLayer::OnUpdate(Timestep ts)
 {
 	static float maxAxis = 32768.0f;
-	static uint8_t squareSmallBuffer[76];
+	static uint8_t squareSmallBuffer[88];
 	float rightStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTX);
 	float rightStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTY);
 	Eigen::Vector2f rightStick(rightStickX, rightStickY);
@@ -205,7 +205,8 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	Renderer::SubmitCBV(m_SquareShader, m_SquareShader->GetUniformLayout().GetElement(1));
 	Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);
 	memcpy(&squareSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
-	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor2.data(), sizeof(m_SquareColor2));
+	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
+	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model) + sizeof(m_SquareColor)], m_SquareColor2.data(), sizeof(m_SquareColor2));
 	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), 0);
 	RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount(), 400);
 

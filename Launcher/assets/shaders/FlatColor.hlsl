@@ -37,7 +37,7 @@ RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT\
 	| DENY_GEOMETRY_SHADER_ROOT_ACCESS\
 	| DENY_HULL_SHADER_ROOT_ACCESS \
 	| DENY_DOMAIN_SHADER_ROOT_ACCESS), \
-RootConstants(num32BitConstants=19, b0), \
+RootConstants(num32BitConstants=22, b0), \
 CBV(b1),\
 SRV(t0)
 
@@ -54,7 +54,8 @@ struct PSInput{
 
 struct SmallBuffer{
 	float4x4 Model;
-	float3 Color;
+	float3 Color1;
+	float3 Color2;
 };
 
 struct CompleteMVP
@@ -89,9 +90,10 @@ PSInput vs_main(VSInput vsinput, uint instanceID : SV_InstanceID)
 {
 	PSInput vsoutput;
 	float4x4 elementModelMatrix = u_InstancedMVP[instanceID];
-	vsoutput.pos = mul(float4(vsinput.pos, 1.0f), m_SmallMVP.Model);
-	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
+	vsoutput.pos = float4(vsinput.pos, 1.0f);
 	vsoutput.pos = mul(vsoutput.pos, elementModelMatrix);
+	vsoutput.pos = mul(vsoutput.pos, m_SmallMVP.Model);
+	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
 	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
 	vsoutput.txc = vsinput.txc;
 	vsoutput.instanceID = instanceID;
@@ -100,5 +102,5 @@ PSInput vs_main(VSInput vsinput, uint instanceID : SV_InstanceID)
 
 float4 ps_main(PSInput input) : SV_TARGET0
 {
-	return float4(m_SmallMVP.Color, 1.0f);
+	return float4((input.instanceID % 2 == 0) ? m_SmallMVP.Color1 : m_SmallMVP.Color2, 1.0f);
 }
