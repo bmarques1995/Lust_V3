@@ -6,7 +6,7 @@
 #include "VKTexture.hpp"
 #include "Image.hpp"
 
-Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, const std::string& path, uint32_t slot, uint32_t spaceSet, uint32_t heapSlot, uint32_t textureIndex)
+Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, const std::string& path)
 {
 	const std::string target = "[[native]]";
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
@@ -15,9 +15,9 @@ Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, co
 	bool isTextureNative = (pos != std::string::npos);
 	if(!isTextureNative)
 		texture.reset(Image::CreateImage(path));
-	TextureElement specification =
+	TextureBuffer specification =
 		//std::shared_ptr<Image> img, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet,  TextureTensor tensor, uint32_t textureIndex, size_t depth
-	{ texture, slot, heapSlot, spaceSet, TextureTensor::TENSOR_2, textureIndex };
+	{ texture, TextureTensor::TENSOR_2 };
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS

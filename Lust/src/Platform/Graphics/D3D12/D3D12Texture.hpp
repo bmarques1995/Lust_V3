@@ -10,10 +10,10 @@ namespace Lust
 	class LUST_API D3D12Texture2D : public Texture2D
 	{
 	public:
-		D3D12Texture2D(const D3D12Context* context, const TextureElement& specification);
+		D3D12Texture2D(const D3D12Context* context, const TextureBuffer& specification);
 		~D3D12Texture2D();
 
-		const TextureElement& GetTextureDescription() const override;
+		const TextureBuffer& GetTextureDescription() const override;
 
 		uint32_t GetWidth() const override;
 		uint32_t GetHeight() const override;
@@ -31,7 +31,7 @@ namespace Lust
 
 		const D3D12Context* m_Context;
 		bool m_Loaded;
-		TextureElement m_Specification;
+		TextureBuffer m_Specification;
 
 		ComPointer<ID3D12Resource2> m_Texture;
 	};

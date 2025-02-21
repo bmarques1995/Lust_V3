@@ -43,15 +43,16 @@ void Lust::ExampleLayer::OnAttach()
 			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1 } //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
-	m_Texture1.reset(Texture2D::Instantiate(context, "./assets/textures/yor.png", 3, 0, 3, 0));
-	m_Texture2.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png", 4, 0, 3, 1));
+	m_Texture1.reset(Texture2D::Instantiate(context, "./assets/textures/yor.png"));
+	m_Texture2.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
 
 	m_SmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), Eigen::Vector<float, 3>(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f));
 
+	//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex
 	TextureLayout textureLayout(
 		{
-			m_Texture1->GetTextureDescription(),
-			m_Texture2->GetTextureDescription(),
+			{3, 3, 0, 0},
+			{4, 3, 0, 1}
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 
@@ -75,8 +76,16 @@ void Lust::ExampleLayer::OnAttach()
 
 	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
 	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(2));
-	m_Shader->UploadTexture2D(&m_Texture1);
-	m_Shader->UploadTexture2D(&m_Texture2);
+	std::vector<std::shared_ptr<Texture2D>*> textures;
+	textures.push_back(&m_Texture1);
+	textures.push_back(&m_Texture2);
+	auto textureElements = m_Shader->GetTextureElements();
+	size_t i = 0;
+	for (auto& textureElement : textureElements)
+	{
+		m_Shader->UploadTexture2D((textures[i]), textureElement.second);
+		i++;
+	}
 	m_VertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), layout.GetStride()));
 	m_IndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)&m_IBuffer[0], sizeof(m_IBuffer) / sizeof(uint32_t)));
 	
@@ -89,7 +98,7 @@ void Lust::ExampleLayer::OnAttach()
 	SmallBufferLayout squareSmallBufferLayout(
 		{
 			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 88, 0, context->GetSmallBufferAttachment() }
+			{ 0, 96, 0, context->GetSmallBufferAttachment() }
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	UniformLayout squareUniformsLayout(
@@ -160,7 +169,7 @@ void Lust::ExampleLayer::OnDetach()
 void Lust::ExampleLayer::OnUpdate(Timestep ts)
 {
 	static float maxAxis = 32768.0f;
-	static uint8_t squareSmallBuffer[88];
+	static uint8_t squareSmallBuffer[96];
 	float rightStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTX);
 	float rightStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTY);
 	Eigen::Vector2f rightStick(rightStickX, rightStickY);

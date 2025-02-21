@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-Lust::VKTexture2D::VKTexture2D(const VKContext* context, const TextureElement& specification) :
+Lust::VKTexture2D::VKTexture2D(const VKContext* context, const TextureBuffer& specification) :
     m_Context(context), m_Specification(specification)
 {
     m_Loaded = false;
@@ -24,7 +24,7 @@ Lust::VKTexture2D::~VKTexture2D()
     vkDestroyImage(device, m_Resource, nullptr);
 }
 
-const Lust::TextureElement& Lust::VKTexture2D::GetTextureDescription() const
+const Lust::TextureBuffer& Lust::VKTexture2D::GetTextureDescription() const
 {
 	return m_Specification;
 }

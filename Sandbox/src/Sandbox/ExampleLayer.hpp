@@ -87,8 +87,8 @@ namespace Lust
 		CompleteMVP m_CompleteMVP;
 		SmallMVP m_SquareSmallMVP;
 		//#f1c40f
-		Eigen::Vector3f m_SquareColor = { 0xf1 / 255.0f, 0xc4 / 255.0f, 0x0f / 255.0f };
+		Eigen::Vector4f m_SquareColor = { 0xf1 / 255.0f, 0xc4 / 255.0f, 0x0f / 255.0f, 1.0f };
 		//#9b59b6
-		Eigen::Vector3f m_SquareColor2 = { 0x9b / 255.0f, 0x59 / 255.0f, 0Xb6 / 255.0f };
+		Eigen::Vector4f m_SquareColor2 = { 0x9b / 255.0f, 0x59 / 255.0f, 0Xb6 / 255.0f, 1.0f };
 	};
 }

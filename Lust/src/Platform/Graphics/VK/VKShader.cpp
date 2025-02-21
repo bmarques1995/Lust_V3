@@ -209,6 +209,12 @@ Lust::VKShader::~VKShader()
         vkFreeMemory(device, i.second.Memory, nullptr);
     }
 
+    for (auto& i : m_SSBOs)
+    {
+        vkDestroyBuffer(device, i.second.Resource, nullptr);
+        vkFreeMemory(device, i.second.Memory, nullptr);
+    }
+
     vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(device, m_RootSignature, nullptr);
     vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
@@ -231,9 +237,9 @@ uint32_t Lust::VKShader::GetOffset() const
     return 0;
 }
 
-void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture)
+void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement)
 {
-    CreateTextureDescriptorSet((const std::shared_ptr<VKTexture2D>*) texture);
+    CreateTextureDescriptorSet((const std::shared_ptr<VKTexture2D>*) texture, textureElement);
 }
 
 void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
@@ -622,7 +628,7 @@ void Lust::VKShader::CreateBuffer(size_t bufferSize, VkBufferUsageFlags usage, V
     vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
 }
 
-void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture)
+void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureElement& textureElement)
 {
     VkResult vkr;
     auto device = m_Context->GetDevice();
@@ -635,8 +641,8 @@ void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2
     imageInfo.sampler = nullptr;
 
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_DescriptorSets[(*texture)->GetTextureDescription().GetSpaceSet()];
-    descriptorWrite.dstBinding = (*texture)->GetTextureDescription().GetBindingSlot();
+    descriptorWrite.dstSet = m_DescriptorSets[textureElement.GetSpaceSet()];
+    descriptorWrite.dstBinding = textureElement.GetBindingSlot();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
     descriptorWrite.descriptorCount = 1;

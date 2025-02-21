@@ -8,10 +8,10 @@ namespace Lust
 	class LUST_API VKTexture2D : public Texture2D
 	{
 	public:
-		VKTexture2D(const VKContext* context, const TextureElement& specification);
+		VKTexture2D(const VKContext* context, const TextureBuffer& specification);
 		~VKTexture2D();
 
-		const TextureElement& GetTextureDescription() const override;
+		const TextureBuffer& GetTextureDescription() const override;
 
 		uint32_t GetWidth() const override;
 		uint32_t GetHeight() const override;
@@ -42,7 +42,7 @@ namespace Lust
 		const VKContext* m_Context;
 		bool m_Loaded;
 
-		TextureElement m_Specification;
+		TextureBuffer m_Specification;
 
 		VkImage m_Resource;
 		VkDeviceMemory m_Memory;

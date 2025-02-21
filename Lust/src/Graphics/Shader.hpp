@@ -49,7 +49,8 @@ namespace Lust
 		virtual uint32_t GetStride() const = 0;
 		virtual uint32_t GetOffset() const = 0;
 
-		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture) = 0;
+		const std::unordered_map<uint64_t, TextureElement>& GetTextureElements() const;
+		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) = 0;
 
 		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;

@@ -26,7 +26,7 @@ namespace Lust
 		virtual uint32_t GetStride() const override;
 		virtual uint32_t GetOffset() const override;
 
-		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture) override;
+		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) override;
 
 		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
 
@@ -37,7 +37,7 @@ namespace Lust
 		void UpdateSSBO(const StructuredBufferElement& uploadBuffer) override;
 	private:
 		void StartDXC();
-		void CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture);
+		void CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement);
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
 		void CreateSampler(SamplerElement samplerElement);
 		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);

@@ -200,9 +200,9 @@ uint32_t Lust::D3D12Shader::GetOffset() const
 	return 0;
 }
 
-void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture)
+void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement)
 {
-	CreateSRV((const std::shared_ptr<D3D12Texture2D>*) texture);
+	CreateSRV((const std::shared_ptr<D3D12Texture2D>*) texture, textureElement);
 }
 
 void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
@@ -268,13 +268,13 @@ void Lust::D3D12Shader::StartDXC()
 	assert(hr == S_OK);
 }
 
-void Lust::D3D12Shader::CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture)
+void Lust::D3D12Shader::CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement)
 {
 	auto device = m_Context->GetDevicePtr();
 
-	auto srvHeapStartHandle = m_TabledDescriptors[(*texture)->GetTextureDescription().GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
+	auto srvHeapStartHandle = m_TabledDescriptors[textureElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
 	UINT srvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	srvHeapStartHandle.ptr += ((*texture)->GetTextureDescription().GetTextureIndex() * srvDescriptorSize);
+	srvHeapStartHandle.ptr += (textureElement.GetTextureIndex() * srvDescriptorSize);
 
 	auto textureBufferDesc = (*texture)->GetResource()->GetDesc1();
 

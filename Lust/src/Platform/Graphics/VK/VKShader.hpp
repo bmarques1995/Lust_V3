@@ -25,7 +25,7 @@ namespace Lust
 		uint32_t GetStride() const override;
 		uint32_t GetOffset() const override;
 
-		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture) override;
+		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) override;
 
 		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
 
@@ -44,7 +44,7 @@ namespace Lust
 
 		void CreateBuffer(size_t bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
 
-		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture);
+		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureElement& textureElement);
 
 		bool IsUniformValid(size_t size);
 		void PreallocateUniform(const void* data, UniformElement uniformElement, uint32_t offset);

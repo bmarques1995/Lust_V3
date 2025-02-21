@@ -6,7 +6,7 @@
 #include "Application.hpp"
 #include <vector>
 
-Lust::D3D12Texture2D::D3D12Texture2D(const D3D12Context* context, const TextureElement& specification) :
+Lust::D3D12Texture2D::D3D12Texture2D(const D3D12Context* context, const TextureBuffer& specification) :
 	m_Context(context), m_Specification(specification)
 {
 	m_Loaded = false;
@@ -20,7 +20,7 @@ Lust::D3D12Texture2D::~D3D12Texture2D()
 {
 }
 
-const Lust::TextureElement& Lust::D3D12Texture2D::GetTextureDescription() const
+const Lust::TextureBuffer& Lust::D3D12Texture2D::GetTextureDescription() const
 {
 	return m_Specification;
 }
