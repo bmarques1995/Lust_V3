@@ -10,6 +10,9 @@ Lust is a game engine based on [Hazel](https://github.com/TheCherno/Hazel), Plan
   * Meson
 * NASM
 * Perl
+* Windows Only:
+  * Windows SDK: downloaded with visual studio
+  * [WDK](https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk)
 
 All necessary packages will be listed on each CMakeLists.txt for each project module.
 
