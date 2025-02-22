@@ -68,6 +68,11 @@ const std::unordered_map<uint64_t, Lust::TextureElement>& Lust::Shader::GetTextu
 	return m_TextureLayout.GetElements();
 }
 
+const std::unordered_map<uint32_t, Lust::UniformElement>& Lust::Shader::GetUniformElements() const
+{
+	return m_UniformLayout.GetElements();
+}
+
 Lust::Shader* Lust::Shader::Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();

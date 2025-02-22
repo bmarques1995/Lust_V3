@@ -10,10 +10,14 @@ namespace Lust
 {
 	class LUST_API D3D12Buffer
 	{
+	public:
+		ID3D12Resource2* GetResource() const;
 	protected:
 		D3D12Buffer(const D3D12Context* context);
 		void CreateBuffer(const void* data, size_t size);
 		void DestroyBuffer();
+
+		bool IsBufferConformed(size_t size);
 
 		ComPointer<ID3D12Resource2> m_Buffer;
 		const D3D12Context* m_Context;
@@ -42,6 +46,16 @@ namespace Lust
 
 	private:
 		D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
+	};
+
+	class LUST_API D3D12UniformBuffer : public UniformBuffer, public D3D12Buffer
+	{
+	public:
+		D3D12UniformBuffer(const D3D12Context* context, const void* data, size_t size);
+		~D3D12UniformBuffer();
+
+		void Remap(const void* data, size_t size) override;
+		size_t GetSize() const override;
 	};
 }
 

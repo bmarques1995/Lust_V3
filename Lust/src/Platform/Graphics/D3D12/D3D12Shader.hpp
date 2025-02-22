@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "D3D12Context.hpp"
 #include "D3D12Texture.hpp"
+#include "D3D12Buffer.hpp"
 #include "DXCSafeInclude.hpp"
 #include <functional>
 
@@ -28,16 +29,20 @@ namespace Lust
 
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) override;
 
+		void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) override;
+
 		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
 
 		void BindDescriptors() override;
 
-		void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) override;
-
 		void UpdateSSBO(const StructuredBufferElement& uploadBuffer) override;
 	private:
 		void StartDXC();
-		void CreateSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement);
+
+		void CreateRootCBV(const std::shared_ptr<D3D12UniformBuffer>* buffer, UniformElement uniformElement);
+		void CreateTabledCBV(const std::shared_ptr<D3D12UniformBuffer>* buffer, UniformElement uniformElement);
+
+		void CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement);
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
 		void CreateSampler(SamplerElement samplerElement);
 		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);
@@ -47,7 +52,6 @@ namespace Lust
 		bool IsBufferValid(size_t size);
 		void PreallocateRootCBuffer(const void* data, UniformElement uniformElement);
 		void PreallocateTabledCBuffer(const void* data, UniformElement uniformElement);
-		void MapCBuffer(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex = 1);
 
 		void PreallocateRootSSBO(const StructuredBufferElement& structuredBufferElement);
 		void PreallocateTabledSSBO(const StructuredBufferElement& structuredBufferElement);
@@ -75,7 +79,8 @@ namespace Lust
 
 		Json::Value m_PipelineInfo;
 
-		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
+		std::unordered_map<uint64_t, D3D12_GPU_VIRTUAL_ADDRESS> m_CBVAddresses;
+		//std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
 		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_SSBOResources;
 
 		const D3D12Context* m_Context;

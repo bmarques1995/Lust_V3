@@ -89,19 +89,6 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     {
         PreallocatesDescSets();
 
-        auto uniforms = m_UniformLayout.GetElements();
-
-        for (const auto& element : uniforms)
-        {
-
-            unsigned char* data = new unsigned char[element.second.GetSize()];
-            for (size_t i = 0; i < element.second.GetNumberOfBuffers(); i++)
-            {
-                PreallocateUniform(data, element.second, i);
-            }
-            delete[] data;
-        }
-
         auto structuredBuffers = m_StructuredBufferLayout.GetElements();
 
         for (const auto& element : structuredBuffers)
@@ -203,12 +190,6 @@ Lust::VKShader::~VKShader()
         vkDestroySampler(device, i.second, nullptr);
     }
 
-    for (auto& i : m_Uniforms)
-    {
-        vkDestroyBuffer(device, i.second.Resource, nullptr);
-        vkFreeMemory(device, i.second.Memory, nullptr);
-    }
-
     for (auto& i : m_SSBOs)
     {
         vkDestroyBuffer(device, i.second.Resource, nullptr);
@@ -242,6 +223,11 @@ void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, 
     CreateTextureDescriptorSet((const std::shared_ptr<VKTexture2D>*) texture, textureElement);
 }
 
+void Lust::VKShader::UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV)
+{
+	CreateUniformDescriptorSet((const std::shared_ptr<VKUniformBuffer>*) buffer, uploadCBV);
+}
+
 void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
 {
     if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
@@ -267,16 +253,6 @@ void Lust::VKShader::BindDescriptors()
 {
     auto commandBuffer = m_Context->GetCurrentCommandBuffer();
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
-}
-
-void Lust::VKShader::UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV)
-{
-    uint32_t shaderRegister = uploadCBV.GetShaderRegister();
-    uint32_t tableIndex = uploadCBV.GetTableIndex();
-    if (m_UniformLayout.GetElement(shaderRegister).GetAccessLevel() == AccessLevel::ROOT_BUFFER)
-        MapUniform(data, size, shaderRegister, 0);
-    else
-        MapUniform(data, size, shaderRegister, (tableIndex - shaderRegister));
 }
 
 void Lust::VKShader::UpdateSSBO(const StructuredBufferElement& uploadBuffer)
@@ -493,10 +469,8 @@ void Lust::VKShader::CreateDescriptorSets()
 
     std::vector<VkWriteDescriptorSet> descriptorWrites;
     std::vector<VkDescriptorImageInfo> samplerInfos;
-    std::vector<VkDescriptorBufferInfo> bufferInfos;
     std::vector<VkDescriptorBufferInfo> structuredBufferInfos;
 
-    auto uniforms = m_UniformLayout.GetElements();
     auto samplers = m_SamplerLayout.GetElements();
     auto structuredBuffers = m_StructuredBufferLayout.GetElements();
 
@@ -506,18 +480,6 @@ void Lust::VKShader::CreateDescriptorSets()
     
     VkWriteDescriptorSet descriptorWrite{};
 
-    for (auto& uniformElement : uniforms)
-    {
-        for (size_t j = 0; j < uniformElement.second.GetNumberOfBuffers(); j++)
-        {
-            VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = m_Uniforms[uniformElement.second.GetBindingSlot() + j].Resource;
-            bufferInfo.offset = 0;
-            bufferInfo.range = uniformElement.second.GetSize();
-
-            bufferInfos.push_back(bufferInfo);
-        }
-    }
 
     for (auto& samplerElement : samplers)
     {
@@ -540,24 +502,6 @@ void Lust::VKShader::CreateDescriptorSets()
         structuredBufferInfo.range = structuredBufferElement.second.GetSize();
 
         structuredBufferInfos.push_back(structuredBufferInfo);
-    }
-
-    for (auto& uniformElement : uniforms)
-    {
-        for (size_t j = 0; j < uniformElement.second.GetNumberOfBuffers(); j++)
-        {
-            descriptorWrite = {};
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = m_DescriptorSets[uniformElement.second.GetSpaceSet()];
-            descriptorWrite.dstBinding = uniformElement.second.GetBindingSlot() + j;
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = GetNativeDescriptorType(uniformElement.second.GetBufferType());
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pBufferInfo = &bufferInfos[i];
-
-            descriptorWrites.push_back(descriptorWrite);
-            i++;
-        }
     }
 
     i = 0;
@@ -651,36 +595,32 @@ void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
+void Lust::VKShader::CreateUniformDescriptorSet(const std::shared_ptr<VKUniformBuffer>* buffer, const UniformElement& uniformElement)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+
+    VkDescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = (*buffer)->GetBuffer();
+    bufferInfo.offset = 0;
+    bufferInfo.range = uniformElement.GetSize();
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[uniformElement.GetSpaceSet()];
+    descriptorWrite.dstBinding = uniformElement.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::UNIFORM_CONSTANT_BUFFER);
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+}
+
 bool Lust::VKShader::IsUniformValid(size_t size)
 {
     return ((size % m_Context->GetUniformAttachment()) == 0);
-}
-
-void Lust::VKShader::PreallocateUniform(const void* data, UniformElement uniformElement, uint32_t offset)
-{
-    uint32_t bindingPoint = uniformElement.GetBindingSlot() + offset;
-    if (!IsUniformValid(uniformElement.GetSize()))
-        throw AttachmentMismatchException(uniformElement.GetSize(), m_Context->GetUniformAttachment());
-
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-    VkDeviceSize bufferSize = uniformElement.GetSize();
-    m_Uniforms[bindingPoint] = {};
-
-    CreateBuffer(uniformElement.GetSize(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &(m_Uniforms[bindingPoint].Resource), &(m_Uniforms[bindingPoint].Memory));
-
-    MapUniform(data, uniformElement.GetSize(), uniformElement.GetBindingSlot(), offset);
-}
-
-void Lust::VKShader::MapUniform(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset)
-{
-    VkResult vkr;
-    void* gpuData;
-    auto device = m_Context->GetDevice();
-    vkr = vkMapMemory(device, m_Uniforms[shaderRegister + offset].Memory, 0, size, 0, &gpuData);
-    assert(vkr == VK_SUCCESS);
-    memcpy(gpuData, data, size);
-    vkUnmapMemory(device, m_Uniforms[shaderRegister + offset].Memory);
 }
 
 void Lust::VKShader::PreallocateSSBO(const StructuredBufferElement& structuredBufferElement, uint32_t offset)

@@ -3,6 +3,7 @@
 #include "Shader.hpp"
 #include "VKContext.hpp"
 #include "VKTexture.hpp"
+#include "VKBuffer.hpp"
 #include "DXCSafeInclude.hpp"
 #include <functional>
 
@@ -27,11 +28,11 @@ namespace Lust
 
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) override;
 
+		void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) override;
+
 		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
 
 		void BindDescriptors() override;
-
-		void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) override;
 
 		void UpdateSSBO(const StructuredBufferElement& uploadBuffer) override;
 	private:
@@ -45,10 +46,9 @@ namespace Lust
 		void CreateBuffer(size_t bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
 
 		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureElement& textureElement);
+		void CreateUniformDescriptorSet(const std::shared_ptr<VKUniformBuffer>* buffer, const UniformElement& uniformElement);
 
 		bool IsUniformValid(size_t size);
-		void PreallocateUniform(const void* data, UniformElement uniformElement, uint32_t offset);
-		void MapUniform(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset);
 
 		void PreallocateSSBO(const StructuredBufferElement& structuredBufferElement, uint32_t offset);
 		void MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset);
@@ -77,8 +77,7 @@ namespace Lust
 		std::unordered_map<std::string, VkShaderModule> m_Modules;
 		std::unordered_map<std::string, std::string> m_ModulesEntrypoint;
 
-
-		std::unordered_map<uint32_t, RM> m_Uniforms;
+		//std::unordered_map<uint32_t, RM> m_Uniforms;
 		std::unordered_map<uint32_t, RM> m_SSBOs;
 		std::unordered_map<uint32_t, VkSampler> m_Samplers;
 

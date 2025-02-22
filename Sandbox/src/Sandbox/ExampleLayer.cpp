@@ -45,6 +45,8 @@ void Lust::ExampleLayer::OnAttach()
 
 	m_Texture1.reset(Texture2D::Instantiate(context, "./assets/textures/yor.png"));
 	m_Texture2.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
+	m_UniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
+	m_UniformBuffer2.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
 	m_SmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), Eigen::Vector<float, 3>(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f));
 
@@ -73,9 +75,10 @@ void Lust::ExampleLayer::OnAttach()
 	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout, structuredBufferLayout);
 
 	m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/HelloTriangle", inputInfoController));
-
-	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
-	m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(2));
+	m_Shader->UploadConstantBuffer(&m_UniformBuffer, uniformsLayout.GetElement(1));
+	m_Shader->UploadConstantBuffer(&m_UniformBuffer2, uniformsLayout.GetElement(2));
+	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
+	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(2));
 	std::vector<std::shared_ptr<Texture2D>*> textures;
 	textures.push_back(&m_Texture1);
 	textures.push_back(&m_Texture2);
@@ -147,7 +150,9 @@ void Lust::ExampleLayer::OnAttach()
 
 	m_SquareShader.reset(Shader::Instantiate(context, "./assets/shaders/FlatColor", squareInputInfoController));
 
-	m_SquareShader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), squareUniformsLayout.GetElement(1));
+	m_SquareUniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
+
+	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, squareUniformsLayout.GetElement(1));
 	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), squareLayout.GetStride()));
 	m_SquareIndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)squareIndices, sizeof(squareIndices)/ sizeof(uint32_t)));
 }
@@ -211,7 +216,7 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	Renderer::BeginScene(*(m_Camera.get()));
 	Eigen::Matrix4f squareSmallBufferMatrix = Eigen::Matrix4f::Identity();
 
-	Renderer::SubmitCBV(m_SquareShader, m_SquareShader->GetUniformLayout().GetElement(1));
+	Renderer::SubmitCBV(&m_SquareUniformBuffer);
 	Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);
 	memcpy(&squareSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
 	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
@@ -223,8 +228,8 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	
 	
 	Renderer::BeginScene(*(m_Camera.get()));
-	Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(1));
-	Renderer::SubmitCBV(m_Shader, m_Shader->GetUniformLayout().GetElement(2));
+	Renderer::SubmitCBV(&m_UniformBuffer);
+	Renderer::SubmitCBV(&m_UniformBuffer2);
 	Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer);
 	Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), 0);
 	RenderCommand::DrawIndexed(m_IndexBuffer->GetCount());

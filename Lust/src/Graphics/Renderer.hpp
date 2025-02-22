@@ -27,7 +27,7 @@ namespace Lust
 		static void EndScene();
 
 		static void SubmitSmallBuffer(const std::shared_ptr<Shader>& shader, const void* data, size_t size, uint32_t bindingSlot, size_t offset = 0);
-		static void SubmitCBV(const std::shared_ptr<Shader>& shader, const UniformElement& uploadCBV);
+		static void SubmitCBV(std::shared_ptr<UniformBuffer>* uniformBuffer);
 		static void SubmitShader(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexBuffer>& vertexBuffer, const std::shared_ptr<IndexBuffer>& indexBuffer);
 
 	private:

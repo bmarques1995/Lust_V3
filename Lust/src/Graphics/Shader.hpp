@@ -8,6 +8,7 @@
 #include "StructuredBufferLayout.hpp"
 #include "Topology.hpp"
 #include "Texture.hpp"
+#include "Buffer.hpp"
 #include "GraphicsContext.hpp"
 #include <json/json.h>
 
@@ -52,9 +53,11 @@ namespace Lust
 		const std::unordered_map<uint64_t, TextureElement>& GetTextureElements() const;
 		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) = 0;
 
+		const std::unordered_map<uint32_t, UniformElement>& GetUniformElements() const;
+		virtual void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) = 0;
+
 		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;
-		virtual void UpdateCBuffer(const void* data, size_t size, const UniformElement& uploadCBV) = 0;
 		virtual void UpdateSSBO(const StructuredBufferElement& uploadBuffer) = 0;
 
 		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo);

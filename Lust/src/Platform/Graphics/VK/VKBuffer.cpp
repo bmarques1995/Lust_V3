@@ -1,6 +1,17 @@
 #include "VKBuffer.hpp"
 #include <stdexcept>
 #include <cassert>
+#include "UniformsLayout.hpp"
+
+VkBuffer Lust::VKBuffer::GetBuffer() const
+{
+    return m_Buffer;
+}
+
+VkDeviceMemory Lust::VKBuffer::GetMemory() const
+{
+    return m_BufferMemory;
+}
 
 Lust::VKBuffer::VKBuffer(const VKContext* context) :
     m_Context(context)
@@ -88,6 +99,11 @@ uint32_t Lust::VKBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
     return 0xffffffffu;
 }
 
+bool Lust::VKBuffer::IsBufferConformed(size_t size)
+{
+    return ((size % m_Context->GetUniformAttachment()) == 0);
+}
+
 void Lust::VKBuffer::DestroyBuffer()
 {
     auto device = m_Context->GetDevice();
@@ -173,4 +189,33 @@ uint32_t Lust::VKIndexBuffer::GetCount() const
 	return m_Count;
 }
 
+Lust::VKUniformBuffer::VKUniformBuffer(const VKContext* context, const void* data, size_t size) :
+    VKBuffer(context)
+{
+    m_BufferSize = size;
+    if (!IsBufferConformed(size))
+        throw AttachmentMismatchException(size, m_Context->GetUniformAttachment());
+    CreateBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferMemory);
+	Remap(data, size);
+}
 
+Lust::VKUniformBuffer::~VKUniformBuffer()
+{
+    DestroyBuffer();
+}
+
+void Lust::VKUniformBuffer::Remap(const void* data, size_t size)
+{
+    VkResult vkr;
+	auto device = m_Context->GetDevice();
+    void* gpuData;
+	vkr = vkMapMemory(device, m_BufferMemory, 0, size, 0, &gpuData);
+	assert(vkr == VK_SUCCESS);
+	memcpy(gpuData, data, size);
+	vkUnmapMemory(device, m_BufferMemory);
+}
+
+size_t Lust::VKUniformBuffer::GetSize() const
+{
+    return m_BufferSize;
+}

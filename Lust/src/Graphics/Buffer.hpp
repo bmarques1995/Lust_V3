@@ -29,4 +29,17 @@ namespace Lust
 	protected:
 		uint32_t m_Count;
 	};
+
+	class LUST_API UniformBuffer
+	{
+	public:
+		virtual ~UniformBuffer() = default;
+
+		virtual void Remap(const void* data, size_t size) = 0;
+		virtual size_t GetSize() const = 0;
+
+		static UniformBuffer* Instantiate(const GraphicsContext* context, const void* data, size_t size);
+	protected:
+		size_t m_BufferSize;
+	};
 }

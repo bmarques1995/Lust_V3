@@ -8,12 +8,16 @@ namespace Lust
 {
 	class LUST_API VKBuffer
 	{
+	public:
+		VkBuffer GetBuffer() const;
+		VkDeviceMemory GetMemory() const;
 	protected:
 		VKBuffer(const VKContext* context);
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+		bool IsBufferConformed(size_t size);
 		void DestroyBuffer();
 
 		const VKContext* m_Context;
@@ -44,5 +48,15 @@ namespace Lust
 
 	private:
 
+	};
+
+	class LUST_API VKUniformBuffer : public UniformBuffer, public VKBuffer
+	{
+	public:
+		VKUniformBuffer(const VKContext* context, const void* data, size_t size);
+		~VKUniformBuffer();
+
+		void Remap(const void* data, size_t size) override;
+		size_t GetSize() const override;
 	};
 }

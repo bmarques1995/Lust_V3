@@ -37,9 +37,9 @@ void Lust::Renderer::SubmitSmallBuffer(const std::shared_ptr<Shader>& shader, co
 	shader->BindSmallBuffer(data, size, 0, offset);
 }
 
-void Lust::Renderer::SubmitCBV(const std::shared_ptr<Shader>& shader, const UniformElement& uploadCBV)
+void Lust::Renderer::SubmitCBV(std::shared_ptr<UniformBuffer>* uniformBuffer)
 {
-	shader->UpdateCBuffer((void *)s_SceneData.get(), sizeof(SceneData), uploadCBV);
+	(*uniformBuffer)->Remap((void*)s_SceneData.get(), sizeof(SceneData));
 }
 
 void Lust::Renderer::SubmitShader(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexBuffer>& vertexBuffer, const std::shared_ptr<IndexBuffer>& indexBuffer)

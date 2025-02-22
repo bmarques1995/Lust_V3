@@ -2,6 +2,12 @@
 
 #include "D3D12Buffer.hpp"
 #include <cassert>
+#include "UniformsLayout.hpp"
+
+ID3D12Resource2* Lust::D3D12Buffer::GetResource() const
+{
+	return m_Buffer.GetConst();
+}
 
 Lust::D3D12Buffer::D3D12Buffer(const D3D12Context* context) :
 	m_Context(context)
@@ -55,6 +61,11 @@ void Lust::D3D12Buffer::DestroyBuffer()
 	m_Buffer.Release();
 }
 
+bool Lust::D3D12Buffer::IsBufferConformed(size_t size)
+{
+	return ((size % m_Context->GetUniformAttachment()) == 0);
+}
+
 Lust::D3D12VertexBuffer::D3D12VertexBuffer(const D3D12Context* context, const void* data, size_t size, uint32_t stride) :
 	D3D12Buffer(context)
 {
@@ -102,6 +113,37 @@ void Lust::D3D12IndexBuffer::Stage() const
 uint32_t Lust::D3D12IndexBuffer::GetCount() const
 {
 	return m_Count;
+}
+
+Lust::D3D12UniformBuffer::D3D12UniformBuffer(const D3D12Context* context, const void* data, size_t size) :
+	D3D12Buffer(context)
+{
+	m_BufferSize = size;
+	if (!IsBufferConformed(size))
+		throw AttachmentMismatchException(size, m_Context->GetUniformAttachment());
+	CreateBuffer(data, size);
+	//Remap(data, size);
+}
+
+Lust::D3D12UniformBuffer::~D3D12UniformBuffer()
+{
+	DestroyBuffer();
+}
+
+void Lust::D3D12UniformBuffer::Remap(const void* data, size_t size)
+{
+	HRESULT hr;
+	D3D12_RANGE readRange = { 0 };
+	void* gpuData = nullptr;
+	hr = m_Buffer->Map(0, &readRange, &gpuData);
+	assert(hr == S_OK);
+	memcpy(gpuData, data, size);
+	m_Buffer->Unmap(0, NULL);
+}
+
+size_t Lust::D3D12UniformBuffer::GetSize() const
+{
+	return m_BufferSize;
 }
 
 #endif
