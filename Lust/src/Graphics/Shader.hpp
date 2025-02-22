@@ -50,13 +50,13 @@ namespace Lust
 		virtual uint32_t GetStride() const = 0;
 		virtual uint32_t GetOffset() const = 0;
 
-		const std::unordered_map<uint64_t, TextureElement>& GetTextureElements() const;
+		const std::unordered_map<std::string, TextureElement>& GetTextureElements() const;
 		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) = 0;
 
-		const std::unordered_map<uint32_t, UniformElement>& GetUniformElements() const;
+		const std::unordered_map<std::string, UniformElement>& GetUniformElements() const;
 		virtual void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) = 0;
 
-		const std::unordered_map<uint64_t, StructuredBufferElement>& GetStructuredBufferElements() const;
+		const std::unordered_map<std::string, StructuredBufferElement>& GetStructuredBufferElements() const;
 		virtual void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) = 0;
 
 		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) = 0;

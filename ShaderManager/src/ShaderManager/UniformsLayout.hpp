@@ -83,7 +83,9 @@ namespace Lust
 	{
 	public:
 		UniformElement();
-		UniformElement(BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex);
+		UniformElement(BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex, std::string name);
+
+		const std::string& GetName() const;
 
 		BufferType GetBufferType() const;
 		size_t GetSize() const;
@@ -97,6 +99,8 @@ namespace Lust
 		bool IsSizeValid(uint32_t bufferAttachment);
 
 	private:
+
+		std::string m_Name;
 
 		BufferType m_BufferType;
 		size_t m_Size;
@@ -114,12 +118,12 @@ namespace Lust
 	public:
 		UniformLayout(std::initializer_list<UniformElement> m_Elements, uint32_t allowedStages);
 
-		const UniformElement& GetElement(uint32_t shaderRegister) const;
-		const std::unordered_map<uint32_t, UniformElement>& GetElements() const;
+		const UniformElement& GetElement(std::string name) const;
+		const std::unordered_map<std::string, UniformElement>& GetElements() const;
 		uint32_t GetStages() const;
 	private:
 		uint32_t m_Stages;
-		std::unordered_map<uint32_t, UniformElement> m_Buffers;
+		std::unordered_map<std::string, UniformElement> m_Buffers;
 		static UniformElement s_EmptyElement;
 	};
 }

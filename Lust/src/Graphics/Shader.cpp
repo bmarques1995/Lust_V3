@@ -63,17 +63,17 @@ const Lust::SamplerLayout& Lust::Shader::GetSamplerLayout() const
 	return m_SamplerLayout;
 }
 
-const std::unordered_map<uint64_t, Lust::TextureElement>& Lust::Shader::GetTextureElements() const
+const std::unordered_map<std::string, Lust::TextureElement>& Lust::Shader::GetTextureElements() const
 {
 	return m_TextureLayout.GetElements();
 }
 
-const std::unordered_map<uint32_t, Lust::UniformElement>& Lust::Shader::GetUniformElements() const
+const std::unordered_map<std::string, Lust::UniformElement>& Lust::Shader::GetUniformElements() const
 {
 	return m_UniformLayout.GetElements();
 }
 
-const std::unordered_map<uint64_t, Lust::StructuredBufferElement>& Lust::Shader::GetStructuredBufferElements() const
+const std::unordered_map<std::string, Lust::StructuredBufferElement>& Lust::Shader::GetStructuredBufferElements() const
 {
 	return m_StructuredBufferLayout.GetElements();
 }

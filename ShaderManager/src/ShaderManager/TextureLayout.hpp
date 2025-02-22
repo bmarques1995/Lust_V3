@@ -17,9 +17,9 @@ namespace Lust
 	{
 	public:
 		TextureElement();
-		TextureElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex);
+		TextureElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex, std::string name);
 
-		
+		const std::string& GetName() const;
 		uint32_t GetBindingSlot() const;
 		uint32_t GetShaderRegister() const;
 		uint32_t GetSpaceSet() const;
@@ -27,11 +27,11 @@ namespace Lust
 		
 	private:
 		
-		
 		uint32_t m_SpaceSet;
 		uint32_t m_BindingSlot;
 		uint32_t m_ShaderRegister;
 		uint32_t m_TextureIndex;
+		std::string m_Name;
 	};
 
 	class LUST_SHADER_MNG_API TextureLayout
@@ -39,13 +39,13 @@ namespace Lust
 	public:
 		TextureLayout(std::initializer_list<TextureElement> elements, uint32_t allowedStages);
 
-		const TextureElement& GetElement(uint32_t shaderRegister, uint32_t textureIndex) const;
-		const std::unordered_map<uint64_t, TextureElement>& GetElements() const;
+		const TextureElement& GetElement(std::string name) const;
+		const std::unordered_map<std::string, TextureElement>& GetElements() const;
 
 		uint32_t GetStages() const;
 
 	private:
-		std::unordered_map<uint64_t, TextureElement> m_Textures;
+		std::unordered_map<std::string, TextureElement> m_Textures;
 		uint32_t m_Stages;
 		static TextureElement s_EmptyElement;
 	};

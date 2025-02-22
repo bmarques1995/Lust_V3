@@ -91,12 +91,13 @@ Lust::UniformElement::UniformElement()
 	m_AccessLevel = AccessLevel::ROOT_BUFFER;
 	m_NumberOfBuffers = 1;
 	m_TableIndex = 1;
+	m_Name = "";
 }
 
 
 //BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferAttachment
-Lust::UniformElement::UniformElement(BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex) :
-	m_BufferType(bufferType), m_Size(size), m_BindingSlot(bindingSlot), m_SpaceSet(spaceSet), m_ShaderRegister(shaderRegister), m_AccessLevel(accessLevel), m_NumberOfBuffers(numberOfBuffers), m_TableIndex(tableIndex)
+Lust::UniformElement::UniformElement(BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex, std::string name) :
+	m_BufferType(bufferType), m_Size(size), m_BindingSlot(bindingSlot), m_SpaceSet(spaceSet), m_ShaderRegister(shaderRegister), m_AccessLevel(accessLevel), m_NumberOfBuffers(numberOfBuffers), m_TableIndex(tableIndex), m_Name(name)
 {
 	if (!IsSizeValid(bufferAttachment))
 		throw AttachmentMismatchException(size, bufferAttachment);
@@ -107,6 +108,11 @@ Lust::UniformElement::UniformElement(BufferType bufferType, size_t size, uint32_
 Lust::BufferType Lust::UniformElement::GetBufferType() const
 {
 	return m_BufferType;
+}
+
+const std::string& Lust::UniformElement::GetName() const
+{
+	return m_Name;
 }
 
 size_t Lust::UniformElement::GetSize() const
@@ -154,20 +160,20 @@ Lust::UniformLayout::UniformLayout(std::initializer_list<UniformElement> m_Eleme
 {
 	for (auto& element : m_Elements)
 	{
-		m_Buffers[element.GetShaderRegister()] = element;
+		m_Buffers[element.GetName()] = element;
 	}
 }
 
-const Lust::UniformElement& Lust::UniformLayout::GetElement(uint32_t shaderRegister) const
+const Lust::UniformElement& Lust::UniformLayout::GetElement(std::string elementName) const
 {
-	auto it = m_Buffers.find(shaderRegister);
+	auto it = m_Buffers.find(elementName);
 	if (it != m_Buffers.end())
 		return it->second;
 	else
 		return s_EmptyElement;
 }
 
-const std::unordered_map<uint32_t, Lust::UniformElement>& Lust::UniformLayout::GetElements() const
+const std::unordered_map<std::string, Lust::UniformElement>& Lust::UniformLayout::GetElements() const
 {
 	return m_Buffers;
 }

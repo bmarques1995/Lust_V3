@@ -13,12 +13,13 @@ Lust::StructuredBufferElement::StructuredBufferElement()
 	m_BufferIndex = 0;
 	m_BufferAlignment = 0;
 	m_NumberOfElements = 1;
+	m_Name = "";
 }
 
 Lust::StructuredBufferElement::StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride,
-	size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, uint32_t numberOfElements) :
+	size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements) :
 	m_Stride(stride), m_NumberOfBuffers(numberOfBuffers), m_AccessLevel(accessLevel), m_SpaceSet(spaceSet), m_BindingSlot(bindingSlot),
-	m_ShaderRegister(shaderRegister), m_BufferIndex(bufferIndex), m_BufferAlignment(bufferAlignment), m_NumberOfElements(numberOfElements)
+	m_ShaderRegister(shaderRegister), m_BufferIndex(bufferIndex), m_BufferAlignment(bufferAlignment), m_NumberOfElements(numberOfElements), m_Name(name)
 {
 	size_t bufferCorrection = 0;
 	if((m_Stride*m_NumberOfBuffers) % m_BufferAlignment != 0)
@@ -27,6 +28,11 @@ Lust::StructuredBufferElement::StructuredBufferElement(uint32_t bindingSlot, uin
 
 Lust::StructuredBufferElement::~StructuredBufferElement()
 {
+}
+
+const std::string& Lust::StructuredBufferElement::GetName() const
+{
+	return m_Name;
 }
 
 Lust::BufferType Lust::StructuredBufferElement::GetBufferType() const
@@ -89,30 +95,27 @@ Lust::StructuredBufferLayout::StructuredBufferLayout(std::initializer_list<Struc
 {
 	for (auto& element : elements)
 	{
-		uint64_t bufferLocation = ((uint64_t)element.GetShaderRegister() << 32) + element.GetBufferIndex();
-		m_StructuredBuffers[bufferLocation] = element;
+		m_StructuredBuffers[element.GetName()] = element;
 	}
 }
 
-const Lust::StructuredBufferElement& Lust::StructuredBufferLayout::GetElement(uint32_t shaderRegister, uint32_t bufferIndex) const
+const Lust::StructuredBufferElement& Lust::StructuredBufferLayout::GetElement(std::string elementName) const
 {
-	uint64_t bufferLocation = ((uint64_t)shaderRegister << 32) + bufferIndex;
-	auto it = m_StructuredBuffers.find(bufferLocation);
+	auto it = m_StructuredBuffers.find(elementName);
 	if (it != m_StructuredBuffers.end())
 		return it->second;
 	else
 		return s_EmptyElement;
 }
 
-const std::unordered_map<uint64_t, Lust::StructuredBufferElement>& Lust::StructuredBufferLayout::GetElements() const
+const std::unordered_map<std::string, Lust::StructuredBufferElement>& Lust::StructuredBufferLayout::GetElements() const
 {
 	return m_StructuredBuffers;
 }
 
-Lust::StructuredBufferElement* Lust::StructuredBufferLayout::GetElementPointer(uint32_t shaderRegister, uint32_t textureIndex)
+Lust::StructuredBufferElement* Lust::StructuredBufferLayout::GetElementPointer(std::string elementName)
 {
-	uint64_t bufferLocation = ((uint64_t)shaderRegister << 32) + textureIndex;
-	auto it = m_StructuredBuffers.find(bufferLocation);
+	auto it = m_StructuredBuffers.find(elementName);
 	if (it != m_StructuredBuffers.end())
 		return &(it->second);
 	else

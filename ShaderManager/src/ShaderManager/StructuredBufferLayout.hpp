@@ -12,9 +12,10 @@ namespace Lust
 	{
 	public:
 		StructuredBufferElement();
-		StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, uint32_t numberOfElements = 1);
+		StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements = 1);
 		~StructuredBufferElement();
 
+		const std::string& GetName() const;
 		BufferType GetBufferType() const;
 
 		uint32_t GetBindingSlot() const;
@@ -42,6 +43,7 @@ namespace Lust
 		uint32_t m_ShaderRegister;
 		uint32_t m_BufferIndex;
 		uint32_t m_NumberOfElements;
+		std::string m_Name;
 	};
 
 	class LUST_SHADER_MNG_API StructuredBufferLayout
@@ -49,15 +51,15 @@ namespace Lust
 	public:
 		StructuredBufferLayout(std::initializer_list<StructuredBufferElement> elements, uint32_t allowedStages);
 
-		const StructuredBufferElement& GetElement(uint32_t shaderRegister, uint32_t textureIndex) const;
-		const std::unordered_map<uint64_t, StructuredBufferElement>& GetElements() const;
+		const StructuredBufferElement& GetElement(std::string elementName) const;
+		const std::unordered_map<std::string, StructuredBufferElement>& GetElements() const;
 
-		StructuredBufferElement* GetElementPointer(uint32_t shaderRegister, uint32_t textureIndex);
+		StructuredBufferElement* GetElementPointer(std::string elementName);
 
 		uint32_t GetStages() const;
 
 	private:
-		std::unordered_map<uint64_t, StructuredBufferElement> m_StructuredBuffers;
+		std::unordered_map<std::string, StructuredBufferElement> m_StructuredBuffers;
 		uint32_t m_Stages;
 		static StructuredBufferElement s_EmptyElement;
 	};

@@ -9,12 +9,18 @@ Lust::TextureElement::TextureElement()
 	m_ShaderRegister = 0;
 	m_SpaceSet = 0;
 	m_TextureIndex = 0;
+	m_Name = "";
 }
 
 //std::shared_ptr<Image> img, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t samplerRegister, TextureTensor tensor, size_t depth = 1
-Lust::TextureElement::TextureElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex) :
-	m_BindingSlot(bindingSlot), m_ShaderRegister(shaderRegister), m_SpaceSet(spaceSet), m_TextureIndex(textureIndex)
+Lust::TextureElement::TextureElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex, std::string name) :
+	m_BindingSlot(bindingSlot), m_ShaderRegister(shaderRegister), m_SpaceSet(spaceSet), m_TextureIndex(textureIndex), m_Name(name)
 {
+}
+
+const std::string& Lust::TextureElement::GetName() const
+{
+	return m_Name;
 }
 
 uint32_t Lust::TextureElement::GetBindingSlot() const
@@ -43,22 +49,20 @@ Lust::TextureLayout::TextureLayout(std::initializer_list<TextureElement> element
 {
 	for (auto& element : elements)
 	{
-		uint64_t textureLocation = ((uint64_t)element.GetShaderRegister() << 32) + element.GetTextureIndex();
-		m_Textures[textureLocation] = element;
+		m_Textures[element.GetName()] = element;
 	}
 }
 
-const Lust::TextureElement& Lust::TextureLayout::GetElement(uint32_t shaderRegister, uint32_t textureIndex) const
+const Lust::TextureElement& Lust::TextureLayout::GetElement(std::string elementName) const
 {
-	uint64_t textureLocation = ((uint64_t)shaderRegister << 32) + textureIndex;
-	auto it = m_Textures.find(textureLocation);
+	auto it = m_Textures.find(elementName);
 	if (it != m_Textures.end())
 		return it->second;
 	else
 		return s_EmptyElement;
 }
 
-const std::unordered_map<uint64_t, Lust::TextureElement>& Lust::TextureLayout::GetElements() const
+const std::unordered_map<std::string, Lust::TextureElement>& Lust::TextureLayout::GetElements() const
 {
 	return m_Textures;
 }

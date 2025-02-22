@@ -39,8 +39,8 @@ void Lust::ExampleLayer::OnAttach()
 	UniformLayout uniformsLayout(
 		{
 			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1 }, //
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1 } //
+			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_CompleteMVP"}, //
+			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_SSBO"} //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	m_Texture1.reset(Texture2D::Instantiate(context, "./assets/textures/yor.png"));
@@ -53,8 +53,8 @@ void Lust::ExampleLayer::OnAttach()
 	//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex
 	TextureLayout textureLayout(
 		{
-			{3, 3, 0, 0},
-			{4, 3, 0, 1}
+			{3, 3, 0, 0, "textureChecker"},
+			{4, 3, 0, 1, "textureChecker2"}
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 
@@ -75,8 +75,8 @@ void Lust::ExampleLayer::OnAttach()
 	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout, structuredBufferLayout);
 
 	m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/HelloTriangle", inputInfoController));
-	m_Shader->UploadConstantBuffer(&m_UniformBuffer, uniformsLayout.GetElement(1));
-	m_Shader->UploadConstantBuffer(&m_UniformBuffer2, uniformsLayout.GetElement(2));
+	m_Shader->UploadConstantBuffer(&m_UniformBuffer, uniformsLayout.GetElement("m_CompleteMVP"));
+	m_Shader->UploadConstantBuffer(&m_UniformBuffer2, uniformsLayout.GetElement("m_SSBO"));
 	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
 	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(2));
 	std::vector<std::shared_ptr<Texture2D>*> textures;
@@ -106,8 +106,8 @@ void Lust::ExampleLayer::OnAttach()
 
 	UniformLayout squareUniformsLayout(
 		{
-			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1 } //
+			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex, std::string name
+			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "u_CompleteMVP" } //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	m_SquareSmallMVP.model = Eigen::Matrix4f::Identity();
@@ -126,12 +126,12 @@ void Lust::ExampleLayer::OnAttach()
 	size_t rows = 20, cols = 20;
 	StructuredBufferLayout squareStructuredBufferLayout(
 		{
-			//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment
-			{ 2, 2, 0, 0, sizeof(Eigen::Matrix4f), rows * cols, AccessLevel::ROOT_BUFFER, Application::GetInstance()->GetContext()->GetUniformAttachment() }
+			//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name
+			{ 2, 2, 0, 0, sizeof(Eigen::Matrix4f), rows * cols, AccessLevel::ROOT_BUFFER, Application::GetInstance()->GetContext()->GetUniformAttachment(), "u_InstancedMVP" }
 		}
 	, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
-	m_SSBO = new uint8_t[squareStructuredBufferLayout.GetElementPointer(2, 0)->GetSize()];
+	m_SSBO = new uint8_t[squareStructuredBufferLayout.GetElementPointer("u_InstancedMVP")->GetSize()];
 
 	Eigen::Matrix4f squareSmallBufferMatrix;
 	Eigen::Matrix4f baseScale = Scale<float>(Eigen::Matrix4f::Identity(), 50.0f, 50.0f, 1.0f);
@@ -139,7 +139,7 @@ void Lust::ExampleLayer::OnAttach()
 	{
 		for (size_t j = 0; j < cols; j++)
 		{
-			auto structuredBuffer = squareStructuredBufferLayout.GetElementPointer(2, 0);
+			auto structuredBuffer = squareStructuredBufferLayout.GetElementPointer("u_InstancedMVP");
 			squareSmallBufferMatrix = Translate<float>(baseScale, i * 60.0f, j * 60.0f, 0.0f);
 			size_t offset = (i * rows + j)*sizeof(Eigen::Matrix4f);
 			memcpy(m_SSBO + offset, squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f));
@@ -157,8 +157,8 @@ void Lust::ExampleLayer::OnAttach()
 
 	m_SquareUniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
-	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, squareUniformsLayout.GetElement(1));
-	m_SquareShader->UploadStructuredBuffer(&m_SquareStructuredBuffer, squareStructuredBufferLayout.GetElement(2, 0));
+	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, squareUniformsLayout.GetElement("u_CompleteMVP"));
+	m_SquareShader->UploadStructuredBuffer(&m_SquareStructuredBuffer, squareStructuredBufferLayout.GetElement("u_InstancedMVP"));
 	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), squareLayout.GetStride()));
 	m_SquareIndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)squareIndices, sizeof(squareIndices)/ sizeof(uint32_t)));
 }
