@@ -646,7 +646,7 @@ void Lust::VKContext::CreateSwapChain()
 VkSurfaceFormatKHR Lust::VKContext::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
     for (const auto& availableFormat : availableFormats) {
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM) {
+        if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM) {
             return availableFormat;
         }
     }
@@ -657,7 +657,7 @@ VkSurfaceFormatKHR Lust::VKContext::ChooseSwapSurfaceFormat(const std::vector<Vk
 VkPresentModeKHR Lust::VKContext::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
     for (const auto& availablePresentMode : availablePresentModes) {
-        if ((availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) && m_IsVSyncEnabled) {
+        if ((availablePresentMode == VK_PRESENT_MODE_FIFO_RELAXED_KHR) && m_IsVSyncEnabled) {
             return availablePresentMode;
         }
     }
