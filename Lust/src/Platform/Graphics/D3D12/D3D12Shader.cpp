@@ -217,6 +217,18 @@ void Lust::D3D12Shader::UploadConstantBuffer(const std::shared_ptr<UniformBuffer
 	}
 }
 
+void Lust::D3D12Shader::UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV)
+{
+	if (uploadSRV.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
+	{
+		CreateRootSRV((const std::shared_ptr<D3D12StructuredBuffer>*) buffer, uploadSRV);
+	}
+	else
+	{
+		CreateTabledSRV((const std::shared_ptr<D3D12StructuredBuffer>*) buffer, uploadSRV);
+	}
+}
+
 void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
 {
 	if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
@@ -240,7 +252,7 @@ void Lust::D3D12Shader::BindDescriptors()
 	for (auto& rootDescriptor : m_RootSRVDescriptors)
 	{
 		uint64_t bufferLocation = (((uint64_t)rootDescriptor.first << 32) + 1);
-		cmdList->SetGraphicsRootShaderResourceView(rootDescriptor.first, m_SSBOResources[bufferLocation]->GetGPUVirtualAddress());
+		cmdList->SetGraphicsRootShaderResourceView(rootDescriptor.first, m_SRVAddresses[bufferLocation]);
 	}
 
 	//cmdList->SetGraphicsRootShaderResourceView
@@ -258,13 +270,6 @@ void Lust::D3D12Shader::BindDescriptors()
 			cmdList->SetGraphicsRootDescriptorTable(samplerDescriptor.first, samplerDescriptor.second->GetGPUDescriptorHandleForHeapStart());
 		}
 	}
-}
-
-void Lust::D3D12Shader::UpdateSSBO(const StructuredBufferElement& uploadBuffer)
-{
-	uint32_t shaderRegister = uploadBuffer.GetShaderRegister();
-	uint32_t tableIndex = uploadBuffer.GetBufferIndex();
-	MapSSBO(uploadBuffer.GetRawBuffer(), uploadBuffer.GetSize(), shaderRegister, tableIndex);
 }
 
 void Lust::D3D12Shader::StartDXC()
@@ -302,6 +307,29 @@ void Lust::D3D12Shader::CreateTabledCBV(const std::shared_ptr<D3D12UniformBuffer
 	cbvDesc.SizeInBytes = uniformElement.GetSize();
 	
 	device->CreateConstantBufferView(&cbvDesc, cbvHandle);
+}
+
+void Lust::D3D12Shader::CreateRootSRV(const std::shared_ptr<D3D12StructuredBuffer>* buffer, StructuredBufferElement structuredBufferElement)
+{
+	uint64_t bufferLocation = (((uint64_t)structuredBufferElement.GetShaderRegister() << 32) + 1);
+	auto device = m_Context->GetDevicePtr();
+
+	m_SRVAddresses[bufferLocation] = (*buffer)->GetResource()->GetGPUVirtualAddress();
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;  // Structured Buffers have no format
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = 1;
+	srvDesc.Buffer.StructureByteStride = structuredBufferElement.GetSize();
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+	device->CreateShaderResourceView((*buffer)->GetResource(), &srvDesc, m_RootSRVDescriptors[structuredBufferElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart());
+}
+
+void Lust::D3D12Shader::CreateTabledSRV(const std::shared_ptr<D3D12StructuredBuffer>* buffer, StructuredBufferElement uniformElement)
+{
 }
 
 void Lust::D3D12Shader::CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement)
@@ -478,8 +506,6 @@ void Lust::D3D12Shader::PreallocateTabledCBuffer(const void* data, UniformElemen
 	}
 }
 
-
-
 void Lust::D3D12Shader::PreallocateRootSSBO(const StructuredBufferElement& structuredBufferElement)
 {
 	uint64_t bufferLocation = (((uint64_t)structuredBufferElement.GetShaderRegister() << 32) + 1);
@@ -489,7 +515,6 @@ void Lust::D3D12Shader::PreallocateRootSSBO(const StructuredBufferElement& struc
 	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
-	m_SSBOResources[bufferLocation] = nullptr;
 	m_RootSRVDescriptors[structuredBufferElement.GetShaderRegister()] = nullptr;
 
 	D3D12_DESCRIPTOR_HEAP_DESC srvDescriptorHeapDesc{};
@@ -503,9 +528,6 @@ void Lust::D3D12Shader::PreallocateRootSSBO(const StructuredBufferElement& struc
 
 	D3D12_CPU_DESCRIPTOR_HANDLE srvHeapStartHandle = m_RootSRVDescriptors[structuredBufferElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
 
-	CreateBuffer(structuredBufferElement.GetSize(), DXGI_FORMAT_UNKNOWN, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_FLAG_NONE, GetNativeDimension(structuredBufferElement.GetBufferType()), m_SSBOResources[bufferLocation].GetAddressOf());
-
-
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -515,10 +537,7 @@ void Lust::D3D12Shader::PreallocateRootSSBO(const StructuredBufferElement& struc
 	srvDesc.Buffer.StructureByteStride = structuredBufferElement.GetSize();
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-
-	device->CreateShaderResourceView(m_SSBOResources[bufferLocation].Get(), &srvDesc, srvHeapStartHandle);
-
-	MapSSBO(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetShaderRegister());
+	device->CreateShaderResourceView(nullptr, &srvDesc, srvHeapStartHandle);
 }
 
 void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& structuredBufferElement)
@@ -545,9 +564,6 @@ void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& str
 	for (UINT i = 0; i < structuredBufferElement.GetNumberOfBuffers(); ++i)
 	{
 		uint64_t bufferLocation = (((uint64_t)structuredBufferElement.GetShaderRegister() << 32) + 1);
-		m_SSBOResources[bufferLocation] = nullptr;
-
-		CreateBuffer(structuredBufferElement.GetSize(), DXGI_FORMAT_UNKNOWN, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_FLAG_NONE, GetNativeDimension(structuredBufferElement.GetBufferType()), m_SSBOResources[bufferLocation].GetAddressOf());
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -558,24 +574,10 @@ void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& str
 		srvDesc.Buffer.StructureByteStride = structuredBufferElement.GetSize();
 		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-		device->CreateShaderResourceView(m_SSBOResources[bufferLocation].Get(), &srvDesc, srvHandle);
+		device->CreateShaderResourceView(nullptr, &srvDesc, srvHandle);
 		
 		srvHandle.ptr += srvDescriptorSize;
-
-		MapSSBO(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetShaderRegister(), i + 1);
 	}
-}
-
-void Lust::D3D12Shader::MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex)
-{
-	HRESULT hr;
-	uint64_t bufferLocation = (((uint64_t)shaderRegister << 32) + tableIndex);
-	D3D12_RANGE readRange = { 0 };
-	void* gpuData = nullptr;
-	hr = m_SSBOResources[bufferLocation]->Map(0, &readRange, &gpuData);
-	assert(hr == S_OK);
-	memcpy(gpuData, data, size);
-	m_SSBOResources[bufferLocation]->Unmap(0, NULL);
 }
 
 void Lust::D3D12Shader::CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device)

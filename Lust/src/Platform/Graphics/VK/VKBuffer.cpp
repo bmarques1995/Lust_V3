@@ -219,3 +219,38 @@ size_t Lust::VKUniformBuffer::GetSize() const
 {
     return m_BufferSize;
 }
+
+Lust::VKStructuredBuffer::VKStructuredBuffer(const VKContext* context, const void* data, size_t size) :
+    VKBuffer(context)
+{
+    m_BufferSize = size;
+    if (!IsBufferConformed(size))
+    {
+        size_t bufferCorrection = size;
+        bufferCorrection += (m_Context->GetUniformAttachment() - (bufferCorrection % m_Context->GetUniformAttachment()));
+        m_BufferSize += bufferCorrection;
+    }
+    CreateBuffer(m_BufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferMemory);
+	Remap(data, size, 0);
+}
+
+Lust::VKStructuredBuffer::~VKStructuredBuffer()
+{
+    DestroyBuffer();
+}
+
+void Lust::VKStructuredBuffer::Remap(const void* data, size_t size, size_t offset)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+    uint8_t* gpuData;
+    vkr = vkMapMemory(device, m_BufferMemory, 0, size, 0, (void **)&gpuData);
+    assert(vkr == VK_SUCCESS);
+    memcpy(gpuData + offset, data, size);
+    vkUnmapMemory(device, m_BufferMemory);
+}
+
+size_t Lust::VKStructuredBuffer::GetSize() const
+{
+    return m_BufferSize;
+}

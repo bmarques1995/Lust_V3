@@ -132,7 +132,6 @@ void Lust::ExampleLayer::OnAttach()
 	, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	m_SSBO = new uint8_t[squareStructuredBufferLayout.GetElementPointer(2, 0)->GetSize()];
-	squareStructuredBufferLayout.GetElementPointer(2, 0)->SetBuffer(&m_SSBO);
 
 	Eigen::Matrix4f squareSmallBufferMatrix;
 	Eigen::Matrix4f baseScale = Scale<float>(Eigen::Matrix4f::Identity(), 50.0f, 50.0f, 1.0f);
@@ -142,9 +141,15 @@ void Lust::ExampleLayer::OnAttach()
 		{
 			auto structuredBuffer = squareStructuredBufferLayout.GetElementPointer(2, 0);
 			squareSmallBufferMatrix = Translate<float>(baseScale, i * 60.0f, j * 60.0f, 0.0f);
-			structuredBuffer->CopyToBuffer(squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f), i * rows +j);
+			size_t offset = (i * rows + j)*sizeof(Eigen::Matrix4f);
+			memcpy(m_SSBO + offset, squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f));
+			//structuredBuffer->CopyToBuffer(squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f), i * rows +j);
 		}
 	}
+
+	m_SquareStructuredBuffer.reset(StructuredBuffer::Instantiate(context, m_SSBO, rows * cols * sizeof(Eigen::Matrix4f)));
+
+	delete[] m_SSBO;
 
 	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout, squareStructuredBufferLayout);
 
@@ -153,6 +158,7 @@ void Lust::ExampleLayer::OnAttach()
 	m_SquareUniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
 	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, squareUniformsLayout.GetElement(1));
+	m_SquareShader->UploadStructuredBuffer(&m_SquareStructuredBuffer, squareStructuredBufferLayout.GetElement(2, 0));
 	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), squareLayout.GetStride()));
 	m_SquareIndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)squareIndices, sizeof(squareIndices)/ sizeof(uint32_t)));
 }
@@ -168,7 +174,7 @@ void Lust::ExampleLayer::OnDetach()
 	m_IndexBuffer.reset();
 	m_VertexBuffer.reset();
 	m_Shader.reset();
-	delete[] m_SSBO;
+	
 }
 
 void Lust::ExampleLayer::OnUpdate(Timestep ts)

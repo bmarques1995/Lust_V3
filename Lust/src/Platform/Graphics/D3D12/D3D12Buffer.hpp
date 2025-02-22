@@ -57,6 +57,16 @@ namespace Lust
 		void Remap(const void* data, size_t size) override;
 		size_t GetSize() const override;
 	};
+
+	class LUST_API D3D12StructuredBuffer : public StructuredBuffer, public D3D12Buffer
+	{
+	public:
+		D3D12StructuredBuffer(const D3D12Context* context, const void* data, size_t size);
+		~D3D12StructuredBuffer();
+
+		void Remap(const void* data, size_t size, size_t offset) override;
+		size_t GetSize() const override;
+	};
 }
 
 #endif

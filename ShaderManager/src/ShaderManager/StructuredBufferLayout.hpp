@@ -15,8 +15,6 @@ namespace Lust
 		StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, uint32_t numberOfElements = 1);
 		~StructuredBufferElement();
 
-		const uint8_t* GetRawBuffer() const;
-
 		BufferType GetBufferType() const;
 
 		uint32_t GetBindingSlot() const;
@@ -28,19 +26,16 @@ namespace Lust
 
 		AccessLevel GetAccessLevel() const;
 
-		void SetBuffer(uint8_t** buffer);
 
 		size_t GetStride() const;
 		size_t GetNumberOfBuffers() const;
 		size_t GetSize() const;
 		size_t GetBufferAlignment() const;
 
-		void CopyToBuffer(const void* buffer, size_t size, size_t offset) const;
 	private:
 		size_t m_Stride;
 		size_t m_NumberOfBuffers;
 		size_t m_BufferAlignment;
-		uint8_t** m_Buffer;
 		AccessLevel m_AccessLevel;
 		uint32_t m_SpaceSet;
 		uint32_t m_BindingSlot;

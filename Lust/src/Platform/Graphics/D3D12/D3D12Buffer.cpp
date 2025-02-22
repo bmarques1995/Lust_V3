@@ -146,4 +146,38 @@ size_t Lust::D3D12UniformBuffer::GetSize() const
 	return m_BufferSize;
 }
 
+Lust::D3D12StructuredBuffer::D3D12StructuredBuffer(const D3D12Context* context, const void* data, size_t size) :
+	D3D12Buffer(context)
+{
+	m_BufferSize = size;
+	if (!IsBufferConformed(size))
+	{
+		size_t bufferCorrection = size;
+		bufferCorrection += (m_Context->GetUniformAttachment() - (bufferCorrection % m_Context->GetUniformAttachment()));
+		m_BufferSize += bufferCorrection;
+	}
+	CreateBuffer(data, size);
+}
+
+Lust::D3D12StructuredBuffer::~D3D12StructuredBuffer()
+{
+	DestroyBuffer();
+}
+
+void Lust::D3D12StructuredBuffer::Remap(const void* data, size_t size, size_t offset)
+{
+	HRESULT hr;
+	D3D12_RANGE readRange = { 0 };
+	uint8_t* gpuData = nullptr;
+	hr = m_Buffer->Map(0, &readRange, (void**)&gpuData);
+	assert(hr == S_OK);
+	memcpy(gpuData + offset, data, size);
+	m_Buffer->Unmap(0, NULL);
+}
+
+size_t Lust::D3D12StructuredBuffer::GetSize() const
+{
+	return m_BufferSize;
+}
+
 #endif

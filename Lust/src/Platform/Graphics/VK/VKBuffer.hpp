@@ -59,4 +59,14 @@ namespace Lust
 		void Remap(const void* data, size_t size) override;
 		size_t GetSize() const override;
 	};
+
+	class LUST_API VKStructuredBuffer : public StructuredBuffer, public VKBuffer
+	{
+	public:
+		VKStructuredBuffer(const VKContext* context, const void* data, size_t size);
+		~VKStructuredBuffer();
+
+		void Remap(const void* data, size_t size, size_t offset) override;
+		size_t GetSize() const override;
+	};
 }

@@ -89,16 +89,6 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     {
         PreallocatesDescSets();
 
-        auto structuredBuffers = m_StructuredBufferLayout.GetElements();
-
-        for (const auto& element : structuredBuffers)
-        {
-            for (size_t i = 0; i < element.second.GetNumberOfElements(); i++)
-            {
-                PreallocateSSBO(element.second, i);
-            }
-        }
-
         auto samplers = m_SamplerLayout.GetElements();
 
         for (const auto& element : samplers)
@@ -190,12 +180,6 @@ Lust::VKShader::~VKShader()
         vkDestroySampler(device, i.second, nullptr);
     }
 
-    for (auto& i : m_SSBOs)
-    {
-        vkDestroyBuffer(device, i.second.Resource, nullptr);
-        vkFreeMemory(device, i.second.Memory, nullptr);
-    }
-
     vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(device, m_RootSignature, nullptr);
     vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
@@ -228,6 +212,11 @@ void Lust::VKShader::UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* 
 	CreateUniformDescriptorSet((const std::shared_ptr<VKUniformBuffer>*) buffer, uploadCBV);
 }
 
+void Lust::VKShader::UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV)
+{
+    CreateStructuredBufferDescriptorSet((const std::shared_ptr<VKStructuredBuffer>*) buffer, uploadSRV);
+}
+
 void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
 {
     if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
@@ -253,16 +242,6 @@ void Lust::VKShader::BindDescriptors()
 {
     auto commandBuffer = m_Context->GetCurrentCommandBuffer();
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
-}
-
-void Lust::VKShader::UpdateSSBO(const StructuredBufferElement& uploadBuffer)
-{
-    uint32_t shaderRegister = uploadBuffer.GetShaderRegister();
-    uint32_t bufferIndex = uploadBuffer.GetBufferIndex();
-    if (m_UniformLayout.GetElement(shaderRegister).GetAccessLevel() == AccessLevel::ROOT_BUFFER)
-        MapSSBO(uploadBuffer.GetRawBuffer(), uploadBuffer.GetSize(), shaderRegister, 0);
-    else
-        MapSSBO(uploadBuffer.GetRawBuffer(), uploadBuffer.GetSize(), shaderRegister, (bufferIndex - shaderRegister));
 }
 
 void Lust::VKShader::PreallocatesDescSets()
@@ -475,11 +454,8 @@ void Lust::VKShader::CreateDescriptorSets()
     auto structuredBuffers = m_StructuredBufferLayout.GetElements();
 
     size_t i = 0;
-
-    
     
     VkWriteDescriptorSet descriptorWrite{};
-
 
     for (auto& samplerElement : samplers)
     {
@@ -492,16 +468,6 @@ void Lust::VKShader::CreateDescriptorSets()
         imageInfo.sampler = m_Samplers[samplerElement.second.GetBindingSlot()];
 
         samplerInfos.push_back(imageInfo);
-    }
-
-    for (auto& structuredBufferElement : structuredBuffers)
-    {
-        VkDescriptorBufferInfo structuredBufferInfo{};
-        structuredBufferInfo.buffer = m_SSBOs[structuredBufferElement.second.GetBindingSlot()].Resource;
-        structuredBufferInfo.offset = 0;
-        structuredBufferInfo.range = structuredBufferElement.second.GetSize();
-
-        structuredBufferInfos.push_back(structuredBufferInfo);
     }
 
     i = 0;
@@ -521,22 +487,6 @@ void Lust::VKShader::CreateDescriptorSets()
         i++;
     }
 
-    i = 0;
-    for (auto& structuredBufferElement : structuredBuffers)
-    {
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = m_DescriptorSets[structuredBufferElement.second.GetSpaceSet()];
-        descriptorWrite.dstBinding = structuredBufferElement.second.GetBindingSlot();
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::STRUCTURED_BUFFER);
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &structuredBufferInfos[i];
-
-        descriptorWrites.push_back(descriptorWrite);
-
-        i++;
-    }
 
     //BufferType::STRUCTURED_BUFFER
 
@@ -618,36 +568,32 @@ void Lust::VKShader::CreateUniformDescriptorSet(const std::shared_ptr<VKUniformB
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
+void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& uniformElement)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+
+    VkDescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = (*buffer)->GetBuffer();
+    bufferInfo.offset = 0;
+    bufferInfo.range = uniformElement.GetSize();
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[uniformElement.GetSpaceSet()];
+    descriptorWrite.dstBinding = uniformElement.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::STRUCTURED_BUFFER);
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pBufferInfo = &bufferInfo;
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+}
+
 bool Lust::VKShader::IsUniformValid(size_t size)
 {
     return ((size % m_Context->GetUniformAttachment()) == 0);
-}
-
-void Lust::VKShader::PreallocateSSBO(const StructuredBufferElement& structuredBufferElement, uint32_t offset)
-{
-    uint32_t bindingPoint = structuredBufferElement.GetBindingSlot() + offset;
-    if (!IsUniformValid(structuredBufferElement.GetSize()))
-        throw AttachmentMismatchException(structuredBufferElement.GetSize(), m_Context->GetUniformAttachment());
-
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-    VkDeviceSize bufferSize = structuredBufferElement.GetSize();
-    m_SSBOs[bindingPoint] = {};
-
-    CreateBuffer(structuredBufferElement.GetSize(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &(m_SSBOs[bindingPoint].Resource), &(m_SSBOs[bindingPoint].Memory));
-
-    MapSSBO(structuredBufferElement.GetRawBuffer(), structuredBufferElement.GetSize(), structuredBufferElement.GetBindingSlot(), offset);
-}
-
-void Lust::VKShader::MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset)
-{
-    VkResult vkr;
-    void* gpuData;
-    auto device = m_Context->GetDevice();
-    vkr = vkMapMemory(device, m_SSBOs[shaderRegister + offset].Memory, 0, size, 0, &gpuData);
-    assert(vkr == VK_SUCCESS);
-    memcpy(gpuData, data, size);
-    vkUnmapMemory(device, m_SSBOs[shaderRegister + offset].Memory);
 }
 
 uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

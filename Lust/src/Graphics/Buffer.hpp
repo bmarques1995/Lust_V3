@@ -42,4 +42,17 @@ namespace Lust
 	protected:
 		size_t m_BufferSize;
 	};
+
+	class LUST_API StructuredBuffer
+	{
+	public:
+		virtual ~StructuredBuffer() = default;
+
+		virtual void Remap(const void* data, size_t size, size_t offset) = 0;
+		virtual size_t GetSize() const = 0;
+
+		static StructuredBuffer* Instantiate(const GraphicsContext* context, const void* data, size_t size);
+	protected:
+		size_t m_BufferSize;
+	};
 }

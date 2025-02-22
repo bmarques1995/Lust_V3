@@ -31,16 +31,19 @@ namespace Lust
 
 		void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) override;
 
+		void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) override;
+
 		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
 
 		void BindDescriptors() override;
 
-		void UpdateSSBO(const StructuredBufferElement& uploadBuffer) override;
 	private:
 		void StartDXC();
 
 		void CreateRootCBV(const std::shared_ptr<D3D12UniformBuffer>* buffer, UniformElement uniformElement);
 		void CreateTabledCBV(const std::shared_ptr<D3D12UniformBuffer>* buffer, UniformElement uniformElement);
+		void CreateRootSRV(const std::shared_ptr<D3D12StructuredBuffer>* buffer, StructuredBufferElement uniformElement);
+		void CreateTabledSRV(const std::shared_ptr<D3D12StructuredBuffer>* buffer, StructuredBufferElement uniformElement);
 
 		void CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement);
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
@@ -55,7 +58,6 @@ namespace Lust
 
 		void PreallocateRootSSBO(const StructuredBufferElement& structuredBufferElement);
 		void PreallocateTabledSSBO(const StructuredBufferElement& structuredBufferElement);
-		void MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t tableIndex = 1);
 
 		void CreateGraphicsRootSignature(ID3D12RootSignature** rootSignature, ID3D12Device10* device);
 		void BuildBlender(D3D12_GRAPHICS_PIPELINE_STATE_DESC* graphicsDesc);
@@ -80,8 +82,9 @@ namespace Lust
 		Json::Value m_PipelineInfo;
 
 		std::unordered_map<uint64_t, D3D12_GPU_VIRTUAL_ADDRESS> m_CBVAddresses;
+		std::unordered_map<uint64_t, D3D12_GPU_VIRTUAL_ADDRESS> m_SRVAddresses;
 		//std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
-		std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_SSBOResources;
+		//std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_SSBOResources;
 
 		const D3D12Context* m_Context;
 		
