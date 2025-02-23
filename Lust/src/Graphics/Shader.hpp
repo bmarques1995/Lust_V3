@@ -37,7 +37,7 @@ namespace Lust
 	class LUST_API Shader
 	{
 	public:
-		Shader(const InputInfo& inputInfo);
+		Shader(const InputInfo& inputInfo, const std::string& filepath);
 
 		const InputBufferLayout& GetInputLayout() const;
 		const SmallBufferLayout& GetSmallBufferLayout() const;
@@ -49,6 +49,9 @@ namespace Lust
 		virtual void Stage() = 0;
 		virtual uint32_t GetStride() const = 0;
 		virtual uint32_t GetOffset() const = 0;
+
+		const std::string& GetName() const;
+		void SetName(const std::string& name);
 
 		const std::unordered_map<std::string, TextureElement>& GetTextureElements() const;
 		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) = 0;
@@ -65,9 +68,9 @@ namespace Lust
 		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo);
 
 	protected:
-
 		Json::Value m_PipelineInfo;
 		std::string m_ShaderDir;
+		std::string m_Name;
 
 		InputBufferLayout m_Layout;
 		SmallBufferLayout m_SmallBufferLayout;
@@ -77,5 +80,24 @@ namespace Lust
 		StructuredBufferLayout m_StructuredBufferLayout;
 
 		static void InitJsonAndPaths(std::string json_controller_path, Json::Value* pipelineInfo, std::string* shaderDir);
+	};
+
+	class LUST_API ShaderLibrary
+	{
+	public:
+		ShaderLibrary(const GraphicsContext* context);
+		~ShaderLibrary();
+
+		void Add(const std::string& name, const std::shared_ptr<Shader>& shader);
+		void Add(const std::shared_ptr<Shader>& shader);
+		std::shared_ptr<Shader> Load(const std::string& json_basepath, const InputInfo& inputInfo);
+		std::shared_ptr<Shader> Load(const std::string& name, const std::string& json_basepath, const InputInfo& inputInfo);
+
+		std::shared_ptr<Shader> Get(const std::string& name);
+
+		bool Exists(const std::string& name) const;
+	private:
+		std::unordered_map<std::string, std::shared_ptr<Shader>> m_Shaders;
+		const GraphicsContext* m_Context;
 	};
 }

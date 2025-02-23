@@ -47,6 +47,14 @@ namespace Lust
         }
 
         template<typename... Args>
+        static inline void CoreAssert(bool expression, format_string_t<Args...> fmt, Args &&... args)
+        {
+            if (!expression)
+                s_CoreLogger->critical(fmt, std::forward<Args>(args)...);
+            assert(expression);
+        }
+
+        template<typename... Args>
         static inline void Debug(format_string_t<Args...> fmt, Args &&... args)
         {
             s_ClientLogger->trace(fmt, std::forward<Args>(args)...);
@@ -75,6 +83,15 @@ namespace Lust
         {
             s_ClientLogger->critical(fmt, std::forward<Args>(args)...);
         }
+
+        template<typename... Args>
+        static inline void Assert(bool expression, format_string_t<Args...> fmt, Args &&... args)
+        {
+			if (!expression)
+                s_ClientLogger->critical(fmt, std::forward<Args>(args)...);
+            assert(expression);
+        }
+
     private:
         static std::shared_ptr<spdlog::logger> s_CoreLogger;
         static std::shared_ptr<spdlog::logger> s_ClientLogger;

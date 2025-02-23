@@ -28,7 +28,7 @@ Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smal
 {
 }
 
-Lust::Shader::Shader(const InputInfo& inputInfo)
+Lust::Shader::Shader(const InputInfo& inputInfo, const std::string& filepath)
 	: m_Layout(inputInfo.m_InputLayout),
 	m_SmallBufferLayout(inputInfo.m_SmallBufferLayout),
 	m_UniformLayout(inputInfo.m_UniformLayout),
@@ -36,6 +36,8 @@ Lust::Shader::Shader(const InputInfo& inputInfo)
 	m_SamplerLayout(inputInfo.m_SamplerLayout),
 	m_StructuredBufferLayout(inputInfo.m_StructuredBufferLayout)
 {
+	std::filesystem::path fpath = filepath;
+	SetName(fpath.stem().stem().string());
 }
 
 const Lust::InputBufferLayout& Lust::Shader::GetInputLayout() const
@@ -78,6 +80,16 @@ const std::unordered_map<std::string, Lust::StructuredBufferElement>& Lust::Shad
 	return m_StructuredBufferLayout.GetElements();
 }
 
+const std::string& Lust::Shader::GetName() const
+{
+	return m_Name;
+}
+
+void Lust::Shader::SetName(const std::string& name)
+{
+	m_Name = name;
+}
+
 Lust::Shader* Lust::Shader::Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
@@ -114,4 +126,55 @@ void Lust::Shader::InitJsonAndPaths(std::string json_controller_path, Json::Valu
 
 	fs::path location = json_controller_path;
 	*shaderDir = location.parent_path().string();
+}
+
+Lust::ShaderLibrary::ShaderLibrary(const GraphicsContext* context) :
+	m_Context(context)
+{
+
+}
+
+Lust::ShaderLibrary::~ShaderLibrary()
+{
+	m_Shaders.clear();
+	m_Context = nullptr;
+}
+
+void Lust::ShaderLibrary::Add(const std::string& name, const std::shared_ptr<Shader>& shader)
+{
+	Console::CoreAssert(!Exists(name), "Shader already exists!");
+	m_Shaders[name] = shader;
+}
+
+void Lust::ShaderLibrary::Add(const std::shared_ptr<Shader>& shader)
+{
+	auto& name = shader->GetName();
+	Add(name, shader);
+}
+
+std::shared_ptr<Lust::Shader> Lust::ShaderLibrary::Load(const std::string& json_basepath, const InputInfo& inputInfo)
+{
+	std::shared_ptr<Shader> shader;
+	shader.reset(Shader::Instantiate(m_Context, json_basepath, inputInfo));
+	Add(shader);
+	return shader;
+}
+
+std::shared_ptr<Lust::Shader> Lust::ShaderLibrary::Load(const std::string& name, const std::string& json_basepath, const InputInfo& inputInfo)
+{
+	std::shared_ptr<Shader> shader;
+	shader.reset(Shader::Instantiate(m_Context, json_basepath, inputInfo));
+	Add(name, shader);
+	return shader;
+}
+
+std::shared_ptr<Lust::Shader> Lust::ShaderLibrary::Get(const std::string& name)
+{
+	Console::CoreAssert(Exists(name), "Shader not found!");
+	return m_Shaders[name];
+}
+
+bool Lust::ShaderLibrary::Exists(const std::string& name) const
+{
+	return m_Shaders.find(name) != m_Shaders.end();
 }

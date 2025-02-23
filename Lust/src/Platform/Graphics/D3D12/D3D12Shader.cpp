@@ -41,7 +41,7 @@ const std::list<std::string> Lust::D3D12Shader::s_GraphicsPipelineStages =
 };
 
 Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_controller_path, InputInfo inputInfo) :
-	m_Context(context), Lust::Shader(inputInfo)
+	m_Context(context), Lust::Shader(inputInfo, json_controller_path)
 {
 	HRESULT hr;
 	auto device = m_Context->GetDevicePtr();

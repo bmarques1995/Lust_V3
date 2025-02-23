@@ -48,6 +48,8 @@ namespace Lust
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 
+		std::shared_ptr<Lust::ShaderLibrary> m_ShaderLibrary;
+
 		std::shared_ptr<Shader> m_SquareShader;
 		std::shared_ptr<VertexBuffer> m_SquareVertexBuffer;
 		std::shared_ptr<IndexBuffer> m_SquareIndexBuffer;

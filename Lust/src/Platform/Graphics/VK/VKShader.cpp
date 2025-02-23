@@ -30,7 +30,7 @@ const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_Enum
 };
 
 Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_path, InputInfo inputInfo) :
-    m_Context(context), Lust::Shader(inputInfo)
+    m_Context(context), Lust::Shader(inputInfo, json_controller_path)
 {
     VkResult vkr;
     auto device = m_Context->GetDevice();

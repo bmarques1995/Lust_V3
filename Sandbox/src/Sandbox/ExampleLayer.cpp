@@ -15,6 +15,8 @@ void Lust::ExampleLayer::OnAttach()
 	auto window = Application::GetInstance()->GetWindow();
 	auto context = Application::GetInstance()->GetContext();
 	
+	m_ShaderLibrary.reset(new ShaderLibrary(context));
+
 	m_CompleteMVP = {
 		Eigen::Matrix4f::Identity(),
 		Eigen::Matrix4f::Identity(),
@@ -74,7 +76,9 @@ void Lust::ExampleLayer::OnAttach()
 
 	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout, structuredBufferLayout);
 
-	m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/HelloTriangle", inputInfoController));
+	//m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/HelloTriangle", inputInfoController));
+	m_ShaderLibrary->Load("./assets/shaders/HelloTriangle", inputInfoController);
+	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
 	m_Shader->UploadConstantBuffer(&m_UniformBuffer, uniformsLayout.GetElement("m_CompleteMVP"));
 	m_Shader->UploadConstantBuffer(&m_UniformBuffer2, uniformsLayout.GetElement("m_SSBO"));
 	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
@@ -153,7 +157,8 @@ void Lust::ExampleLayer::OnAttach()
 
 	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout, squareStructuredBufferLayout);
 
-	m_SquareShader.reset(Shader::Instantiate(context, "./assets/shaders/FlatColor", squareInputInfoController));
+	m_ShaderLibrary->Load("./assets/shaders/FlatColor", squareInputInfoController);
+	m_SquareShader = m_ShaderLibrary->Get("FlatColor");
 
 	m_SquareUniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
@@ -174,7 +179,7 @@ void Lust::ExampleLayer::OnDetach()
 	m_IndexBuffer.reset();
 	m_VertexBuffer.reset();
 	m_Shader.reset();
-	
+	m_ShaderLibrary.reset();
 }
 
 void Lust::ExampleLayer::OnUpdate(Timestep ts)
