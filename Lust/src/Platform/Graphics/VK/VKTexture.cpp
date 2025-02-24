@@ -4,9 +4,10 @@
 #include "Application.hpp"
 
 #include <vulkan/vulkan.hpp>
+#include <filesystem>
 
 Lust::VKTexture2D::VKTexture2D(const VKContext* context, const TextureBuffer& specification) :
-    m_Context(context), m_Specification(specification)
+    Texture2D(specification), m_Context(context), m_Specification(specification)
 {
     m_Loaded = false;
     CreateResource();
@@ -119,7 +120,7 @@ void Lust::VKTexture2D::CopyBuffer()
     VkResult vkr;
     auto device = m_Context->GetDevice();
     std::shared_ptr<VKCopyPipeline>* copyPipeline = (std::shared_ptr<VKCopyPipeline>*)
-        (Application::GetInstance()->GetCopyPipeline());
+        TextureLibrary::GetCopyPipeline();
 
     auto copyCommandBuffer = (*copyPipeline)->GetCommandBuffer();
     auto copyCommandPool = (*copyPipeline)->GetCommandPool();

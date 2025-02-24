@@ -7,7 +7,7 @@
 #include <vector>
 
 Lust::D3D12Texture2D::D3D12Texture2D(const D3D12Context* context, const TextureBuffer& specification) :
-	m_Context(context), m_Specification(specification)
+	Texture2D(specification), m_Context(context), m_Specification(specification)
 {
 	m_Loaded = false;
 	CreateResource();
@@ -97,7 +97,7 @@ void Lust::D3D12Texture2D::CopyBuffer()
 	auto device = m_Context->GetDevicePtr();
 	ComPointer<ID3D12Resource2> textureBuffer;
 	std::shared_ptr<D3D12CopyPipeline>* copyPipeline = (std::shared_ptr<D3D12CopyPipeline>*)
-		(Application::GetInstance()->GetCopyPipeline());
+		TextureLibrary::GetCopyPipeline();
 
 	auto copyCommandList = (*copyPipeline)->GetCommandList();
 	auto copyCommandAllocator = (*copyPipeline)->GetCommandAllocator();

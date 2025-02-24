@@ -25,6 +25,8 @@ Lust::Application::Application()
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
 	
+	TextureLibrary::InitCopyPipeline(m_Context.get());
+
 	Console::CoreLog("Current GPU: {}", m_Context->GetGPUName().c_str());
 	RenderCommand::Init(m_Context.get());
 	m_CopyPipeline.reset(CopyPipeline::Instantiate(m_Context.get()));
@@ -70,6 +72,7 @@ Lust::Application::~Application()
 	ImguiContext::EndImgui();
 	m_CopyPipeline.reset();
 	RenderCommand::Shutdown();
+	TextureLibrary::DestroyCopyPipeline();
 	m_Context.reset();
 	m_Window.reset();
 	m_Starter.reset();

@@ -82,10 +82,11 @@ Lust::TextureBuffer::TextureBuffer()
 	m_Height = 1;
 	m_MipsLevel = 1;
 	m_Channels = 4;
+	m_Filepath = "";
 }
 
-Lust::TextureBuffer::TextureBuffer(std::shared_ptr<Image> img, TextureTensor tensor, size_t depth) :
-	m_Image(img), m_Tensor(tensor)
+Lust::TextureBuffer::TextureBuffer(std::shared_ptr<Image> img, TextureTensor tensor, std::string filepath, size_t depth) :
+	m_Image(img), m_Tensor(tensor), m_Filepath(filepath)
 {
 	m_Depth = std::max<size_t>(1, depth);
 	if (img)
@@ -145,6 +146,11 @@ uint32_t Lust::TextureBuffer::GetChannels() const
 Lust::TextureTensor Lust::TextureBuffer::GetTensor() const
 {
 	return m_Tensor;
+}
+
+const std::string& Lust::TextureBuffer::GetFilepath() const
+{
+	return m_Filepath;
 }
 
 void Lust::TextureBuffer::FreeImage()

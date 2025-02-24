@@ -77,7 +77,6 @@ namespace Lust
 		std::unique_ptr<GraphicsContext> m_Context;
 		std::unique_ptr<ImguiContext> m_ImguiContext;
 		std::shared_ptr<CopyPipeline> m_CopyPipeline;
-		
 
 		std::unique_ptr<LayerStack> m_LayerStack;
 		float m_LastFrameTime = 0.0f;

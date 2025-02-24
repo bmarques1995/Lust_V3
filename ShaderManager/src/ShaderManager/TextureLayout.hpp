@@ -59,7 +59,7 @@ namespace Lust
 #endif
 	public:
 		TextureBuffer();
-		TextureBuffer(std::shared_ptr<Image> img, TextureTensor tensor, size_t depth = 1);
+		TextureBuffer(std::shared_ptr<Image> img, TextureTensor tensor, std::string filepath, size_t depth = 1);
 		~TextureBuffer();
 
 		const uint8_t* GetTextureBuffer() const;
@@ -70,6 +70,8 @@ namespace Lust
 		uint32_t GetChannels() const;
 		TextureTensor GetTensor() const;
 
+		const std::string& GetFilepath() const;
+
 		void FreeImage();
 	private:
 		std::shared_ptr<Image> m_Image;
@@ -79,5 +81,6 @@ namespace Lust
 		uint32_t m_Height;
 		uint32_t m_MipsLevel;
 		uint32_t m_Channels;
+		std::string m_Filepath;
 	};
 }

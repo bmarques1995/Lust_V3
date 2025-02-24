@@ -16,6 +16,7 @@ void Lust::ExampleLayer::OnAttach()
 	auto context = Application::GetInstance()->GetContext();
 	
 	m_ShaderLibrary.reset(new ShaderLibrary(context));
+	m_Texture2DLibrary.reset(new Texture2DLibrary(context));
 
 	m_CompleteMVP = {
 		Eigen::Matrix4f::Identity(),
@@ -45,8 +46,11 @@ void Lust::ExampleLayer::OnAttach()
 			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_SSBO"} //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
-	m_Texture1.reset(Texture2D::Instantiate(context, "./assets/textures/yor.png"));
-	m_Texture2.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
+	m_Texture2DLibrary->Load("./assets/textures/yor.png");
+	m_Texture2DLibrary->Load("./assets/textures/sample.png");
+	m_Texture2DLibrary->Load("./assets/textures/david.jpg");
+	m_Texture1 = m_Texture2DLibrary->Get("yor");
+	m_Texture2 = m_Texture2DLibrary->Get("sample");
 	m_UniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 	m_UniformBuffer2.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
@@ -81,8 +85,6 @@ void Lust::ExampleLayer::OnAttach()
 	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
 	m_Shader->UploadConstantBuffer(&m_UniformBuffer, uniformsLayout.GetElement("m_CompleteMVP"));
 	m_Shader->UploadConstantBuffer(&m_UniformBuffer2, uniformsLayout.GetElement("m_SSBO"));
-	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(1));
-	//m_Shader->UpdateCBuffer(&m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP), uniformsLayout.GetElement(2));
 	std::vector<std::shared_ptr<Texture2D>*> textures;
 	textures.push_back(&m_Texture1);
 	textures.push_back(&m_Texture2);
@@ -143,11 +145,9 @@ void Lust::ExampleLayer::OnAttach()
 	{
 		for (size_t j = 0; j < cols; j++)
 		{
-			auto structuredBuffer = squareStructuredBufferLayout.GetElementPointer("u_InstancedMVP");
 			squareSmallBufferMatrix = Translate<float>(baseScale, i * 60.0f, j * 60.0f, 0.0f);
 			size_t offset = (i * rows + j)*sizeof(Eigen::Matrix4f);
 			memcpy(m_SSBO + offset, squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f));
-			//structuredBuffer->CopyToBuffer(squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f), i * rows +j);
 		}
 	}
 
@@ -179,6 +179,7 @@ void Lust::ExampleLayer::OnDetach()
 	m_IndexBuffer.reset();
 	m_VertexBuffer.reset();
 	m_Shader.reset();
+	m_Texture2DLibrary.reset();
 	m_ShaderLibrary.reset();
 }
 
