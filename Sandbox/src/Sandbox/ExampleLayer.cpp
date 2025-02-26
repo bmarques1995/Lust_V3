@@ -54,7 +54,9 @@ void Lust::ExampleLayer::OnAttach()
 	m_UniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 	m_UniformBuffer2.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
-	m_SmallMVP.model = Scale<float>(Eigen::Matrix4f::Identity(), Eigen::Vector<float, 3>(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f));
+	Eigen::Transform<float, 3, Eigen::Affine> model_transform = Eigen::Translation3f(0.0f, 0.0f, 0.0f) * Eigen::Scaling(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f);
+
+	m_SmallMVP.model = model_transform.matrix();
 
 	//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex
 	TextureLayout textureLayout(
@@ -140,12 +142,14 @@ void Lust::ExampleLayer::OnAttach()
 	m_SSBO = new uint8_t[squareStructuredBufferLayout.GetElementPointer("u_InstancedMVP")->GetSize()];
 
 	Eigen::Matrix4f squareSmallBufferMatrix;
-	Eigen::Matrix4f baseScale = Scale<float>(Eigen::Matrix4f::Identity(), 50.0f, 50.0f, 1.0f);
+	Eigen::AlignedScaling3f baseScale = Eigen::Scaling(50.0f, 50.0f, 1.0f);
+	Eigen::Transform<float, 3, Eigen::Affine> element_transform;
 	for (size_t i = 0; i < rows; i++)
 	{
 		for (size_t j = 0; j < cols; j++)
 		{
-			squareSmallBufferMatrix = Translate<float>(baseScale, i * 60.0f, j * 60.0f, 0.0f);
+			element_transform = Eigen::Translation<float, 3>(i * 60.0f, j * 60.0f, 0.0f) * baseScale;
+			squareSmallBufferMatrix = element_transform.matrix().transpose();
 			size_t offset = (i * rows + j)*sizeof(Eigen::Matrix4f);
 			memcpy(m_SSBO + offset, squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f));
 		}

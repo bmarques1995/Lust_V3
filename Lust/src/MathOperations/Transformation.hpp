@@ -4,7 +4,7 @@
 
 namespace Lust
 {
-	template<typename T>
+	/*template<typename T>
 	Eigen::Matrix<T, 4, 4> Translate(const Eigen::Matrix<T, 4, 4>& inputMatrix, const T x, const T y, const T z)
 	{
 		Eigen::Matrix<T, 4, 4> matrix = inputMatrix;
@@ -53,5 +53,5 @@ namespace Lust
 		matrix(1, 1) = scale(1);
 		matrix(2, 2) = scale(2);
 		return matrix;
-	}
+	}*/
 }
