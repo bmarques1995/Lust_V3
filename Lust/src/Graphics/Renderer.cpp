@@ -22,7 +22,7 @@ void Lust::Renderer::OnWindowResize(uint32_t width, uint32_t height)
 {
 }
 
-void Lust::Renderer::BeginScene(OrthographicCamera& camera)
+void Lust::Renderer::BeginScene(const OrthographicCamera& camera)
 {
 	s_SceneData->view = camera.GetViewMatrix();
 	s_SceneData->projection = camera.GetProjectionMatrix();

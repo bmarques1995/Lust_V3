@@ -25,7 +25,7 @@ void Lust::ExampleLayer::OnAttach()
 		Eigen::Matrix4f::Identity()
 	};
 
-	m_Camera.reset(new OrthographicCamera(window->GetWidth() * -.5f, window->GetWidth() * .5f, window->GetHeight() * -.5f, window->GetHeight() * .5f));
+	m_CameraController.reset(new OrthographicCameraController(window->GetWidth(), window->GetHeight(), true));
 	InputBufferLayout layout(
 		{
 			{ShaderDataType::Float3, "POSITION", false},
@@ -177,7 +177,7 @@ void Lust::ExampleLayer::OnDetach()
 	m_SquareIndexBuffer.reset();
 	m_SquareVertexBuffer.reset();
 	m_SquareShader.reset();
-	m_Camera.reset();
+	m_CameraController.reset();
 	m_Texture2.reset();
 	m_Texture1.reset();
 	m_IndexBuffer.reset();
@@ -189,47 +189,12 @@ void Lust::ExampleLayer::OnDetach()
 
 void Lust::ExampleLayer::OnUpdate(Timestep ts)
 {
-	static float maxAxis = 32768.0f;
 	static uint8_t squareSmallBuffer[96];
-	float rightStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTX);
-	float rightStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTY);
-	Eigen::Vector2f rightStick(rightStickX, rightStickY);
-	if((rightStick.norm() > maxAxis * Input::GetGamepadLowerDeadZone()) && (rightStick.norm() < maxAxis * Input::GetGamepadUpperDeadZone()))
-	{
-		rightStick.normalize();
-		m_CameraRotation += rightStick(0) * m_CameraRotationSpeed * ts;
-	}
-
-	if(Input::IsKeyPressed(Key::LUST_KEYCODE_J))
-		m_CameraRotation += m_CameraRotationSpeed * ts;
-	if (Input::IsKeyPressed(Key::LUST_KEYCODE_L))
-		m_CameraRotation -= m_CameraRotationSpeed * ts;
-
-	float leftStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
-	float leftStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
-	Eigen::Vector2f leftStick(leftStickX, leftStickY);
-	if ((leftStick.norm() > maxAxis * Input::GetGamepadLowerDeadZone()) && (leftStick.norm() < maxAxis * Input::GetGamepadUpperDeadZone()))
-	{
-		leftStick.normalize();
-		m_CameraPosition.block<2, 1>(0,0) += leftStick * m_CameraTranslationSpeed * ts;
-	}
-
-	if (Input::IsKeyPressed(Key::LUST_KEYCODE_A))
-		m_CameraPosition(0) -= m_CameraTranslationSpeed * ts;
-	if (Input::IsKeyPressed(Key::LUST_KEYCODE_D))
-		m_CameraPosition(0) += m_CameraTranslationSpeed * ts;
-	if (Input::IsKeyPressed(Key::LUST_KEYCODE_S))
-		m_CameraPosition(1) -= m_CameraTranslationSpeed * ts;
-	if (Input::IsKeyPressed(Key::LUST_KEYCODE_W))
-		m_CameraPosition(1) += m_CameraTranslationSpeed * ts;
 	
-
+	m_CameraController->OnUpdate(ts);
 	//SampleInput();
 
-	m_Camera->SetPosition(m_CameraPosition);
-	m_Camera->SetRotation(m_CameraRotation);
-
-	Renderer::BeginScene(*(m_Camera.get()));
+	Renderer::BeginScene(m_CameraController->GetCamera());
 	Eigen::Matrix4f squareSmallBufferMatrix = Eigen::Matrix4f::Identity();
 
 	Renderer::SubmitCBV(&m_SquareUniformBuffer);
@@ -243,7 +208,7 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	Renderer::EndScene();
 	
 	
-	Renderer::BeginScene(*(m_Camera.get()));
+	Renderer::BeginScene(m_CameraController->GetCamera());
 	Renderer::SubmitCBV(&m_UniformBuffer);
 	Renderer::SubmitCBV(&m_UniformBuffer2);
 	Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer);
@@ -258,16 +223,14 @@ void Lust::ExampleLayer::OnImGuiRender()
 	ImGui::Begin("Camera", &m_ShowCameraWindow, ImGuiWindowFlags_MenuBar);
 	if (ImGui::Button("Reset"))
 	{
-		m_CameraPosition.setZero();
-		m_CameraRotation = 0.0f;
-		m_Camera->SetPosition(m_CameraPosition);
-		m_Camera->SetRotation(m_CameraRotation);
+		m_CameraController->ResetCamera();
 	}
 	ImGui::End();
 }
 
 void Lust::ExampleLayer::OnEvent(Event& event)
 {
+	m_CameraController->OnEvent(event);
 	EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<WindowResizedEvent>(std::bind(&ExampleLayer::OnWindowResize, this, std::placeholders::_1), true);
 }
@@ -290,8 +253,7 @@ void Lust::ExampleLayer::SampleInput()
 
 bool Lust::ExampleLayer::OnWindowResize(WindowResizedEvent& e)
 {
-	m_Camera->SetProjection(e.GetWidth() * -.5f, e.GetWidth() *.5f, e.GetHeight() * -.5f, e.GetHeight() * .5f);
-	return true;
+	return false;
 }
 
 

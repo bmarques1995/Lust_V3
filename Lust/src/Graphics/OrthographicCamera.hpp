@@ -18,6 +18,8 @@ namespace Lust
 		const Eigen::Vector3f& GetPosition() const;
 		float GetRotation(float rotation) const;
 
+		void SetPositionAndRotation(const Eigen::Vector3f& position, float rotation);
+
 		const Eigen::Matrix4f& GetProjectionMatrix() const;
 		const Eigen::Matrix4f& GetViewMatrix() const;
 		const Eigen::Matrix4f& GetViewProjectionMatrix() const;

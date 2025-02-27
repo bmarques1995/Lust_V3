@@ -4,7 +4,7 @@
 #include <Texture.hpp>
 #include <Shader.hpp>
 #include <Buffer.hpp>
-#include <OrthographicCamera.hpp>
+#include <OrthographicCameraController.hpp>
 #include <ApplicationEvent.hpp>
 
 namespace Lust
@@ -57,11 +57,7 @@ namespace Lust
 		std::shared_ptr<UniformBuffer> m_SquareUniformBuffer;
 		std::shared_ptr<StructuredBuffer> m_SquareStructuredBuffer;
 
-		std::shared_ptr<OrthographicCamera> m_Camera;
-		Eigen::Vector3f m_CameraPosition = { 0.0f, 0.0f, 0.0f };
-		float m_CameraTranslationSpeed = 200.0f;
-		float m_CameraRotation = 0.0f;
-		float m_CameraRotationSpeed = 2.0f;
+		std::shared_ptr<OrthographicCameraController> m_CameraController;
 
 		uint8_t* m_SSBO = nullptr;
 

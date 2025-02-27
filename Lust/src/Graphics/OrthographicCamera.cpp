@@ -35,6 +35,13 @@ float Lust::OrthographicCamera::GetRotation(float rotation) const
 	return m_Rotation;
 }
 
+void Lust::OrthographicCamera::SetPositionAndRotation(const Eigen::Vector3f& position, float rotation)
+{
+	m_CameraPosition = position;
+	m_Rotation = rotation;
+	RecalculateViewMatrix();
+}
+
 const Eigen::Matrix4f& Lust::OrthographicCamera::GetProjectionMatrix() const
 {
 	return m_ProjectionMatrix;

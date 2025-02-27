@@ -221,7 +221,7 @@ bool Lust::Application::OnMouseButtonPress(MouseButtonPressedEvent& e)
 bool Lust::Application::OnMouseWheel(MouseScrolledEvent& e)
 {
 	m_Window->DisplayCursor(true);
-	return true;
+	return false;
 }
 
 void Lust::Application::EnableSingleton(Application* ptr)
