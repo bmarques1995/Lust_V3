@@ -47,9 +47,10 @@ void Lust::ExampleLayer::OnAttach()
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	m_Texture2DLibrary->Load("./assets/textures/yor.png");
+	m_Texture2DLibrary->Load("./assets/textures/nanao.png");
 	m_Texture2DLibrary->Load("./assets/textures/sample.png");
 	m_Texture2DLibrary->Load("./assets/textures/david.jpg");
-	m_Texture1 = m_Texture2DLibrary->Get("yor");
+	m_Texture1 = m_Texture2DLibrary->Get("nanao");
 	m_Texture2 = m_Texture2DLibrary->Get("sample");
 	m_UniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 	m_UniformBuffer2.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));

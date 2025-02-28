@@ -12,12 +12,13 @@ SRV(t0)
 struct VSInput{
 	[[vk::location(0)]]float3 pos : POSITION;
 	[[vk::location(1)]]float2 txc : TEXCOORD;
+    uint instanceID : SV_INSTANCEID;
 };
 
 struct PSInput{
 	float4 pos : SV_POSITION;
 	float2 txc : TEXCOORD;
-	uint instanceID : INSTANCE;
+	uint instanceID : INSTANCEID;
 };
 
 struct SmallBuffer{
@@ -54,17 +55,17 @@ cbuffer u_SmallMVP : register(b0)
 
 [[vk::binding(2, 0)]] StructuredBuffer<float4x4> u_InstancedMVP : register(t0);
 
-PSInput vs_main(VSInput vsinput, uint instanceID : SV_InstanceID)
+PSInput vs_main(VSInput vsinput)
 {
 	PSInput vsoutput;
-	float4x4 elementModelMatrix = u_InstancedMVP[instanceID];
+    float4x4 elementModelMatrix = u_InstancedMVP[vsinput.instanceID];
 	vsoutput.pos = float4(vsinput.pos, 1.0f);
 	vsoutput.pos = mul(vsoutput.pos, elementModelMatrix);
 	vsoutput.pos = mul(vsoutput.pos, m_SmallMVP.Model);
 	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
 	vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
 	vsoutput.txc = vsinput.txc;
-	vsoutput.instanceID = instanceID;
+    vsoutput.instanceID = vsinput.instanceID;
 	return vsoutput;
 }
 
