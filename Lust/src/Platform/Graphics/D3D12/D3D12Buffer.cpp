@@ -128,7 +128,7 @@ Lust::D3D12UniformBuffer::D3D12UniformBuffer(const D3D12Context* context, const 
 	if (!IsBufferConformed(size))
 		throw AttachmentMismatchException(size, m_Context->GetUniformAttachment());
 	CreateBuffer(data, size);
-	//Remap(data, size);
+	Remap(data, size);
 }
 
 Lust::D3D12UniformBuffer::~D3D12UniformBuffer()
@@ -157,6 +157,7 @@ Lust::D3D12StructuredBuffer::D3D12StructuredBuffer(const D3D12Context* context, 
 		m_BufferSize += bufferCorrection;
 	}
 	CreateBuffer(data, size);
+	Remap(data, size, 0);
 }
 
 Lust::D3D12StructuredBuffer::~D3D12StructuredBuffer()
