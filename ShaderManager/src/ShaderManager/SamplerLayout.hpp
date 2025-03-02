@@ -56,6 +56,12 @@ namespace Lust
 		AnisotropicFactor GetAnisotropicFactor() const;
 		AddressMode GetAddressMode() const;
 		ComparisonPassMode GetComparisonPassMode() const;
+
+		void SetFilter(SamplerFilter samplerFilter) const;
+		void SetAnisotropicFactor(AnisotropicFactor anisotropicFactor) const;
+		void SetAddressMode(AddressMode addressMode) const;
+		void SetComparisonPassMode(ComparisonPassMode comparisonPassMode) const;
+		
 		uint32_t GetBindingSlot() const;
 		uint32_t GetSpaceSet() const;
 		uint32_t GetShaderRegister() const;
@@ -63,10 +69,10 @@ namespace Lust
 
 	private:
 		std::string m_Name;
-		SamplerFilter m_Filter;
-		AnisotropicFactor m_AnisotropicFactor;
-		AddressMode m_AddressMode;
-		ComparisonPassMode m_ComparisonPassMode;
+		mutable SamplerFilter m_Filter;
+		mutable AnisotropicFactor m_AnisotropicFactor;
+		mutable AddressMode m_AddressMode;
+		mutable ComparisonPassMode m_ComparisonPassMode;
 		uint32_t m_BindingSlot;
 		uint32_t m_SpaceSet;
 		uint32_t m_ShaderRegister;

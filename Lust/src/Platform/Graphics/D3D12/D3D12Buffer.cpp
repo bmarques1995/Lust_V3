@@ -38,7 +38,6 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size)
 
 	auto device = m_Context->GetDevicePtr();
 	
-	D3D12_RANGE readRange = { 0 };
 	hr = device->CreateCommittedResource2(
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
@@ -48,17 +47,23 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size)
 		nullptr,
 		IID_PPV_ARGS(m_Buffer.GetAddressOf()));
 	assert(hr == S_OK);
-
-	void* gpuData = nullptr;
-	hr = m_Buffer->Map(0, &readRange, &gpuData);
-	assert(hr == S_OK);
-	memcpy(gpuData, data, size);
-	m_Buffer->Unmap(0, NULL);
+	RemapBuffer(data, size, 0);
 }
 
 void Lust::D3D12Buffer::DestroyBuffer()
 {
 	m_Buffer.Release();
+}
+
+void Lust::D3D12Buffer::RemapBuffer(const void* data, size_t size, size_t offset)
+{
+	HRESULT hr;
+	D3D12_RANGE readRange = { 0 };
+	uint8_t* gpuData = nullptr;
+	hr = m_Buffer->Map(0, &readRange, (void**)&gpuData);
+	assert(hr == S_OK);
+	memcpy(gpuData + offset, data, size);
+	m_Buffer->Unmap(0, NULL);
 }
 
 bool Lust::D3D12Buffer::IsBufferConformed(size_t size)
@@ -69,6 +74,7 @@ bool Lust::D3D12Buffer::IsBufferConformed(size_t size)
 Lust::D3D12VertexBuffer::D3D12VertexBuffer(const D3D12Context* context, const void* data, size_t size, uint32_t stride) :
 	D3D12Buffer(context)
 {
+	m_Stride = stride;
 	CreateBuffer(data, size);
 
 	memset(&m_VertexBufferView, 0, sizeof(D3D12_VERTEX_BUFFER_VIEW));
@@ -132,13 +138,7 @@ Lust::D3D12UniformBuffer::~D3D12UniformBuffer()
 
 void Lust::D3D12UniformBuffer::Remap(const void* data, size_t size)
 {
-	HRESULT hr;
-	D3D12_RANGE readRange = { 0 };
-	void* gpuData = nullptr;
-	hr = m_Buffer->Map(0, &readRange, &gpuData);
-	assert(hr == S_OK);
-	memcpy(gpuData, data, size);
-	m_Buffer->Unmap(0, NULL);
+	RemapBuffer(data, size, 0);
 }
 
 size_t Lust::D3D12UniformBuffer::GetSize() const
@@ -166,13 +166,7 @@ Lust::D3D12StructuredBuffer::~D3D12StructuredBuffer()
 
 void Lust::D3D12StructuredBuffer::Remap(const void* data, size_t size, size_t offset)
 {
-	HRESULT hr;
-	D3D12_RANGE readRange = { 0 };
-	uint8_t* gpuData = nullptr;
-	hr = m_Buffer->Map(0, &readRange, (void**)&gpuData);
-	assert(hr == S_OK);
-	memcpy(gpuData + offset, data, size);
-	m_Buffer->Unmap(0, NULL);
+	RemapBuffer(data, size, offset);
 }
 
 size_t Lust::D3D12StructuredBuffer::GetSize() const

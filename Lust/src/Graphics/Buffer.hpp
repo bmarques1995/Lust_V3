@@ -14,6 +14,8 @@ namespace Lust
 
 		virtual void Stage() const = 0;
 		static VertexBuffer* Instantiate(const GraphicsContext* context, const void* data, size_t size, uint32_t stride);
+	protected:
+		uint32_t m_Stride;
 	};
 
 	class LUST_API IndexBuffer

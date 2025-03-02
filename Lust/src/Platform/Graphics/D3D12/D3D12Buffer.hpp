@@ -16,6 +16,7 @@ namespace Lust
 		D3D12Buffer(const D3D12Context* context);
 		void CreateBuffer(const void* data, size_t size);
 		void DestroyBuffer();
+		void RemapBuffer(const void* data, size_t size, size_t offset);
 
 		bool IsBufferConformed(size_t size);
 

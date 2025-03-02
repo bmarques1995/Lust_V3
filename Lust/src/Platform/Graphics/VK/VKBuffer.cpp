@@ -83,6 +83,17 @@ void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevice
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
+void Lust::VKBuffer::RemapBuffer(const void* data, size_t size, size_t offset)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+    uint8_t* gpuData;
+    vkr = vkMapMemory(device, m_BufferMemory, 0, size, 0, (void**)&gpuData);
+    assert(vkr == VK_SUCCESS);
+    memcpy(gpuData + offset, data, size);
+    vkUnmapMemory(device, m_BufferMemory);
+}
+
 uint32_t Lust::VKBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     auto adapter = m_Context->GetAdapter();
@@ -115,24 +126,9 @@ void Lust::VKBuffer::DestroyBuffer()
 Lust::VKVertexBuffer::VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride) :
     VKBuffer(context)
 {
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-    void* mappedData;
-    vkr = vkMapMemory(device, stagingBufferMemory, 0, size, 0, &mappedData);
-    assert(vkr == VK_SUCCESS);
-    memcpy(mappedData, data, size);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_BufferMemory);
-
-    CopyBuffer(stagingBuffer, m_Buffer, size);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    m_Stride = stride;
+    CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_BufferMemory);
+    RemapBuffer(data, size, 0);
 }
 
 Lust::VKVertexBuffer::~VKVertexBuffer()
@@ -151,26 +147,9 @@ Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, s
     VKBuffer(context)
 {
     m_Count = (uint32_t)count;
-
-    auto device = m_Context->GetDevice();
-
     VkDeviceSize bufferSize = sizeof(uint32_t) * m_Count;
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-    void* mappedData;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &mappedData);
-    memcpy(mappedData, data, (size_t)bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_BufferMemory);
-
-    CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_BufferMemory);
+	RemapBuffer(data, bufferSize, 0);
 }
 
 Lust::VKIndexBuffer::~VKIndexBuffer()
@@ -206,13 +185,7 @@ Lust::VKUniformBuffer::~VKUniformBuffer()
 
 void Lust::VKUniformBuffer::Remap(const void* data, size_t size)
 {
-    VkResult vkr;
-	auto device = m_Context->GetDevice();
-    void* gpuData;
-	vkr = vkMapMemory(device, m_BufferMemory, 0, size, 0, &gpuData);
-	assert(vkr == VK_SUCCESS);
-	memcpy(gpuData, data, size);
-	vkUnmapMemory(device, m_BufferMemory);
+    RemapBuffer(data, size, 0);
 }
 
 size_t Lust::VKUniformBuffer::GetSize() const
@@ -241,13 +214,7 @@ Lust::VKStructuredBuffer::~VKStructuredBuffer()
 
 void Lust::VKStructuredBuffer::Remap(const void* data, size_t size, size_t offset)
 {
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-    uint8_t* gpuData;
-    vkr = vkMapMemory(device, m_BufferMemory, 0, size, 0, (void **)&gpuData);
-    assert(vkr == VK_SUCCESS);
-    memcpy(gpuData + offset, data, size);
-    vkUnmapMemory(device, m_BufferMemory);
+    RemapBuffer(data, size, offset);
 }
 
 size_t Lust::VKStructuredBuffer::GetSize() const

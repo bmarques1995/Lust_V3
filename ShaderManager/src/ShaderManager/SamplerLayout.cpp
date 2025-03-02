@@ -54,6 +54,26 @@ Lust::ComparisonPassMode Lust::SamplerElement::GetComparisonPassMode() const
 	return m_ComparisonPassMode;
 }
 
+void Lust::SamplerElement::SetFilter(SamplerFilter samplerFilter) const
+{
+	m_Filter = samplerFilter;
+}
+
+void Lust::SamplerElement::SetAnisotropicFactor(AnisotropicFactor anisotropicFactor) const
+{
+	m_AnisotropicFactor = anisotropicFactor;
+}
+
+void Lust::SamplerElement::SetAddressMode(AddressMode addressMode) const
+{
+	m_AddressMode = addressMode;
+}
+
+void Lust::SamplerElement::SetComparisonPassMode(ComparisonPassMode comparisonPassMode) const
+{
+	m_ComparisonPassMode = comparisonPassMode;
+}
+
 uint32_t Lust::SamplerElement::GetBindingSlot() const
 {
 	return m_BindingSlot;
