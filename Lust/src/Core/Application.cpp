@@ -9,6 +9,7 @@
 #include "SamplerLayout.hpp"
 #include "Operations.hpp"
 #include "RenderCommand.hpp"
+#include "Renderer2D.hpp"
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -29,6 +30,7 @@ Lust::Application::Application()
 
 	Console::CoreLog("Current GPU: {}", m_Context->GetGPUName().c_str());
 	RenderCommand::Init(m_Context.get());
+	Renderer2D::Instantiate();
 	m_CopyPipeline.reset(CopyPipeline::Instantiate(m_Context.get()));
 
 	ImguiContext::StartImgui();
@@ -73,6 +75,7 @@ Lust::Application::~Application()
 	m_ImguiWindowController.reset();
 	ImguiContext::EndImgui();
 	m_CopyPipeline.reset();
+	Renderer2D::Destroy();
 	RenderCommand::Shutdown();
 	TextureLibrary::DestroyCopyPipeline();
 	m_Context.reset();

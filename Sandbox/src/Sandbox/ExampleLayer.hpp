@@ -74,9 +74,9 @@ namespace Lust
 
 		uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
 
-		SmallMVP m_SmallMVP;
-		CompleteMVP m_CompleteMVP;
-		SmallMVP m_SquareSmallMVP;
+		Sandbox::SmallMVP m_SmallMVP;
+		Sandbox::CompleteMVP m_CompleteMVP;
+		Sandbox::SmallMVP m_SquareSmallMVP;
 		//#f1c40f
 		Eigen::Vector4f m_SquareColor = { 0xf1 / 255.0f, 0xc4 / 255.0f, 0x0f / 255.0f, 1.0f };
 		//#9b59b6

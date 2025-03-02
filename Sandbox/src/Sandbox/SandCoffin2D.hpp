@@ -45,8 +45,8 @@ namespace Lust
 
 		Eigen::Vector4f m_Renderer2DColor = { .2f, 0.3f, 0.8f, 1.0f };
 	
-		CompleteMVP m_Renderer2DCompleteMVP;
-		SmallMVP m_Renderer2DSmallMVP;
+		Sandbox::CompleteMVP m_Renderer2DCompleteMVP;
+		Sandbox::SmallMVP m_Renderer2DSmallMVP;
 
 		size_t m_Renderer2DRawSmallBufferSize = 0;
 		uint8_t* m_Renderer2DRawSmallBuffer;

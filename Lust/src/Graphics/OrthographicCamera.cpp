@@ -60,7 +60,7 @@ const Eigen::Matrix4f& Lust::OrthographicCamera::GetViewProjectionMatrix() const
 void Lust::OrthographicCamera::RecalculateViewMatrix()
 {
 	Eigen::Quaternionf q(Eigen::AngleAxisf(m_Rotation, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
-	Eigen::Transform<float, 3, Eigen::Affine> transform = q * Eigen::Translation3f(m_CameraPosition);
+	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> transform = Eigen::Translation3f(m_CameraPosition) * q;
 
 	m_ViewMatrix = transform.matrix().transpose().inverse();
 	m_ViewProjectionMatrix = m_ViewMatrix * m_ProjectionMatrix;
