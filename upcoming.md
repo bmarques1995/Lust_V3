@@ -1,5 +1,9 @@
 # Next Features
 
-- Shader Library
-- Texture Library
-- Add Documentation
+- Finish 2D renderer
+- Add reflection to shaders
+- Add documentation
+- Add tests
+- Add samples
+    - ExampleLayer
+    - Game
