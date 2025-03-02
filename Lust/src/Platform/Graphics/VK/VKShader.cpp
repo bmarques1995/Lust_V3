@@ -568,7 +568,7 @@ void Lust::VKShader::CreateUniformDescriptorSet(const std::shared_ptr<VKUniformB
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
-void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& uniformElement)
+void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& structuredBufferElement)
 {
     VkResult vkr;
     auto device = m_Context->GetDevice();
@@ -578,11 +578,11 @@ void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<V
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = (*buffer)->GetBuffer();
     bufferInfo.offset = 0;
-    bufferInfo.range = uniformElement.GetSize();
+    bufferInfo.range = structuredBufferElement.GetSize();
 
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_DescriptorSets[uniformElement.GetSpaceSet()];
-    descriptorWrite.dstBinding = uniformElement.GetBindingSlot();
+    descriptorWrite.dstSet = m_DescriptorSets[structuredBufferElement.GetSpaceSet()];
+    descriptorWrite.dstBinding = structuredBufferElement.GetBindingSlot();
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::STRUCTURED_BUFFER);
     descriptorWrite.descriptorCount = 1;
