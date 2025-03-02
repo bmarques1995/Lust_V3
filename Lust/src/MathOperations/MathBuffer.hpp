@@ -13,7 +13,7 @@ namespace Lust
 			for (size_t j = 0; j < 4; j++)
 			{
 
-				memcpy(*buffer + (start + 4 * (i*4+j)), &matrix(i, j), sizeof(T));
+				memcpy(*buffer + (start + sizeof(T) * (i*4+j)), &matrix(i, j), sizeof(T));
 			}
 		}
 	}
