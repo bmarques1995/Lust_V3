@@ -53,7 +53,7 @@ struct PSInput
     float2 txc : TEXCOORD;
 };
 
-[[vk::binding(2, 0)]] Texture2D<float4> texture : register(t1);
+[[vk::binding(2, 0)]] Texture2D<float4> renderTexture : register(t1);
 [[vk::binding(3, 0)]] SamplerState dynamicSampler : register(s1);
 
 PSInput vs_main(VSInput vsinput)
@@ -63,10 +63,11 @@ PSInput vs_main(VSInput vsinput)
     vsoutput.pos = mul(m_SmallMVP.Model, vsoutput.pos);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
+    vsoutput.txc = vsinput.txc;
     return vsoutput;
 }
 
 float4 ps_main(PSInput psinput) : SV_TARGET0
 {
-    return texture.SampleLevel(dynamicSampler, psinput.txc, 0.0f);
+    return renderTexture.SampleLevel(dynamicSampler, psinput.txc, 0.0f);
 }

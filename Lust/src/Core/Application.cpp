@@ -52,6 +52,8 @@ Lust::Application::Application()
 		m_CSOCompiler->PushShaderPath("./assets/shaders/FlatColor.hlsl", PipelineType::Graphics);
 		m_SPVCompiler->PushShaderPath("./assets/shaders/Renderer2D.hlsl", PipelineType::Graphics);
 		m_CSOCompiler->PushShaderPath("./assets/shaders/Renderer2D.hlsl", PipelineType::Graphics);
+		m_SPVCompiler->PushShaderPath("./assets/shaders/TexturedRenderer2D.hlsl", PipelineType::Graphics);
+		m_CSOCompiler->PushShaderPath("./assets/shaders/TexturedRenderer2D.hlsl", PipelineType::Graphics);
 		m_SPVCompiler->CompilePackedShader();
 		m_CSOCompiler->CompilePackedShader();
 	}

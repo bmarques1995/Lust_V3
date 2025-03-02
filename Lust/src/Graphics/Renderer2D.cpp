@@ -16,10 +16,10 @@ void Lust::Renderer2D::Instantiate()
 	SmallMVP m_Renderer2DSmallMVP;
 
 	float squareVertices[3 * 4] = {
-			-.5f, -.5f, .2f,
-			-.5f, .5f, .2f,
-			.5f, -.5f, .2f,
-			.5f, .5f, .2f
+			-.5f, -.5f, .0f,
+			-.5f, .5f, .0f,
+			.5f, -.5f, .0f,
+			.5f, .5f, .0f
 	};
 
 	uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };

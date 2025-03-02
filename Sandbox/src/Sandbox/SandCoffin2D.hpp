@@ -29,11 +29,11 @@ namespace Lust
 
 		bool OnWindowResize(WindowResizedEvent& e);
 
-		float squareVertices[3 * 4] = {
-			-.5f, -.5f, .2f,
-			-.5f, .5f, .2f,
-			.5f, -.5f, .2f,
-			.5f, .5f, .2f
+		float squareVertices[5 * 4] = {
+			-.5f, -.5f, .2f, 0.0f, 1.0f,
+			-.5f, .5f, .2f, 0.0f, 0.0f,
+			.5f, -.5f, .2f, 1.0f, 1.0f,
+			.5f, .5f, .2f, 1.0f, 0.0f
 		};
 
 		uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
@@ -42,9 +42,10 @@ namespace Lust
 		std::shared_ptr<VertexBuffer> m_Renderer2DVertexBuffer;
 		std::shared_ptr<IndexBuffer> m_Renderer2DIndexBuffer;
 		std::shared_ptr<UniformBuffer> m_Renderer2DUniformBuffer;
+		std::shared_ptr<Texture2D> m_Renderer2DTexture;
 
 		Eigen::Vector4f m_Renderer2DColor = { .2f, 0.3f, 0.8f, 1.0f };
-	
+
 		Sandbox::CompleteMVP m_Renderer2DCompleteMVP;
 		Sandbox::SmallMVP m_Renderer2DSmallMVP;
 

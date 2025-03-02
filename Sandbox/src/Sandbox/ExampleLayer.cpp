@@ -60,10 +60,11 @@ void Lust::ExampleLayer::OnAttach()
 	m_SmallMVP.model = model_transform.matrix();
 
 	//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex
+	//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
 	TextureLayout textureLayout(
 		{
-			{3, 3, 0, 0, "textureChecker"},
-			{4, 3, 0, 1, "textureChecker2"}
+			{3, 0, 3, 0, "textureChecker"},
+			{4, 0, 3, 1, "textureChecker2"}
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 

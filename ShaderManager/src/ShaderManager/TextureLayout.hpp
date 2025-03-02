@@ -17,7 +17,7 @@ namespace Lust
 	{
 	public:
 		TextureElement();
-		TextureElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex, std::string name);
+		TextureElement(uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name);
 
 		const std::string& GetName() const;
 		uint32_t GetBindingSlot() const;
