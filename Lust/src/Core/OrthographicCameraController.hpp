@@ -30,8 +30,10 @@ namespace Lust
 		bool m_Rotation;
 
 		Eigen::Vector3f m_CameraPosition = { 0.0f, 0.0f, 0.0f };
+		Eigen::Vector3f m_CameraPreviousPosition = { 0.0f, 0.0f, 0.0f };
 		float m_CameraTranslationSpeed = 200.0f;
 		float m_CameraRotation = 0.0f;
+		float m_CameraPreviousRotation = 0.0f;
 		float m_CameraRotationSpeed = 1.0f;
 	};
 }

@@ -12,7 +12,7 @@ Lust::OrthographicCameraController::OrthographicCameraController(float width, fl
 void Lust::OrthographicCameraController::OnUpdate(Timestep ts)
 {
 	static float maxAxis = 32768.0f;
-	
+
 	if (m_Rotation)
 	{	
 		float rightStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTX);
@@ -48,10 +48,15 @@ void Lust::OrthographicCameraController::OnUpdate(Timestep ts)
 	if (Input::IsKeyPressed(Key::LUST_KEYCODE_W))
 		m_CameraPosition(1) += m_CameraTranslationSpeed * ts;
 
-	m_Camera.SetPosition(m_CameraPosition);
-	if (m_Rotation)
+	if ((m_CameraRotation != m_CameraPreviousRotation) || (m_CameraPosition != m_CameraPreviousPosition))
 	{
-		m_Camera.SetRotation(m_CameraRotation);
+		m_Camera.SetPosition(m_CameraPosition);
+		m_CameraPreviousPosition = m_CameraPosition;
+		if (m_Rotation)
+		{
+			m_Camera.SetRotation(m_CameraRotation);
+			m_CameraPreviousRotation = m_CameraRotation;
+		}
 	}
 }
 

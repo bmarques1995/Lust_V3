@@ -1,6 +1,7 @@
 #include "Renderer2D.hpp"
 #include <Application.hpp>
 #include "RenderCommand.hpp"
+#include "MathBuffer.hpp"
 
 std::shared_ptr<Lust::Renderer2DStorage> Lust::Renderer2D::s_Renderer2DStorage;
 std::unique_ptr<Lust::SceneData> Lust::Renderer2D::s_SceneData;
@@ -102,31 +103,20 @@ void Lust::Renderer2D::EndScene()
 
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color)
 {
-	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position(0), position(1), 0.0f) * Eigen::Scaling(size(0), size(1), 1.0f);
-	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix();
-
-	s_Renderer2DStorage->m_UniformBuffer->Remap((void*)s_SceneData.get(), sizeof(SceneData));
-	s_Renderer2DStorage->m_Shader->Stage();
-	s_Renderer2DStorage->m_Shader->BindDescriptors();
-	s_Renderer2DStorage->m_VertexBuffer->Stage();
-	s_Renderer2DStorage->m_IndexBuffer->Stage();
-	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
-	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[sizeof(squareSmallBufferMatrix)], color.data(), sizeof(color));
-	s_Renderer2DStorage->m_Shader->BindSmallBuffer((void*)&s_Renderer2DStorage->m_RawSmallBuffer[0], s_Renderer2DStorage->m_RawSmallBufferSize, 0, 0);
-	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color);
 }
 
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color)
 {
 	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) ;
-	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix();
+	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
 
 	s_Renderer2DStorage->m_UniformBuffer->Remap((void*)s_SceneData.get(), sizeof(SceneData));
 	s_Renderer2DStorage->m_Shader->Stage();
 	s_Renderer2DStorage->m_Shader->BindDescriptors();
 	s_Renderer2DStorage->m_VertexBuffer->Stage();
 	s_Renderer2DStorage->m_IndexBuffer->Stage();
-	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
+	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &s_Renderer2DStorage->m_RawSmallBuffer, 0);
 	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[sizeof(squareSmallBufferMatrix)], color.data(), sizeof(color));
 	s_Renderer2DStorage->m_Shader->BindSmallBuffer((void*)&s_Renderer2DStorage->m_RawSmallBuffer[0], s_Renderer2DStorage->m_RawSmallBufferSize, 0, 0);
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
