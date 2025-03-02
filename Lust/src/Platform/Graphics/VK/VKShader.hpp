@@ -36,6 +36,8 @@ namespace Lust
 
 		void BindDescriptors() override;
 
+		void CreateSampler(SamplerElement samplerElement) override;
+
 	private:
 
 		void PreallocatesDescSets();
@@ -56,7 +58,7 @@ namespace Lust
 		//void MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset);
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-		void CreateSampler(SamplerElement samplerElement);
+		
 
 		void PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc);
 		void SetRasterizer(VkPipelineRasterizationStateCreateInfo* rasterizer);

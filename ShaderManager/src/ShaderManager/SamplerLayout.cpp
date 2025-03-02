@@ -12,9 +12,11 @@ Lust::SamplerElement::SamplerElement()
 	m_ShaderRegister = 0;
 	m_BindingSlot = 0;
 	m_SamplerIndex = 0;
+	m_Name = "";
 }
 
-Lust::SamplerElement::SamplerElement(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex) :
+Lust::SamplerElement::SamplerElement(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode,
+	uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name) :
 	m_Filter(filter),
 	m_AnisotropicFactor(anisotropicFactor),
 	m_AddressMode(addressMode),
@@ -22,8 +24,14 @@ Lust::SamplerElement::SamplerElement(SamplerFilter filter, AnisotropicFactor ani
 	m_BindingSlot(bindingSlot),
 	m_SpaceSet(spaceSet),
 	m_ShaderRegister(shaderRegister),
-	m_SamplerIndex(samplerIndex)
+	m_SamplerIndex(samplerIndex),
+	m_Name(name)
 {
+}
+
+const std::string& Lust::SamplerElement::GetName() const
+{
+	return m_Name;
 }
 
 Lust::SamplerFilter Lust::SamplerElement::GetFilter() const

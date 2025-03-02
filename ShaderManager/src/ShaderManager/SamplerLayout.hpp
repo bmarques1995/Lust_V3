@@ -2,6 +2,7 @@
 
 #include "LustShaderManagerDLLMacro.hpp"
 #include <cstdint>
+#include <string>
 #include <unordered_map>
 #include <initializer_list>
 
@@ -48,8 +49,9 @@ namespace Lust
 	{
 	public:
 		SamplerElement();
-		SamplerElement(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex);
+		SamplerElement(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name);
 
+		const std::string& GetName() const;
 		SamplerFilter GetFilter() const;
 		AnisotropicFactor GetAnisotropicFactor() const;
 		AddressMode GetAddressMode() const;
@@ -60,6 +62,7 @@ namespace Lust
 		uint32_t GetSamplerIndex() const;
 
 	private:
+		std::string m_Name;
 		SamplerFilter m_Filter;
 		AnisotropicFactor m_AnisotropicFactor;
 		AddressMode m_AddressMode;

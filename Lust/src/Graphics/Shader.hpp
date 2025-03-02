@@ -62,6 +62,9 @@ namespace Lust
 		const std::unordered_map<std::string, StructuredBufferElement>& GetStructuredBufferElements() const;
 		virtual void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) = 0;
 
+		const std::unordered_map<std::string, SamplerElement>& GetSamplerElements() const;
+		virtual void CreateSampler(SamplerElement samplerElement) = 0;
+		
 		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;
 

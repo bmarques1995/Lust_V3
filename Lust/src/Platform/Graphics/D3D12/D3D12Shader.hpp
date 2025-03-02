@@ -37,6 +37,8 @@ namespace Lust
 
 		void BindDescriptors() override;
 
+		void CreateSampler(SamplerElement samplerElement) override;
+
 	private:
 		void StartDXC();
 
@@ -47,7 +49,6 @@ namespace Lust
 
 		void CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement);
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
-		void CreateSampler(SamplerElement samplerElement);
 		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);
 
 		void CreateBuffer(size_t bufferSize, DXGI_FORMAT format, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_DIMENSION dimension, ID3D12Resource2** buffer);
