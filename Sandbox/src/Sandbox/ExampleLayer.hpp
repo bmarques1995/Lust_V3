@@ -6,22 +6,10 @@
 #include <Buffer.hpp>
 #include <OrthographicCameraController.hpp>
 #include <ApplicationEvent.hpp>
+#include "CommonDefs.hpp"
 
 namespace Lust
 {
-	struct SmallMVP
-	{
-		Eigen::Matrix4f model;
-	};
-
-	struct CompleteMVP
-	{
-		Eigen::Matrix4f model;
-		Eigen::Matrix4f view;
-		Eigen::Matrix4f projection;
-		Eigen::Matrix4f mipLevel;
-	};
-
 	class ExampleLayer : public Layer
 	{
 	public:
