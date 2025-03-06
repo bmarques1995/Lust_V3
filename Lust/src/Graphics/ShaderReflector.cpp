@@ -20,7 +20,7 @@ const std::list<std::string> Lust::ShaderReflector::s_GraphicsPipelineStages =
 };
 
 
-Lust::ShaderReflector* Lust::ShaderReflector::Instantiate(std::string_view jsonBasepath)
+Lust::ShaderReflector* Lust::ShaderReflector::Instantiate(std::string_view jsonBasepath, uint32_t stages)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	std::stringstream controller_path;
@@ -32,14 +32,14 @@ Lust::ShaderReflector* Lust::ShaderReflector::Instantiate(std::string_view jsonB
 	{
 		controller_path << ".d3d12.json";
 		std::string json_controller_path = controller_path.str();
-		return new D3D12ShaderReflector(json_controller_path);
+		return new D3D12ShaderReflector(json_controller_path, stages);
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
 		controller_path << ".vk.json";
 		std::string json_controller_path = controller_path.str();
-		return new VKShaderReflector(json_controller_path);
+		return new VKShaderReflector(json_controller_path, stages);
 	}
 	default:
 		break;
@@ -56,6 +56,11 @@ void Lust::ShaderReflector::InitJsonAndPaths(std::string_view jsonFilepath)
 
 	fs::path location = jsonFilepath;
 	m_ShaderDir = location.parent_path().string();
+}
+
+Lust::ShaderReflector::ShaderReflector(uint32_t stages) :
+	m_SmallBufferLayout({ {}, stages })
+{
 }
 
 void Lust::ShaderReflector::ExportInputLayout(InputBufferLayout* inputBufferLayout)

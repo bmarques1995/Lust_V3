@@ -75,6 +75,9 @@ namespace Lust
 		const SmallBufferElement& GetElement(std::string_view name) const;
 		const std::unordered_map<std::string, SmallBufferElement>& GetElements() const;
 		uint32_t GetStages() const;
+
+		void Clear();
+		void Upload(const SmallBufferElement& element);
 	private:
 		std::unordered_map<std::string, SmallBufferElement> m_Buffers;
 		uint32_t m_Stages;

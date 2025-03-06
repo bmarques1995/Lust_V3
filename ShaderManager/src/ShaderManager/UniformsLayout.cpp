@@ -87,6 +87,16 @@ uint32_t Lust::SmallBufferLayout::GetStages() const
 	return m_Stages;
 }
 
+void Lust::SmallBufferLayout::Clear()
+{
+	m_Buffers.clear();
+}
+
+void Lust::SmallBufferLayout::Upload(const SmallBufferElement& element)
+{
+	m_Buffers[element.GetName()] = element;
+}
+
 Lust::UniformElement::UniformElement()
 {
 	m_BufferType = BufferType::INVALID_BUFFER_TYPE;

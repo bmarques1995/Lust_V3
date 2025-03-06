@@ -1,5 +1,6 @@
 #include "D3D12ShaderReflector.hpp"
 #include "FileHandler.hpp"
+#include <Application.hpp>
 
 const std::unordered_map<std::string, bool> Lust::D3D12ShaderReflector::s_HLSLSysVals =
 {
@@ -32,17 +33,67 @@ const std::unordered_map<std::string, bool> Lust::D3D12ShaderReflector::s_HLSLSy
 	{"SV_SHADINGRATE", false},
 };
 
-Lust::D3D12ShaderReflector::D3D12ShaderReflector(std::string_view jsonFilepath)
+namespace Lust
+{
+	namespace Declaration
+	{
+		constexpr uint16_t cbvLocation = 0;
+		constexpr uint16_t srvLocation = 1;
+		constexpr uint16_t uavLocation = 2;
+		constexpr uint16_t samplerLocation = 3;
+	}
+}
+
+const std::unordered_map<D3D_SHADER_INPUT_TYPE, uint16_t> Lust::D3D12ShaderReflector::s_TypesMap =
+{
+	{ D3D_SIT_CBUFFER, Lust::Declaration::cbvLocation },
+	{ D3D_SIT_TBUFFER, Lust::Declaration::srvLocation },
+	{ D3D_SIT_TEXTURE, Lust::Declaration::srvLocation },
+	{ D3D_SIT_SAMPLER, Lust::Declaration::samplerLocation },
+	{ D3D_SIT_UAV_RWTYPED, Lust::Declaration::uavLocation },
+	{ D3D_SIT_STRUCTURED, Lust::Declaration::srvLocation },
+	{ D3D_SIT_UAV_RWSTRUCTURED, Lust::Declaration::uavLocation },
+	{ D3D_SIT_BYTEADDRESS, Lust::Declaration::srvLocation },
+	{ D3D_SIT_UAV_RWBYTEADDRESS, Lust::Declaration::srvLocation },
+	{ D3D_SIT_UAV_APPEND_STRUCTURED, Lust::Declaration::uavLocation },
+	{ D3D_SIT_UAV_CONSUME_STRUCTURED, Lust::Declaration::uavLocation },
+	{ D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER, Lust::Declaration::uavLocation },
+	{ D3D_SIT_RTACCELERATIONSTRUCTURE, Lust::Declaration::srvLocation },
+	{ D3D_SIT_UAV_FEEDBACKTEXTURE, Lust::Declaration::uavLocation }
+};
+
+const std::unordered_map<D3D12_ROOT_PARAMETER_TYPE, uint16_t> Lust::D3D12ShaderReflector::s_ReturnTypesMap =
+{
+	{ D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS, Lust::Declaration::cbvLocation },
+	{ D3D12_ROOT_PARAMETER_TYPE_CBV, Lust::Declaration::cbvLocation },
+	{ D3D12_ROOT_PARAMETER_TYPE_SRV, Lust::Declaration::srvLocation },
+	{ D3D12_ROOT_PARAMETER_TYPE_UAV, Lust::Declaration::uavLocation }
+};
+
+const std::unordered_map<D3D12_DESCRIPTOR_RANGE_TYPE, uint16_t> Lust::D3D12ShaderReflector::s_ReturnRangeTypesMap = {
+
+	{D3D12_DESCRIPTOR_RANGE_TYPE_SRV, Lust::Declaration::srvLocation },
+	{D3D12_DESCRIPTOR_RANGE_TYPE_UAV, Lust::Declaration::uavLocation },
+	{D3D12_DESCRIPTOR_RANGE_TYPE_CBV, Lust::Declaration::cbvLocation },
+	{D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, Lust::Declaration::samplerLocation }
+};
+
+Lust::D3D12ShaderReflector::D3D12ShaderReflector(std::string_view jsonFilepath, uint32_t stages) :
+	ShaderReflector(stages)
 {
 	StartDxc();
 	InitJsonAndPaths(jsonFilepath);
+	m_InputBufferLayout.Clear();
+	m_SmallBufferLayout.Clear();
 	UploadBlob("rs", m_RootBlob.GetAddressOf());
 	ReflectRootBlob();
 	for (auto it = s_GraphicsPipelineStages.begin(); it != s_GraphicsPipelineStages.end(); it++)
 	{
 		UploadBlob(*it, m_ShaderBlobs[*it].GetAddressOf());
 		ReflectStage(*it, m_ShaderBlobs[*it].Get());
+		PushExternalElementPreInfo(m_ShaderReflections[*it].Get(), 0);
 	}
+	ReflectRootSignature();
 	GenerateInputBufferLayout();
 }
 
@@ -54,7 +105,7 @@ void Lust::D3D12ShaderReflector::GenerateInputBufferLayout()
 {
 	D3D12_SHADER_DESC shader_desc;
 	m_ShaderReflections["vs"]->GetDesc(&shader_desc);
-	m_InputBufferLayout.Clear();
+	
 
 	for (size_t i = 0; i < shader_desc.InputParameters; i++)
 	{
@@ -70,6 +121,83 @@ void Lust::D3D12ShaderReflector::GenerateInputBufferLayout()
 			InputBufferElement ibe(type, signature_param_desc.SemanticName, false);
 			m_InputBufferLayout.PushBack(ibe);
 		}
+	}
+}
+
+void Lust::D3D12ShaderReflector::PushExternalElementPreInfo(ID3D12ShaderReflection* reflection, size_t resourceIndex)
+{
+	if (reflection == nullptr)
+		return;
+	HRESULT hr;
+	D3D12_SHADER_INPUT_BIND_DESC inputDesc;
+	hr = reflection->GetResourceBindingDesc(resourceIndex, &inputDesc);
+	assert(hr == S_OK);
+	auto it = s_TypesMap.find(inputDesc.Type);
+	uint32_t index = 0xffffffff;
+	if (it != s_TypesMap.end())
+		index = ((uint32_t)it->second << 16);
+	index += inputDesc.BindPoint;
+	m_BuffersMap[index] = inputDesc;
+	m_BuffersMapName[index] = inputDesc.Name;
+
+	if (inputDesc.Type == D3D_SIT_CBUFFER)
+	{
+		ID3D12ShaderReflectionConstantBuffer* pCB = reflection->GetConstantBufferByIndex(inputDesc.uID);
+
+		D3D12_SHADER_BUFFER_DESC cbDesc;
+		pCB->GetDesc(&cbDesc);
+
+		m_BuffersMapSizes[index] = cbDesc;
+	}
+}
+
+void Lust::D3D12ShaderReflector::PushRootElement(const D3D12_ROOT_PARAMETER& param)
+{
+	uint32_t index = 0xffffffff;
+	auto context = Application::GetInstance()->GetContext();
+	auto it = s_ReturnTypesMap.find(param.ParameterType);
+	if (it != s_ReturnTypesMap.end())
+	{
+		index = ((uint32_t)it->second << 16);
+		index += param.Constants.ShaderRegister;
+	}
+	auto buffersIt = m_BuffersMap.find(index);
+	size_t bufferSize = 0;
+	D3D12_SHADER_INPUT_BIND_DESC bufferDesc = buffersIt != m_BuffersMap.end() ? buffersIt->second : D3D12_SHADER_INPUT_BIND_DESC{};
+
+	auto bufferNamesIt = m_BuffersMapName.find(index);
+	std::string bufferName = bufferNamesIt != m_BuffersMapName.end() ? bufferNamesIt->second : "";
+
+	if (bufferDesc.Type == D3D_SIT_CBUFFER)
+	{
+		auto bufferMapIt = m_BuffersMapSizes.find(index);
+		D3D12_SHADER_BUFFER_DESC cbDesc = bufferMapIt != m_BuffersMapSizes.end() ? bufferMapIt->second : D3D12_SHADER_BUFFER_DESC{};
+		bufferSize = cbDesc.Size;
+	}
+	if (bufferDesc.Type == D3D_SIT_STRUCTURED)
+	{
+		bufferSize = bufferDesc.NumSamples;
+		Console::CoreLog("Samples: {}", bufferDesc.NumSamples);
+	}
+
+	switch (bufferDesc.Type)
+	{
+
+	case D3D_SIT_CBUFFER:
+	{
+		if (param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
+		{
+			m_SmallBufferLayout.Upload(SmallBufferElement(0, bufferSize, param.Constants.ShaderRegister, context->GetSmallBufferAttachment(), bufferName));
+		}
+		else
+		{
+		}
+		break;
+	}
+	case D3D_SIT_STRUCTURED:
+		break;
+	default:
+		break;
 	}
 }
 
@@ -133,6 +261,56 @@ void Lust::D3D12ShaderReflector::ReflectStage(std::string_view shader_stage, IDx
 	ComPointer<ID3D12ShaderReflection> shaderReflection;
 	hr = m_DxcContainerReflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(m_ShaderReflections[shader_stage.data()].GetAddressOf()));
 	assert(hr == S_OK);
+
+	D3D12_SHADER_DESC shader_desc;
+	m_ShaderReflections[shader_stage.data()]->GetDesc(&shader_desc);
+
+	for (size_t i = 0; i < shader_desc.BoundResources; i++)
+	{
+		PushExternalElementPreInfo(m_ShaderReflections[shader_stage.data()].Get(), i);
+	}
+}
+
+void Lust::D3D12ShaderReflector::ReflectRootSignature()
+{
+	auto rootSigDesc = m_RootSigDeserializer->GetRootSignatureDesc();
+	for (uint32_t i = 0; i < rootSigDesc->NumParameters; i++) {
+		auto param = rootSigDesc->pParameters[i];
+		uint32_t index = 0xffffffff;
+		if (param.ParameterType != D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
+		{
+			PushRootElement(param);
+		}
+
+		else
+		{
+			//ProcessDescriptorTable();
+			for (size_t j = 0; j < param.DescriptorTable.NumDescriptorRanges; j++)
+			{
+				for (size_t k = 0; k < param.DescriptorTable.pDescriptorRanges[j].NumDescriptors; k++)
+				{
+
+					auto it = s_ReturnRangeTypesMap.find(param.DescriptorTable.pDescriptorRanges[j].RangeType);
+					if (it != s_ReturnRangeTypesMap.end())
+					{
+						index = ((uint32_t)it->second << 16);
+						index += (param.DescriptorTable.pDescriptorRanges[j].BaseShaderRegister + k);
+					}
+					D3D12_SHADER_INPUT_BIND_DESC bufferDesc = m_BuffersMap[index];
+					if (bufferDesc.Type == D3D_SIT_CBUFFER)
+					{
+						D3D12_SHADER_BUFFER_DESC cbDesc = m_BuffersMapSizes[index];
+						Console::CoreLog("Samples: {}", cbDesc.Size);
+					}
+					if (bufferDesc.Type == D3D_SIT_STRUCTURED)
+					{
+						Console::CoreLog("Samples: {}", bufferDesc.NumSamples);
+					}
+				}
+			}
+
+		}
+	}
 }
 
 Lust::ShaderDataType Lust::D3D12ShaderReflector::CastToShaderDataType(int8_t mask, D3D_REGISTER_COMPONENT_TYPE type)

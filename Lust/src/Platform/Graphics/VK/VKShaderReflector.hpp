@@ -24,11 +24,12 @@ namespace Lust
 	class VKShaderReflector : public ShaderReflector
 	{
 	public:
-		VKShaderReflector(std::string_view jsonFilepath);
+		VKShaderReflector(std::string_view jsonFilepath, uint32_t stages);
 		~VKShaderReflector();
 
 	private:
 		void GenerateInputBufferLayout();
+		void GenerateSmallBufferLayout(const SpvReflectShaderModule* module);
 		void UploadBlob(std::string_view shader_stage, RawBuffer* blob);
 		void ReflectStage(std::string_view shader_stage, const RawBuffer& blob);
 

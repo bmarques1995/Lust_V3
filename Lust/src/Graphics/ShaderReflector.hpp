@@ -14,13 +14,15 @@ namespace Lust
 	class LUST_API ShaderReflector
 	{
 	public:
+		ShaderReflector(uint32_t stages);
 		virtual ~ShaderReflector() = default;
 
 		void ExportInputLayout(InputBufferLayout* inputBufferLayout);
-		static ShaderReflector* Instantiate(std::string_view jsonBasepath);
+		static ShaderReflector* Instantiate(std::string_view jsonBasepath, uint32_t stages);
 	
 	protected:
 		InputBufferLayout m_InputBufferLayout;
+		SmallBufferLayout m_SmallBufferLayout;
 
 		Json::Value m_PipelineInfo;
 		std::string m_ShaderDir;

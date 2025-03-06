@@ -1,6 +1,7 @@
 #include "VKShaderReflector.hpp"
 #include <cstring>
 #include "FileHandler.hpp" 
+#include <Application.hpp>
 
 Lust::RawBuffer::RawBuffer()
 {
@@ -41,13 +42,17 @@ const size_t Lust::RawBuffer::GetSize() const
     return m_Size;
 }
 
-Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath)
+Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32_t stages):
+	ShaderReflector(stages)
 {
     InitJsonAndPaths(jsonFilepath);
+	m_InputBufferLayout.Clear();
+	m_SmallBufferLayout.Clear();
 	for (auto it = s_GraphicsPipelineStages.begin(); it != s_GraphicsPipelineStages.end(); it++)
 	{
 		UploadBlob(*it, &m_ShaderBlobs[*it]);
 		ReflectStage(*it, m_ShaderBlobs[*it]);
+		GenerateSmallBufferLayout(&m_ShaderReflections[*it]);
 	}
 	GenerateInputBufferLayout();
 }
@@ -70,6 +75,25 @@ void Lust::VKShaderReflector::GenerateInputBufferLayout()
 	{
 		InputBufferElement ibe(CastToShaderDataType((*it)->format), (*it)->name, false);
 		m_InputBufferLayout.PushBack(ibe);
+	}
+}
+
+void Lust::VKShaderReflector::GenerateSmallBufferLayout(const SpvReflectShaderModule* module)
+{
+	if (module->entry_point_name == nullptr)
+		return;
+	uint32_t pushConstantCount = 0;
+	spvReflectEnumeratePushConstantBlocks(module, &pushConstantCount, nullptr);
+	std::vector<SpvReflectBlockVariable*> pushConstants(pushConstantCount);
+	spvReflectEnumeratePushConstantBlocks(module, &pushConstantCount, pushConstants.data());
+	auto context = Application::GetInstance()->GetContext();
+	for (auto it = pushConstants.begin(); it != pushConstants.end(); it++)
+	{
+		if (m_SmallBufferLayout.GetElements().find((*it)->name) == m_SmallBufferLayout.GetElements().end())
+		{
+			SmallBufferElement sbe((*it)->offset, (*it)->size, 0, context->GetSmallBufferAttachment(), (*it)->name);
+			m_SmallBufferLayout.Upload(sbe);
+		}
 	}
 }
 
