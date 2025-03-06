@@ -36,7 +36,7 @@ void Lust::ExampleLayer::OnAttach()
 	SmallBufferLayout smallBufferLayout(
 		{
 			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 64, 0, context->GetSmallBufferAttachment() }
+			{ 0, 64, 0, context->GetSmallBufferAttachment(), "m_SmallMVP" }
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	UniformLayout uniformsLayout(
@@ -111,7 +111,7 @@ void Lust::ExampleLayer::OnAttach()
 	SmallBufferLayout squareSmallBufferLayout(
 		{
 			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 96, 0, context->GetSmallBufferAttachment() }
+			{ 0, 96, 0, context->GetSmallBufferAttachment(), "m_SmallMVP" }
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	UniformLayout squareUniformsLayout(
@@ -193,6 +193,8 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 {
 	static uint8_t squareSmallBuffer[96];
 	
+	auto smallBufferIt = m_Shader->GetSmallBufferLayout().GetElement("m_SmallMVP");
+
 	m_CameraController->OnUpdate(ts);
 	//SampleInput();
 
@@ -204,7 +206,7 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	memcpy(&squareSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
 	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
 	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model) + sizeof(m_SquareColor)], m_SquareColor2.data(), sizeof(m_SquareColor2));
-	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), 0);
+	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), m_Shader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
 	RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount(), 400);
 
 	Renderer::EndScene();
@@ -214,7 +216,7 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	Renderer::SubmitCBV(&m_UniformBuffer);
 	Renderer::SubmitCBV(&m_UniformBuffer2);
 	Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer);
-	Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), 0);
+	Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), m_SquareShader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
 	RenderCommand::DrawIndexed(m_IndexBuffer->GetCount());
 	Renderer::EndScene();
 	

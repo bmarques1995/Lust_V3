@@ -32,11 +32,11 @@ namespace Lust
 
 		void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) override;
 
-		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
+		void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) override;
 
 		void BindDescriptors() override;
 
-		void CreateSampler(SamplerElement samplerElement) override;
+		void CreateSampler(const SamplerElement& samplerElement) override;
 
 	private:
 
@@ -52,13 +52,13 @@ namespace Lust
 		void CreateUniformDescriptorSet(const std::shared_ptr<VKUniformBuffer>* buffer, const UniformElement& uniformElement);
 		void CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& uniformElement);
 
+		void UpdateSamplerDescriptorSet(const SamplerElement& samplerElement);
+
 		bool IsUniformValid(size_t size);
 
 		//void PreallocateSSBO(const StructuredBufferElement& structuredBufferElement, uint32_t offset);
 		//void MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset);
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
-		
 
 		void PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc);
 		void SetRasterizer(VkPipelineRasterizationStateCreateInfo* rasterizer);

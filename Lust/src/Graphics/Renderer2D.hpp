@@ -28,8 +28,8 @@ namespace Lust
 		static void BeginScene(const OrthographicCamera& camera);
 		static void EndScene();
 
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color);
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color);
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name);
 	private:
 		struct CompleteMVP
 		{

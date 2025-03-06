@@ -29,7 +29,7 @@ void Lust::SandCoffin2D::OnAttach()
 		});
 
 	SmallBufferLayout smallBufferLayout({
-			{ 0, 80, 0, context->GetSmallBufferAttachment() }
+			{ 0, 80, 0, context->GetSmallBufferAttachment(), "m_SmallMVP" }
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	UniformLayout uniformsLayout(
@@ -62,7 +62,7 @@ void Lust::SandCoffin2D::OnAttach()
 	m_Renderer2DVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&squareVertices[0], sizeof(squareVertices), layout.GetStride()));
 	m_Renderer2DIndexBuffer.reset(IndexBuffer::Instantiate(context, (const uint32_t*)&squareIndices[0], sizeof(squareIndices) / sizeof(uint32_t)));
 	m_Renderer2DUniformBuffer.reset(UniformBuffer::Instantiate(context, (const void*)&m_Renderer2DCompleteMVP.model(0,0), sizeof(m_Renderer2DCompleteMVP)));
-	m_Renderer2DRawSmallBufferSize = smallBufferLayout.GetElement(0).GetSize();
+	m_Renderer2DRawSmallBufferSize = smallBufferLayout.GetElement("m_SmallMVP").GetSize();
 	m_Renderer2DRawSmallBuffer = new uint8_t[m_Renderer2DRawSmallBufferSize];
 
 	auto textureElement = m_Renderer2DShader->GetTextureElements().find("textureChecker");
@@ -94,8 +94,8 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 	m_CameraController->OnUpdate(ts);
 
 	Renderer2D::BeginScene(m_CameraController->GetCamera());
-	Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), m_Renderer2DColor);
-	Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), Eigen::Vector4f(.8f, .2f, .3f, 1.0f));
+	Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), m_Renderer2DColor, "m_SmallMVP");
+	Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), Eigen::Vector4f(.8f, .2f, .3f, 1.0f), "m_SmallMVP");
 	Renderer2D::EndScene();
 
 	Renderer::BeginScene(m_CameraController->GetCamera());
@@ -106,7 +106,7 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 	Renderer::SubmitShader(m_Renderer2DShader, m_Renderer2DVertexBuffer, m_Renderer2DIndexBuffer);
 	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &m_Renderer2DRawSmallBuffer, 0);
 	memcpy(&m_Renderer2DRawSmallBuffer[sizeof(squareSmallBufferMatrix)], m_Renderer2DColor.data(), sizeof(m_Renderer2DColor));
-	Renderer::SubmitSmallBuffer(m_Renderer2DShader, (void*)&m_Renderer2DRawSmallBuffer[0], m_Renderer2DRawSmallBufferSize, 0);
+	Renderer::SubmitSmallBuffer(m_Renderer2DShader, (void*)&m_Renderer2DRawSmallBuffer[0], m_Renderer2DRawSmallBufferSize, m_Renderer2DShader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
 	RenderCommand::DrawIndexed(m_Renderer2DIndexBuffer->GetCount(), 1);
 
 	Renderer::EndScene();

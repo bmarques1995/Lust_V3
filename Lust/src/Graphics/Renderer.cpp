@@ -32,9 +32,9 @@ void Lust::Renderer::EndScene()
 {
 }
 
-void Lust::Renderer::SubmitSmallBuffer(const std::shared_ptr<Shader>& shader, const void* data, size_t size, uint32_t bindingSlot, size_t offset)
+void Lust::Renderer::SubmitSmallBuffer(const std::shared_ptr<Shader>& shader, const void* data, size_t size, const SmallBufferElement& element, size_t offset)
 {
-	shader->BindSmallBuffer(data, size, 0, offset);
+	shader->BindSmallBuffer(data, size, element, offset);
 }
 
 void Lust::Renderer::SubmitCBV(std::shared_ptr<UniformBuffer>* uniformBuffer)

@@ -50,16 +50,18 @@ namespace Lust
 	{
 	public:
 		SmallBufferElement();
-		SmallBufferElement(size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment);
+		SmallBufferElement(size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment, std::string name);
 
 		size_t GetOffset() const;
 		size_t GetSize() const;
 		uint32_t GetBindingSlot() const;
+		const std::string& GetName() const;
 
 		bool IsSizeValid(uint32_t smallAttachment);
 
 	private:
 
+		std::string m_Name;
 		size_t m_Offset;
 		size_t m_Size;
 		uint32_t m_BindingSlot;
@@ -70,11 +72,11 @@ namespace Lust
 	public:
 		SmallBufferLayout(std::initializer_list<SmallBufferElement> m_Elements, uint32_t stages);
 
-		const SmallBufferElement& GetElement(uint32_t bindingSlot) const;
-		const std::unordered_map<uint32_t, SmallBufferElement>& GetElements() const;
+		const SmallBufferElement& GetElement(std::string_view name) const;
+		const std::unordered_map<std::string, SmallBufferElement>& GetElements() const;
 		uint32_t GetStages() const;
 	private:
-		std::unordered_map<uint32_t, SmallBufferElement> m_Buffers;
+		std::unordered_map<std::string, SmallBufferElement> m_Buffers;
 		uint32_t m_Stages;
 		static SmallBufferElement s_EmptyElement;
 	};

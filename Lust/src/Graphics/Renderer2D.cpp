@@ -32,7 +32,7 @@ void Lust::Renderer2D::Instantiate()
 	SmallBufferLayout renderer2DSmallBufferLayout(
 		{
 			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 80, 0, context->GetSmallBufferAttachment() }
+			{ 0, 80, 0, context->GetSmallBufferAttachment(), "m_SmallMVP"}
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	UniformLayout renderer2DUniformsLayout(
@@ -69,7 +69,7 @@ void Lust::Renderer2D::Instantiate()
 		Eigen::Matrix4f::Identity()
 	};
 
-	s_Renderer2DStorage->m_RawSmallBufferSize = renderer2DSmallBufferLayout.GetElement(0).GetSize();
+	s_Renderer2DStorage->m_RawSmallBufferSize = renderer2DSmallBufferLayout.GetElement("m_SmallMVP").GetSize();
 	s_Renderer2DStorage->m_RawSmallBuffer = new uint8_t[s_Renderer2DStorage->m_RawSmallBufferSize];
 
 	s_Renderer2DStorage->m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/Renderer2D", renderer2DInputInfoController));
@@ -101,12 +101,12 @@ void Lust::Renderer2D::EndScene()
 {
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name)
 {
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color);
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color, element_name);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name)
 {
 	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) ;
 	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
@@ -118,6 +118,7 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	s_Renderer2DStorage->m_IndexBuffer->Stage();
 	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &s_Renderer2DStorage->m_RawSmallBuffer, 0);
 	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[sizeof(squareSmallBufferMatrix)], color.data(), sizeof(color));
-	s_Renderer2DStorage->m_Shader->BindSmallBuffer((void*)&s_Renderer2DStorage->m_RawSmallBuffer[0], s_Renderer2DStorage->m_RawSmallBufferSize, 0, 0);
+	s_Renderer2DStorage->m_Shader->BindSmallBuffer((void*)&s_Renderer2DStorage->m_RawSmallBuffer[0], s_Renderer2DStorage->m_RawSmallBufferSize,
+												   s_Renderer2DStorage->m_Shader->GetSmallBufferLayout().GetElement(element_name.data()), 0);
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
 }

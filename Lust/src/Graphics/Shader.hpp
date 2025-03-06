@@ -63,9 +63,11 @@ namespace Lust
 		virtual void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) = 0;
 
 		const std::unordered_map<std::string, SamplerElement>& GetSamplerElements() const;
-		virtual void CreateSampler(SamplerElement samplerElement) = 0;
+		virtual void CreateSampler(const SamplerElement& samplerElement) = 0;
 		
-		virtual void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) = 0;
+		const std::unordered_map<std::string, SmallBufferElement>& GetSmallBufferElements() const;
+
+		virtual void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;
 
 		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo);

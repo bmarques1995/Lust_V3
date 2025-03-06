@@ -96,7 +96,7 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
             CreateSampler(element.second);
         }
 
-        CreateDescriptorSets();
+        //CreateDescriptorSets();
     }
 
     std::vector<VkDynamicState> dynamicStates = {
@@ -217,10 +217,10 @@ void Lust::VKShader::UploadStructuredBuffer(const std::shared_ptr<StructuredBuff
     CreateStructuredBufferDescriptorSet((const std::shared_ptr<VKStructuredBuffer>*) buffer, uploadSRV);
 }
 
-void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
+void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset)
 {
-    if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
-        throw SizeMismatchException(size, m_SmallBufferLayout.GetElement(bindingSlot).GetSize());
+    if (size != smallBuffer.GetSize())
+        throw SizeMismatchException(size, smallBuffer.GetSize());
     VkShaderStageFlags bindingFlag = 0;
     for (auto& enumStage : s_EnumStageCaster)
     {
@@ -448,10 +448,8 @@ void Lust::VKShader::CreateDescriptorSets()
 
     std::vector<VkWriteDescriptorSet> descriptorWrites;
     std::vector<VkDescriptorImageInfo> samplerInfos;
-    std::vector<VkDescriptorBufferInfo> structuredBufferInfos;
 
     auto samplers = m_SamplerLayout.GetElements();
-    auto structuredBuffers = m_StructuredBufferLayout.GetElements();
 
     size_t i = 0;
     
@@ -591,6 +589,29 @@ void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<V
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
+void Lust::VKShader::UpdateSamplerDescriptorSet(const SamplerElement& samplerElement)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+    VkDescriptorImageInfo imageInfo{};
+
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = nullptr;
+    imageInfo.sampler = m_Samplers[samplerElement.GetBindingSlot()];
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[samplerElement.GetSpaceSet()];
+    descriptorWrite.dstBinding = samplerElement.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+}
+
 bool Lust::VKShader::IsUniformValid(size_t size)
 {
     return ((size % m_Context->GetUniformAttachment()) == 0);
@@ -611,11 +632,17 @@ uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
     return 0xffffffff;
 }
 
-void Lust::VKShader::CreateSampler(SamplerElement samplerElement)
+void Lust::VKShader::CreateSampler(const SamplerElement& samplerElement)
 {
     VkResult vkr;
     auto device = m_Context->GetDevice();
     auto adapter = m_Context->GetAdapter();
+
+    if (m_Samplers[samplerElement.GetBindingSlot()] != VK_NULL_HANDLE)
+    {
+        vkDeviceWaitIdle(device);
+        vkDestroySampler(device, m_Samplers[samplerElement.GetBindingSlot()], nullptr);
+    }
 
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(adapter, &properties);
@@ -639,6 +666,8 @@ void Lust::VKShader::CreateSampler(SamplerElement samplerElement)
 
     vkr = vkCreateSampler(device, &samplerInfo, nullptr, &m_Samplers[samplerElement.GetBindingSlot()]);
     assert(vkr == VK_SUCCESS);
+
+    UpdateSamplerDescriptorSet(samplerElement);
 }
 
 void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc)

@@ -33,11 +33,11 @@ namespace Lust
 
 		void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) override;
 
-		void BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset) override;
+		void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) override;
 
 		void BindDescriptors() override;
 
-		void CreateSampler(SamplerElement samplerElement) override;
+		void CreateSampler(const SamplerElement& samplerElement) override;
 
 	private:
 		void StartDXC();

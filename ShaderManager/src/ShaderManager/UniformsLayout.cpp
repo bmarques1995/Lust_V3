@@ -24,10 +24,11 @@ Lust::SmallBufferElement::SmallBufferElement()
 	m_Offset = 0;
 	m_Size = 0;
 	m_BindingSlot = 0xffff;
+	m_Name = "";
 }
 
-Lust::SmallBufferElement::SmallBufferElement(size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment) :
-	m_Offset(offset), m_Size(size), m_BindingSlot(bindingSlot)
+Lust::SmallBufferElement::SmallBufferElement(size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment, std::string name) :
+	m_Offset(offset), m_Size(size), m_BindingSlot(bindingSlot), m_Name(name)
 {
 	if (!IsSizeValid(smallAttachment))
 		throw AttachmentMismatchException(size, smallAttachment);
@@ -48,6 +49,11 @@ uint32_t Lust::SmallBufferElement::GetBindingSlot() const
 	return m_BindingSlot;
 }
 
+const std::string& Lust::SmallBufferElement::GetName() const
+{
+	return m_Name;
+}
+
 bool Lust::SmallBufferElement::IsSizeValid(uint32_t smallAttachment)
 {
 	return ((m_Size % smallAttachment) == 0);
@@ -58,20 +64,20 @@ Lust::SmallBufferLayout::SmallBufferLayout(std::initializer_list<SmallBufferElem
 {
 	for (auto& element : m_Elements)
 	{
-		m_Buffers[element.GetBindingSlot()] = element;
+		m_Buffers[element.GetName()] = element;
 	}
 }
 
-const Lust::SmallBufferElement& Lust::SmallBufferLayout::GetElement(uint32_t bindingSlot) const
+const Lust::SmallBufferElement& Lust::SmallBufferLayout::GetElement(std::string_view name) const
 {
-	auto it = m_Buffers.find(bindingSlot);
+	auto it = m_Buffers.find(name.data());
 	if (it != m_Buffers.end())
 		return it->second;
 	else
 		return s_EmptyElement;
 }
 
-const std::unordered_map<uint32_t, Lust::SmallBufferElement>& Lust::SmallBufferLayout::GetElements() const
+const std::unordered_map<std::string, Lust::SmallBufferElement>& Lust::SmallBufferLayout::GetElements() const
 {
 	return m_Buffers;
 }

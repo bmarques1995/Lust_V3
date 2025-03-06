@@ -229,13 +229,13 @@ void Lust::D3D12Shader::UploadStructuredBuffer(const std::shared_ptr<StructuredB
 	}
 }
 
-void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, uint32_t bindingSlot, size_t offset)
+void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset)
 {
-	if (size != m_SmallBufferLayout.GetElement(bindingSlot).GetSize())
-		throw SizeMismatchException(size, m_SmallBufferLayout.GetElement(bindingSlot).GetSize());
+	if (size != smallBuffer.GetSize())
+		throw SizeMismatchException(size, smallBuffer.GetSize());
 	auto cmdList = m_Context->GetCurrentCommandList();
 	auto smallStride = m_Context->GetSmallBufferAttachment();
-	cmdList->SetGraphicsRoot32BitConstants(bindingSlot, size / smallStride, data, offset / smallStride);
+	cmdList->SetGraphicsRoot32BitConstants(smallBuffer.GetBindingSlot(), size / smallStride, data, offset / smallStride);
 }
 
 void Lust::D3D12Shader::BindDescriptors()
@@ -369,7 +369,7 @@ void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, ui
 	assert(hr == S_OK);
 }
 
-void Lust::D3D12Shader::CreateSampler(SamplerElement samplerElement)
+void Lust::D3D12Shader::CreateSampler(const SamplerElement& samplerElement)
 {
 	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
