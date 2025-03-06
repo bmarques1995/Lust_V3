@@ -814,7 +814,7 @@ void Lust::VKContext::CreateFramebuffers()
         framebufferInfo.pAttachments = attachments;
         framebufferInfo.width = (uint32_t)m_Viewport.width;
         framebufferInfo.height = (uint32_t)m_Viewport.height;
-        framebufferInfo.m_Layers = 1;
+        framebufferInfo.layers = 1;
 
         vkr = vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]);
         assert(vkr == VK_SUCCESS);

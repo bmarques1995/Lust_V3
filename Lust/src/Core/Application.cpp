@@ -26,22 +26,6 @@ Lust::Application::Application()
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
 	
-	TextureLibrary::InitCopyPipeline(m_Context.get());
-
-	Console::CoreLog("Current GPU: {}", m_Context->GetGPUName().c_str());
-	RenderCommand::Init(m_Context.get());
-	Renderer2D::Instantiate();
-	m_CopyPipeline.reset(CopyPipeline::Instantiate(m_Context.get()));
-
-	ImguiContext::StartImgui();
-
-	m_ImguiWindowController.reset(ImguiWindowController::Instantiate(m_Window.get()));
-	m_ImguiContext.reset(ImguiContext::Instantiate(m_Context.get()));
-
-	std::stringstream buffer;
-	buffer << m_Window->GetTitle() <<" [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
-	m_Window->ResetTitle(buffer.str());
-
 	try
 	{
 		m_SPVCompiler.reset(new SPVCompiler("_main", "_6_8", "1.3"));
@@ -61,6 +45,22 @@ Lust::Application::Application()
 	{
 		Console::CoreError("{}", e.what());
 	}
+
+	TextureLibrary::InitCopyPipeline(m_Context.get());
+
+	Console::CoreLog("Current GPU: {}", m_Context->GetGPUName().c_str());
+	RenderCommand::Init(m_Context.get());
+	Renderer2D::Instantiate();
+	m_CopyPipeline.reset(CopyPipeline::Instantiate(m_Context.get()));
+
+	ImguiContext::StartImgui();
+
+	m_ImguiWindowController.reset(ImguiWindowController::Instantiate(m_Window.get()));
+	m_ImguiContext.reset(ImguiContext::Instantiate(m_Context.get()));
+
+	std::stringstream buffer;
+	buffer << m_Window->GetTitle() <<" [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
+	m_Window->ResetTitle(buffer.str());
 
 	m_Instrumentator.reset(GPUInstrumentator::Instantiate(m_Context.get()));
 	m_LayerStack.reset(new LayerStack());
