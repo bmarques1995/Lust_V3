@@ -23,6 +23,7 @@ namespace Lust
 	protected:
 		InputBufferLayout m_InputBufferLayout;
 		SmallBufferLayout m_SmallBufferLayout;
+		UniformLayout m_UniformLayout;
 
 		Json::Value m_PipelineInfo;
 		std::string m_ShaderDir;

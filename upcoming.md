@@ -7,3 +7,4 @@
 - Add samples
     - ExampleLayer
     - Game
+- Remove RootSig size validation, since the RootSig is compiled separatedly

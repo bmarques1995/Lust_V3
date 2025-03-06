@@ -3,6 +3,7 @@
 #include <Layer.hpp>
 #include <Texture.hpp>
 #include <Shader.hpp>
+#include <ShaderReflector.hpp>
 #include <Buffer.hpp>
 #include <OrthographicCameraController.hpp>
 #include <ApplicationEvent.hpp>
@@ -29,6 +30,7 @@ namespace Lust
 		bool m_ShowCameraWindow = true;
 
 		std::shared_ptr<Shader> m_Shader;
+		std::shared_ptr<ShaderReflector> m_ShaderReflector;
 		std::shared_ptr<Texture2D> m_Texture1;
 		std::shared_ptr<Texture2D> m_Texture2;
 		std::shared_ptr<UniformBuffer> m_UniformBuffer;
@@ -39,6 +41,7 @@ namespace Lust
 		std::shared_ptr<Lust::ShaderLibrary> m_ShaderLibrary;
 		std::shared_ptr<Lust::Texture2DLibrary> m_Texture2DLibrary;
 
+		std::shared_ptr<ShaderReflector> m_SquareShaderReflector;
 		std::shared_ptr<Shader> m_SquareShader;
 		std::shared_ptr<VertexBuffer> m_SquareVertexBuffer;
 		std::shared_ptr<IndexBuffer> m_SquareIndexBuffer;

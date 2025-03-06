@@ -191,6 +191,7 @@ void Lust::D3D12ShaderReflector::PushRootElement(const D3D12_ROOT_PARAMETER& par
 		}
 		else
 		{
+			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, param.Constants.ShaderRegister, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 0, bufferName));
 		}
 		break;
 	}

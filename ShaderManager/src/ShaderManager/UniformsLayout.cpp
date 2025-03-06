@@ -198,3 +198,13 @@ uint32_t Lust::UniformLayout::GetStages() const
 {
 	return m_Stages;
 }
+
+void Lust::UniformLayout::Clear()
+{
+	m_Buffers.clear();
+}
+
+void Lust::UniformLayout::Upload(const UniformElement& element)
+{
+	m_Buffers[element.GetName()] = element;
+}

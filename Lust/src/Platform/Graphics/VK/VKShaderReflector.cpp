@@ -5,27 +5,27 @@
 
 Lust::RawBuffer::RawBuffer()
 {
-    m_Data = nullptr;
-    m_Size = 0;
+	m_Data = nullptr;
+	m_Size = 0;
 }
 
 Lust::RawBuffer::RawBuffer(uint8_t* data, size_t size)
 {
-    m_Size = size;
+	m_Size = size;
 	m_Data = new uint8_t[m_Size];
-    memcpy(m_Data, data, m_Size);
+	memcpy(m_Data, data, m_Size);
 }
 
 Lust::RawBuffer::~RawBuffer()
 {
-    if(m_Data != nullptr)
-        delete[] m_Data;
+	if (m_Data != nullptr)
+		delete[] m_Data;
 }
 
 void Lust::RawBuffer::RecreateBuffer(uint8_t* data, size_t size)
 {
-    if (m_Data != nullptr)
-        delete[] m_Data;
+	if (m_Data != nullptr)
+		delete[] m_Data;
 
 	m_Size = size;
 	m_Data = new uint8_t[m_Size];
@@ -34,18 +34,18 @@ void Lust::RawBuffer::RecreateBuffer(uint8_t* data, size_t size)
 
 const uint8_t* Lust::RawBuffer::GetData() const
 {
-    return m_Data;
+	return m_Data;
 }
 
 const size_t Lust::RawBuffer::GetSize() const
 {
-    return m_Size;
+	return m_Size;
 }
 
-Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32_t stages):
+Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32_t stages) :
 	ShaderReflector(stages)
 {
-    InitJsonAndPaths(jsonFilepath);
+	InitJsonAndPaths(jsonFilepath);
 	m_InputBufferLayout.Clear();
 	m_SmallBufferLayout.Clear();
 	for (auto it = s_GraphicsPipelineStages.begin(); it != s_GraphicsPipelineStages.end(); it++)
@@ -53,6 +53,7 @@ Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32
 		UploadBlob(*it, &m_ShaderBlobs[*it]);
 		ReflectStage(*it, m_ShaderBlobs[*it]);
 		GenerateSmallBufferLayout(&m_ShaderReflections[*it]);
+		GenerateBuffersLayout(&m_ShaderReflections[*it]);
 	}
 	GenerateInputBufferLayout();
 }
@@ -73,8 +74,11 @@ void Lust::VKShaderReflector::GenerateInputBufferLayout()
 
 	for (auto it = input_vars.begin(); it != input_vars.end(); it++)
 	{
-		InputBufferElement ibe(CastToShaderDataType((*it)->format), (*it)->name, false);
-		m_InputBufferLayout.PushBack(ibe);
+		if ((*it)->name)
+		{
+			InputBufferElement ibe(CastToShaderDataType((*it)->format), (*it)->name, false);
+			m_InputBufferLayout.PushBack(ibe);
+		}
 	}
 }
 
@@ -97,6 +101,35 @@ void Lust::VKShaderReflector::GenerateSmallBufferLayout(const SpvReflectShaderMo
 	}
 }
 
+void Lust::VKShaderReflector::GenerateBuffersLayout(const SpvReflectShaderModule* module)
+{
+	static const std::unordered_map<SpvReflectDescriptorType, std::function<void(SpvReflectDescriptorBinding**, VKShaderReflector*)>> s_ElementCreators =
+	{
+		{ SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE, std::bind(&VKShaderReflector::CreateTextureElement, std::placeholders::_1, std::placeholders::_2) },
+		{ SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER, std::bind(&VKShaderReflector::CreateSamplerElement, std::placeholders::_1, std::placeholders::_2) },
+		{ SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER, std::bind(&VKShaderReflector::CreateUniformElement, std::placeholders::_1, std::placeholders::_2) },
+		{ SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER, std::bind(&VKShaderReflector::CreateStructuredBufferElement, std::placeholders::_1, std::placeholders::_2) },
+	};
+	uint32_t set_count = 0;
+	spvReflectEnumerateDescriptorSets(module, &set_count, nullptr);
+	std::vector<SpvReflectDescriptorSet*> sets(set_count);
+
+	spvReflectEnumerateDescriptorSets(module, &set_count, sets.data());
+	for (auto it = sets.begin(); it != sets.end(); it++)
+	{
+		for (size_t i = 0; i < (*it)->binding_count; i++)
+		{
+			SpvReflectDescriptorBinding* binder = (*it)->bindings[i];
+			auto it = s_ElementCreators.find(binder->descriptor_type);
+			if (it != s_ElementCreators.end())
+			{
+				it->second(&binder, this);
+			}
+		}
+	}
+	Console::CoreLog("sets: {}", set_count);
+}
+
 void Lust::VKShaderReflector::UploadBlob(std::string_view shader_stage, RawBuffer* blob)
 {
 	HRESULT hr;
@@ -117,7 +150,7 @@ void Lust::VKShaderReflector::UploadBlob(std::string_view shader_stage, RawBuffe
 	if (!FileHandler::ReadBinFile(shaderPath, &blobData, &blobSize))
 		return;
 
-	blob->RecreateBuffer((uint8_t *)blobData, blobSize);
+	blob->RecreateBuffer((uint8_t*)blobData, blobSize);
 
 	delete[] blobData;
 }
@@ -130,6 +163,26 @@ void Lust::VKShaderReflector::ReflectStage(std::string_view shader_stage, const 
 	SpvReflectResult result;
 	result = spvReflectCreateShaderModule(blob.GetSize(), blob.GetData(), &m_ShaderReflections[shader_stage.data()]);
 	assert(result == SPV_REFLECT_RESULT_SUCCESS);
+}
+
+void Lust::VKShaderReflector::CreateUniformElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
+{
+	auto context = Application::GetInstance()->GetContext();
+	UniformElement ue(BufferType::UNIFORM_CONSTANT_BUFFER, (*reflector_binder)->block.size, (*reflector_binder)->binding, (*reflector_binder)->set, 0,
+		AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, (*reflector_binder)->name);
+	instance->m_UniformLayout.Upload(ue);
+}
+
+void Lust::VKShaderReflector::CreateTextureElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
+{
+}
+
+void Lust::VKShaderReflector::CreateSamplerElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
+{
+}
+
+void Lust::VKShaderReflector::CreateStructuredBufferElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
+{
 }
 
 Lust::ShaderDataType Lust::VKShaderReflector::CastToShaderDataType(SpvReflectFormat format)

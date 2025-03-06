@@ -126,6 +126,9 @@ namespace Lust
 		const UniformElement& GetElement(std::string name) const;
 		const std::unordered_map<std::string, UniformElement>& GetElements() const;
 		uint32_t GetStages() const;
+
+		void Clear();
+		void Upload(const UniformElement& element);
 	private:
 		uint32_t m_Stages;
 		std::unordered_map<std::string, UniformElement> m_Buffers;

@@ -6,7 +6,6 @@ RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT\
 | DENY_DOMAIN_SHADER_ROOT_ACCESS), \
 RootConstants(num32BitConstants=16, b0), \
 CBV(b1),\
-CBV(b2),\
 DescriptorTable(SRV(t1, numDescriptors = 2)), \
 DescriptorTable(Sampler(s1, numDescriptors = 2)), \
 
@@ -44,16 +43,11 @@ cbuffer u_SmallMVP : register(b0)
 
 #endif
 
+
 [[vk::binding(1, 0)]]
-cbuffer u_CompleteMVP : register(b1)
+cbuffer m_CompleteMVP : register(b1)
 {
     CompleteMVP m_CompleteMVP;
-};
-
-[[vk::binding(2, 0)]]
-cbuffer u_SSBO : register(b2)
-{
-    SSBO m_SSBO;
 };
 
 [[vk::binding(3, 0)]] Texture2D<float4> textureChecker : register(t1);

@@ -26,6 +26,10 @@ include(dep_tracer)
 include(target_destination)
 include(source_downloader)
 
+if (MSVC)
+  add_compile_options(/ZI)
+endif ()
+
 # Inclua subprojetos.
 add_subdirectory("Utils")
 add_subdirectory("ShaderManager")

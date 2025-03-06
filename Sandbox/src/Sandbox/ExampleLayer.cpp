@@ -43,7 +43,7 @@ void Lust::ExampleLayer::OnAttach()
 		{
 			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
 			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_CompleteMVP"}, //
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_SSBO"} //
+			//{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_SSBO"} //
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	m_Texture2DLibrary->Load("./assets/textures/yor.png");
@@ -63,8 +63,8 @@ void Lust::ExampleLayer::OnAttach()
 	//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
 	TextureLayout textureLayout(
 		{
-			{3, 0, 3, 0, "textureChecker"},
-			{4, 0, 3, 1, "textureChecker2"}
+			{3, 0, 2, 0, "textureChecker"},
+			{4, 0, 2, 1, "textureChecker2"}
 		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 
@@ -72,8 +72,8 @@ void Lust::ExampleLayer::OnAttach()
 	SamplerLayout samplerLayout(
 		{
 			//SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t samplerIndex
-			{SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 5, 0, 4, 0, "dynamicSampler"},
-			{SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 6, 0, 4, 1, "dynamicSampler2"},
+			{SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 5, 0, 3, 0, "dynamicSampler"},
+			{SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 6, 0, 3, 1, "dynamicSampler2"},
 		}
 		);
 
@@ -83,12 +83,12 @@ void Lust::ExampleLayer::OnAttach()
 		, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout, structuredBufferLayout);
+	m_ShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/HelloTriangle", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
 
 	//m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/HelloTriangle", inputInfoController));
 	m_ShaderLibrary->Load("./assets/shaders/HelloTriangle", inputInfoController);
 	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
 	m_Shader->UploadConstantBuffer(&m_UniformBuffer, uniformsLayout.GetElement("m_CompleteMVP"));
-	m_Shader->UploadConstantBuffer(&m_UniformBuffer2, uniformsLayout.GetElement("m_SSBO"));
 	std::vector<std::shared_ptr<Texture2D>*> textures;
 	textures.push_back(&m_Texture1);
 	textures.push_back(&m_Texture2);
@@ -162,6 +162,7 @@ void Lust::ExampleLayer::OnAttach()
 	delete[] m_SSBO;
 
 	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout, squareStructuredBufferLayout);
+	m_SquareShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/FlatColor", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
 
 	m_ShaderLibrary->Load("./assets/shaders/FlatColor", squareInputInfoController);
 	m_SquareShader = m_ShaderLibrary->Get("FlatColor");
@@ -206,7 +207,10 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	memcpy(&squareSmallBuffer[0], squareSmallBufferMatrix.data(), sizeof(squareSmallBufferMatrix));
 	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model)], m_SquareColor.data(), sizeof(m_SquareColor));
 	memcpy(&squareSmallBuffer[sizeof(m_SquareSmallMVP.model) + sizeof(m_SquareColor)], m_SquareColor2.data(), sizeof(m_SquareColor2));
-	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), m_Shader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
+#ifdef LOCATE_CHANGE
+#error "Replace with name binding, since the shader is sent"
+#endif
+	Renderer::SubmitSmallBuffer(m_SquareShader, (void*)&squareSmallBuffer[0], sizeof(squareSmallBuffer), m_SquareShader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
 	RenderCommand::DrawIndexed(m_SquareIndexBuffer->GetCount(), 400);
 
 	Renderer::EndScene();
@@ -216,7 +220,7 @@ void Lust::ExampleLayer::OnUpdate(Timestep ts)
 	Renderer::SubmitCBV(&m_UniformBuffer);
 	Renderer::SubmitCBV(&m_UniformBuffer2);
 	Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer);
-	Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), m_SquareShader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
+	Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), m_Shader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
 	RenderCommand::DrawIndexed(m_IndexBuffer->GetCount());
 	Renderer::EndScene();
 	

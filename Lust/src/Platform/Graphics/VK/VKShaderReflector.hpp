@@ -30,8 +30,14 @@ namespace Lust
 	private:
 		void GenerateInputBufferLayout();
 		void GenerateSmallBufferLayout(const SpvReflectShaderModule* module);
+		void GenerateBuffersLayout(const SpvReflectShaderModule* module);
 		void UploadBlob(std::string_view shader_stage, RawBuffer* blob);
 		void ReflectStage(std::string_view shader_stage, const RawBuffer& blob);
+
+		static void CreateUniformElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance);
+		static void CreateTextureElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance);
+		static void CreateSamplerElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance);
+		static void CreateStructuredBufferElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance);
 
 		static ShaderDataType CastToShaderDataType(SpvReflectFormat format);
 
