@@ -33,8 +33,15 @@ if(WIN32)
 							"backends/imgui_impl_dx12.h")
 endif()
 
+set(SPV_REFLECTION_HASH "refs/heads/vulkan-sdk-1.4.304")
+set(SPV_REFLECTION_URL "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Reflect")
+set(SPV_REFLECTION_FILES "spirv_reflect.h"
+						 "spirv_reflect.c"
+						 "spirv_reflect.cpp")
+
 download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_PUBLIC_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui)
 download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_BACKEND_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui)
+download_sources_from_git_repo(COMMIT_VALUE ${SPV_REFLECTION_HASH} SOURCE_BASE_URL ${SPV_REFLECTION_URL} SOURCE_INPUTS ${SPV_REFLECTION_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/spv_reflect)
 
 file(GLOB_RECURSE LUST_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE LUST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
@@ -82,6 +89,7 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Graphics/VK>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/backends>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/spv_reflect>
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -89,6 +97,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
 	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_RELEASE_MODE)
 endif()
+
+target_compile_definitions(${TARGET_NAME} PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H)
 
 if(WIN32)
 	target_include_directories(${TARGET_NAME} PRIVATE

@@ -7,6 +7,7 @@
 #include <Console.hpp>
 #include <Texture.hpp>
 #include <Shader.hpp>
+#include <ShaderReflector.hpp>
 #include <Buffer.hpp>
 #include "CommonDefs.hpp"
 
@@ -39,6 +40,7 @@ namespace Lust
 		uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
 
 		std::shared_ptr<Shader> m_Renderer2DShader;
+		std::shared_ptr<ShaderReflector> m_Renderer2DShaderReflector;
 		std::shared_ptr<VertexBuffer> m_Renderer2DVertexBuffer;
 		std::shared_ptr<IndexBuffer> m_Renderer2DIndexBuffer;
 		std::shared_ptr<UniformBuffer> m_Renderer2DUniformBuffer;

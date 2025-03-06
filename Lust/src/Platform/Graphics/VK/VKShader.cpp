@@ -787,7 +787,6 @@ VkFormat Lust::VKShader::GetNativeFormat(ShaderDataType type)
     case ShaderDataType::Uint2: return VK_FORMAT_R32G32_UINT;
     case ShaderDataType::Uint3: return VK_FORMAT_R32G32B32_UINT;
     case ShaderDataType::Uint4: return VK_FORMAT_R32G32B32A32_UINT;
-    case ShaderDataType::Bool: return VK_FORMAT_R8_UINT;
     default: return VK_FORMAT_UNDEFINED;
     }
 }

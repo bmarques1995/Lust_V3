@@ -10,7 +10,7 @@ namespace Lust
 {
 	enum class LUST_SHADER_MNG_API ShaderDataType
 	{
-		None = 0, Float, Float2, Float3, Float4, Mat4, Uint, Uint2, Uint3, Uint4, Bool
+		None = 0, Float, Float2, Float3, Float4, Uint, Uint2, Uint3, Uint4
 	};
 
 	LUST_SHADER_MNG_API uint32_t ShaderDataTypeSize(ShaderDataType type);
@@ -50,6 +50,9 @@ namespace Lust
 
 		inline uint32_t GetStride() const { return m_Stride; }
 		inline const std::vector<InputBufferElement>& GetElements() const { return m_Elements; }
+
+		void Clear();
+		void PushBack(const InputBufferElement& element);
 
 		std::vector<InputBufferElement>::iterator begin() { return m_Elements.begin(); }
 		std::vector<InputBufferElement>::iterator end() { return m_Elements.end(); }

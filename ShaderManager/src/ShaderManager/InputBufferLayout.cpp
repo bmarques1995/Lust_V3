@@ -8,12 +8,10 @@ uint32_t Lust::ShaderDataTypeSize(ShaderDataType type)
 	case ShaderDataType::Float2:   return 4 * 2;
 	case ShaderDataType::Float3:   return 4 * 3;
 	case ShaderDataType::Float4:   return 4 * 4;
-	case ShaderDataType::Mat4:     return 4 * 4 * 4;
 	case ShaderDataType::Uint:      return 4;
 	case ShaderDataType::Uint2:     return 4 * 2;
 	case ShaderDataType::Uint3:     return 4 * 3;
 	case ShaderDataType::Uint4:     return 4 * 4;
-	case ShaderDataType::Bool:     return 1;
 	}
 
 	Console::CoreError("Unknown ShaderDataType!");
@@ -43,16 +41,13 @@ uint32_t Lust::InputBufferElement::GetComponentCount() const
 	case ShaderDataType::Float2:  return 2;
 	case ShaderDataType::Float3:  return 3;
 	case ShaderDataType::Float4:  return 4;
-	case ShaderDataType::Mat4:    return 4 * 4;
 	case ShaderDataType::Uint:     return 1;
 	case ShaderDataType::Uint2:    return 2;
 	case ShaderDataType::Uint3:    return 3;
 	case ShaderDataType::Uint4:    return 4;
-	case ShaderDataType::Bool:    return 1;
 	}
 
-	Console::CoreError("Unknown ShaderDataType!");
-	assert(false);
+	Console::CoreAssert(false, "Unknown ShaderDataType!");
 	return 0;
 }
 
@@ -90,6 +85,18 @@ Lust::InputBufferLayout::InputBufferLayout(const std::initializer_list<InputBuff
 Lust::InputBufferLayout::InputBufferLayout(const std::vector<InputBufferElement>& elements) :
 	m_Elements(elements)
 {
+	CalculateOffsetsAndStride();
+}
+
+void Lust::InputBufferLayout::Clear()
+{
+	m_Elements.clear();
+	m_Stride = 0;
+}
+
+void Lust::InputBufferLayout::PushBack(const InputBufferElement& element)
+{
+	m_Elements.push_back(element);
 	CalculateOffsetsAndStride();
 }
 

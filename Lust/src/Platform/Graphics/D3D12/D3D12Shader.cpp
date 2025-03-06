@@ -694,7 +694,6 @@ DXGI_FORMAT Lust::D3D12Shader::GetNativeFormat(ShaderDataType type)
 	case ShaderDataType::Uint2: return DXGI_FORMAT_R32G32_UINT;
 	case ShaderDataType::Uint3: return DXGI_FORMAT_R32G32B32_UINT;
 	case ShaderDataType::Uint4: return DXGI_FORMAT_R32G32B32A32_UINT;
-	case ShaderDataType::Bool: return DXGI_FORMAT_R8_UINT;
 	default: return DXGI_FORMAT_UNKNOWN;
 	}
 }
