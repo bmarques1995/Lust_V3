@@ -23,3 +23,7 @@ All third_party solution will be listed [here](./third_party.md).
 ## Build
 
 Instructions of how to build will be avaliable [here](./build.md).
+
+# Important
+
+If you want to build previous versions of Lust, see the notes of [misconfigurations](./misconfigurations.md) 
