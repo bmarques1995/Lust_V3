@@ -49,6 +49,10 @@ Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32
 	InitJsonAndPaths(jsonFilepath);
 	m_InputBufferLayout.Clear();
 	m_SmallBufferLayout.Clear();
+	m_UniformLayout.Clear();
+	m_StructuredBufferLayout.Clear();
+	m_TextureLayout.Clear();
+	m_SamplerLayout.Clear();
 	for (auto it = s_GraphicsPipelineStages.begin(); it != s_GraphicsPipelineStages.end(); it++)
 	{
 		UploadBlob(*it, &m_ShaderBlobs[*it]);
@@ -176,10 +180,14 @@ void Lust::VKShaderReflector::CreateUniformElement(SpvReflectDescriptorBinding**
 
 void Lust::VKShaderReflector::CreateTextureElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
 {
+	TextureElement te((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
+	instance->m_TextureLayout.Upload(te);
 }
 
 void Lust::VKShaderReflector::CreateSamplerElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
 {
+	SamplerElement se(SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_3, AddressMode::REPEAT, ComparisonPassMode::ALWAYS, (*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
+	instance->m_SamplerLayout.Upload(se);
 }
 
 void Lust::VKShaderReflector::CreateStructuredBufferElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)

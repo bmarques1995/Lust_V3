@@ -98,22 +98,30 @@ Lust::SamplerLayout::SamplerLayout(std::initializer_list<SamplerElement> element
 {
 	for (auto& element : elements)
 	{
-		uint64_t samplerLocation = ((uint64_t)element.GetShaderRegister() << 32) + element.GetSamplerIndex();
-		m_Samplers[samplerLocation] = element;
+		m_Samplers[element.GetName()] = element;
 	}
 }
 
-const Lust::SamplerElement& Lust::SamplerLayout::GetElement(uint32_t shaderRegister, uint32_t samplerIndex) const
+const Lust::SamplerElement& Lust::SamplerLayout::GetElement(std::string name) const
 {
-	uint64_t samplerLocation = ((uint64_t)shaderRegister << 32) + samplerIndex;
-	auto it = m_Samplers.find(samplerLocation);
+	auto it = m_Samplers.find(name);
 	if (it != m_Samplers.end())
 		return it->second;
 	else
 		return s_EmptyElement;
 }
 
-const std::unordered_map<uint64_t, Lust::SamplerElement>& Lust::SamplerLayout::GetElements() const
+const std::unordered_map<std::string, Lust::SamplerElement>& Lust::SamplerLayout::GetElements() const
 {
 	return m_Samplers;
+}
+
+void Lust::SamplerLayout::Clear()
+{
+	m_Samplers.clear();
+}
+
+void Lust::SamplerLayout::Upload(const SamplerElement& element)
+{
+	m_Samplers[element.GetName()] = element;
 }

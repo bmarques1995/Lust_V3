@@ -26,6 +26,8 @@ namespace Lust
 		void PushExternalElementPreInfo(ID3D12ShaderReflection* reflection, size_t resourceIndex);
 		void PushRootElement(const D3D12_ROOT_PARAMETER& param, uint32_t rootIndex);
 
+		void PushDescriptorTable(const D3D12_ROOT_PARAMETER& param, uint32_t rootIndex);
+
 		static ShaderDataType CastToShaderDataType(int8_t mask, D3D_REGISTER_COMPONENT_TYPE type);
 
 		ComPointer<IDxcUtils> m_DxcLib;

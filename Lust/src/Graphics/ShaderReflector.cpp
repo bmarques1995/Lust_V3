@@ -60,7 +60,8 @@ void Lust::ShaderReflector::InitJsonAndPaths(std::string_view jsonFilepath)
 
 Lust::ShaderReflector::ShaderReflector(uint32_t stages, uint32_t numInstances) :
 	m_SmallBufferLayout({ {}, stages }), m_UniformLayout({ {}, stages }), 
-	m_StructuredBufferLayout({ {}, stages }), m_NumberOfInstances(numInstances)
+	m_StructuredBufferLayout({ {}, stages }), m_NumberOfInstances(numInstances),
+	m_TextureLayout({ {}, stages }), m_SamplerLayout({ {} })
 {
 }
 

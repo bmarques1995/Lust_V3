@@ -72,6 +72,16 @@ uint32_t Lust::TextureLayout::GetStages() const
 	return m_Stages;
 }
 
+void Lust::TextureLayout::Clear()
+{
+	m_Textures.clear();
+}
+
+void Lust::TextureLayout::Upload(const TextureElement& element)
+{
+	m_Textures[element.GetName()] = element;
+}
+
 Lust::TextureBuffer::TextureBuffer()
 {
 	uint32_t whitePixel = 0xffffffff;

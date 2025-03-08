@@ -84,11 +84,13 @@ namespace Lust
 	public:
 		SamplerLayout(std::initializer_list<SamplerElement> elements);
 
-		const SamplerElement& GetElement(uint32_t shaderRegister, uint32_t samplerIndex) const;
-		const std::unordered_map<uint64_t, SamplerElement>& GetElements() const;
+		const SamplerElement& GetElement(std::string name) const;
+		const std::unordered_map<std::string, SamplerElement>& GetElements() const;
 
+		void Clear();
+		void Upload(const SamplerElement& element);
 	private:
-		std::unordered_map<uint64_t, SamplerElement> m_Samplers;
+		std::unordered_map<std::string, SamplerElement> m_Samplers;
 		static SamplerElement s_EmptyElement;
 	};
 }

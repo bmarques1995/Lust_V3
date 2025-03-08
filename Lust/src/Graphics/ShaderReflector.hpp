@@ -25,6 +25,8 @@ namespace Lust
 		SmallBufferLayout m_SmallBufferLayout;
 		UniformLayout m_UniformLayout;
 		StructuredBufferLayout m_StructuredBufferLayout;
+		TextureLayout m_TextureLayout;
+		SamplerLayout m_SamplerLayout;
 
 		Json::Value m_PipelineInfo;
 		std::string m_ShaderDir;

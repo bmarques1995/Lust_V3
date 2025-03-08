@@ -44,6 +44,9 @@ namespace Lust
 
 		uint32_t GetStages() const;
 
+		void Clear();
+		void Upload(const TextureElement& element);
+
 	private:
 		std::unordered_map<std::string, TextureElement> m_Textures;
 		uint32_t m_Stages;
