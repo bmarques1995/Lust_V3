@@ -12,7 +12,7 @@ namespace Lust
 	{
 	public:
 		StructuredBufferElement();
-		StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements = 1);
+		StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements = 1);
 		~StructuredBufferElement();
 
 		const std::string& GetName() const;
@@ -24,25 +24,26 @@ namespace Lust
 		uint32_t GetBufferIndex() const;
 
 		uint32_t GetNumberOfElements() const;
-
+		void SetNumberOfElements(uint32_t numberOfElements) const;
 		AccessLevel GetAccessLevel() const;
 
 
 		size_t GetStride() const;
-		size_t GetNumberOfBuffers() const;
 		size_t GetSize() const;
 		size_t GetBufferAlignment() const;
 
 	private:
+		void RecalculateBufferAlignment() const;
+
 		size_t m_Stride;
-		size_t m_NumberOfBuffers;
-		size_t m_BufferAlignment;
+		mutable size_t m_BufferAlignment;
+		mutable size_t m_BufferCorrection;
 		AccessLevel m_AccessLevel;
 		uint32_t m_SpaceSet;
 		uint32_t m_BindingSlot;
 		uint32_t m_ShaderRegister;
 		uint32_t m_BufferIndex;
-		uint32_t m_NumberOfElements;
+		mutable uint32_t m_NumberOfElements;
 		std::string m_Name;
 	};
 
@@ -57,6 +58,9 @@ namespace Lust
 		StructuredBufferElement* GetElementPointer(std::string elementName);
 
 		uint32_t GetStages() const;
+
+		void Clear();
+		void Upload(const StructuredBufferElement& element);
 
 	private:
 		std::unordered_map<std::string, StructuredBufferElement> m_StructuredBuffers;

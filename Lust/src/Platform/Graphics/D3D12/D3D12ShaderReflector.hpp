@@ -10,7 +10,7 @@ namespace Lust
 	class D3D12ShaderReflector : public ShaderReflector
 	{
 	public:
-		D3D12ShaderReflector(std::string_view jsonFilepath, uint32_t stages);
+		D3D12ShaderReflector(std::string_view jsonFilepath, uint32_t stages, uint32_t numInstances);
 		~D3D12ShaderReflector();
 	
 	private:
@@ -24,7 +24,7 @@ namespace Lust
 		void GenerateInputBufferLayout();
 
 		void PushExternalElementPreInfo(ID3D12ShaderReflection* reflection, size_t resourceIndex);
-		void PushRootElement(const D3D12_ROOT_PARAMETER& param);
+		void PushRootElement(const D3D12_ROOT_PARAMETER& param, uint32_t rootIndex);
 
 		static ShaderDataType CastToShaderDataType(int8_t mask, D3D_REGISTER_COMPONENT_TYPE type);
 

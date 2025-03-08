@@ -48,17 +48,22 @@ cbuffer u_SmallMVP : register(b0)
 
 #endif
 
+struct SSBO
+{
+    float4x4 Model;
+};
+
 [[vk::binding(1, 0)]] cbuffer u_CompleteMVP : register(b1)
 {
 	CompleteMVP m_CompleteMVP;
 };
 
-[[vk::binding(2, 0)]] StructuredBuffer<float4x4> u_InstancedMVP : register(t0);
+[[vk::binding(2, 0)]] StructuredBuffer<SSBO> u_InstancedMVP : register(t0);
 
 PSInput vs_main(VSInput vsinput)
 {
 	PSInput vsoutput;
-    float4x4 elementModelMatrix = u_InstancedMVP[vsinput.instanceID];
+    float4x4 elementModelMatrix = u_InstancedMVP[vsinput.instanceID].Model;
 	vsoutput.pos = float4(vsinput.pos, 1.0f);
 	vsoutput.pos = mul(vsoutput.pos, elementModelMatrix);
 	vsoutput.pos = mul(vsoutput.pos, m_SmallMVP.Model);

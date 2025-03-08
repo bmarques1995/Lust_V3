@@ -78,8 +78,8 @@ const std::unordered_map<D3D12_DESCRIPTOR_RANGE_TYPE, uint16_t> Lust::D3D12Shade
 	{D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, Lust::Declaration::samplerLocation }
 };
 
-Lust::D3D12ShaderReflector::D3D12ShaderReflector(std::string_view jsonFilepath, uint32_t stages) :
-	ShaderReflector(stages)
+Lust::D3D12ShaderReflector::D3D12ShaderReflector(std::string_view jsonFilepath, uint32_t stages, uint32_t numInstances) :
+	ShaderReflector(stages, numInstances)
 {
 	StartDxc();
 	InitJsonAndPaths(jsonFilepath);
@@ -130,6 +130,9 @@ void Lust::D3D12ShaderReflector::PushExternalElementPreInfo(ID3D12ShaderReflecti
 		return;
 	HRESULT hr;
 	D3D12_SHADER_INPUT_BIND_DESC inputDesc;
+	/* For structured buffers (SSBO), the variable `NumSamples` stores the number of bytes USED by the shader.
+	* So, to get the full amount of declared bytes, u must use all the elements of the buffer.
+	*/
 	hr = reflection->GetResourceBindingDesc(resourceIndex, &inputDesc);
 	assert(hr == S_OK);
 	auto it = s_TypesMap.find(inputDesc.Type);
@@ -151,7 +154,7 @@ void Lust::D3D12ShaderReflector::PushExternalElementPreInfo(ID3D12ShaderReflecti
 	}
 }
 
-void Lust::D3D12ShaderReflector::PushRootElement(const D3D12_ROOT_PARAMETER& param)
+void Lust::D3D12ShaderReflector::PushRootElement(const D3D12_ROOT_PARAMETER& param, uint32_t rootIndex)
 {
 	uint32_t index = 0xffffffff;
 	auto context = Application::GetInstance()->GetContext();
@@ -187,15 +190,16 @@ void Lust::D3D12ShaderReflector::PushRootElement(const D3D12_ROOT_PARAMETER& par
 	{
 		if (param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
 		{
-			m_SmallBufferLayout.Upload(SmallBufferElement(0, bufferSize, param.Constants.ShaderRegister, context->GetSmallBufferAttachment(), bufferName));
+			m_SmallBufferLayout.Upload(SmallBufferElement(0, bufferSize, rootIndex, context->GetSmallBufferAttachment(), bufferName));
 		}
 		else
 		{
-			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, param.Constants.ShaderRegister, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 0, bufferName));
+			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, rootIndex, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 0, bufferName));
 		}
 		break;
 	}
 	case D3D_SIT_STRUCTURED:
+		m_StructuredBufferLayout.Upload(StructuredBufferElement(0, rootIndex, 0, 0, bufferSize, AccessLevel::ROOT_BUFFER, context->GetUniformAttachment(), bufferName, m_NumberOfInstances));
 		break;
 	default:
 		break;
@@ -280,9 +284,8 @@ void Lust::D3D12ShaderReflector::ReflectRootSignature()
 		uint32_t index = 0xffffffff;
 		if (param.ParameterType != D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
 		{
-			PushRootElement(param);
+			PushRootElement(param, i);
 		}
-
 		else
 		{
 			//ProcessDescriptorTable();

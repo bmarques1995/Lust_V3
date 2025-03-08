@@ -133,11 +133,11 @@ void Lust::ExampleLayer::OnAttach()
 		}
 		);
 
-	size_t rows = 20, cols = 20;
+	uint32_t rows = 20, cols = 20;
 	StructuredBufferLayout squareStructuredBufferLayout(
 		{
 			//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name
-			{ 2, 2, 0, 0, sizeof(Eigen::Matrix4f), rows * cols, AccessLevel::ROOT_BUFFER, Application::GetInstance()->GetContext()->GetUniformAttachment(), "u_InstancedMVP" }
+			{ 2, 2, 0, 0, sizeof(Eigen::Matrix4f), AccessLevel::ROOT_BUFFER, Application::GetInstance()->GetContext()->GetUniformAttachment(), "u_InstancedMVP", (rows * cols) }
 		}
 	, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
@@ -162,7 +162,7 @@ void Lust::ExampleLayer::OnAttach()
 	delete[] m_SSBO;
 
 	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout, squareStructuredBufferLayout);
-	m_SquareShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/FlatColor", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
+	m_SquareShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/FlatColor", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE, rows * cols));
 
 	m_ShaderLibrary->Load("./assets/shaders/FlatColor", squareInputInfoController);
 	m_SquareShader = m_ShaderLibrary->Get("FlatColor");

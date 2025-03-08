@@ -24,7 +24,7 @@ namespace Lust
 	class VKShaderReflector : public ShaderReflector
 	{
 	public:
-		VKShaderReflector(std::string_view jsonFilepath, uint32_t stages);
+		VKShaderReflector(std::string_view jsonFilepath, uint32_t stages, uint32_t numInstances);
 		~VKShaderReflector();
 
 	private:
@@ -38,6 +38,11 @@ namespace Lust
 		static void CreateTextureElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance);
 		static void CreateSamplerElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance);
 		static void CreateStructuredBufferElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance);
+
+#ifdef LUST_DEBUG_MODE
+		static size_t GetStructuredBufferStrideRecursively(const SpvReflectTypeDescription* type_desc);
+#endif // 
+		static size_t GetStructuredBufferStride(const SpvReflectTypeDescription* type_desc);
 
 		static ShaderDataType CastToShaderDataType(SpvReflectFormat format);
 

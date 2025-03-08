@@ -561,7 +561,7 @@ void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& str
 	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle(m_TabledDescriptors[structuredBufferElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart());
 	UINT srvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	for (UINT i = 0; i < structuredBufferElement.GetNumberOfBuffers(); ++i)
+	for (UINT i = 0; i < structuredBufferElement.GetNumberOfElements(); ++i)
 	{
 		uint64_t bufferLocation = (((uint64_t)structuredBufferElement.GetShaderRegister() << 32) + 1);
 

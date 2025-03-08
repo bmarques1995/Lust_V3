@@ -2,6 +2,7 @@
 #include <cstring>
 #include "FileHandler.hpp" 
 #include <Application.hpp>
+#include <Stack>
 
 Lust::RawBuffer::RawBuffer()
 {
@@ -42,8 +43,8 @@ const size_t Lust::RawBuffer::GetSize() const
 	return m_Size;
 }
 
-Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32_t stages) :
-	ShaderReflector(stages)
+Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32_t stages, uint32_t numInstances) :
+	ShaderReflector(stages, numInstances)
 {
 	InitJsonAndPaths(jsonFilepath);
 	m_InputBufferLayout.Clear();
@@ -182,7 +183,59 @@ void Lust::VKShaderReflector::CreateSamplerElement(SpvReflectDescriptorBinding**
 }
 
 void Lust::VKShaderReflector::CreateStructuredBufferElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
+{ 
+	auto context = Application::GetInstance()->GetContext();
+	auto b_block = (*reflector_binder)->block;
+#if 0
+	size_t recursivebufferStride = GetStructuredBufferStrideRecursively((*reflector_binder)->type_description);
+#endif
+	size_t bufferStride = GetStructuredBufferStride((*reflector_binder)->type_description);
+	StructuredBufferElement sbe((*reflector_binder)->binding, (uint32_t)0, (*reflector_binder)->set, 0, bufferStride,
+		AccessLevel::ROOT_BUFFER, context->GetUniformAttachment(), (*reflector_binder)->name, instance->m_NumberOfInstances);
+	instance->m_StructuredBufferLayout.Upload(sbe);
+}
+
+size_t Lust::VKShaderReflector::GetStructuredBufferStrideRecursively(const SpvReflectTypeDescription* type_desc)
 {
+	size_t stride = 0;
+	if (type_desc->member_count == 0)
+	{
+		if(type_desc->traits.numeric.matrix.column_count == 0)
+			return ((type_desc->traits.numeric.scalar.width >> 3) * type_desc->traits.numeric.vector.component_count );
+		else
+			return ((type_desc->traits.numeric.scalar.width >> 3) * type_desc->traits.numeric.matrix.row_count * type_desc->traits.numeric.matrix.column_count);
+	}
+	for (size_t i = 0; i < type_desc->member_count; i++)
+	{
+		stride += GetStructuredBufferStrideRecursively(&type_desc->members[i]);
+	}
+	return stride;
+}
+
+size_t Lust::VKShaderReflector::GetStructuredBufferStride(const SpvReflectTypeDescription* type_desc)
+{
+	size_t stride = 0;
+	std::stack<const SpvReflectTypeDescription*> stack;
+	stack.push(type_desc);
+
+	while (!stack.empty()) {
+		const SpvReflectTypeDescription* current = stack.top();
+		stack.pop();
+
+		if (current->member_count == 0) {
+			if (current->traits.numeric.matrix.column_count == 0)
+				stride += ((current->traits.numeric.scalar.width >> 3) * current->traits.numeric.vector.component_count);
+			else
+				stride += ((current->traits.numeric.scalar.width >> 3) * current->traits.numeric.matrix.row_count * current->traits.numeric.matrix.column_count);
+		}
+		else {
+			for (size_t i = 0; i < current->member_count; i++) {
+				stack.push(&current->members[i]);
+			}
+		}
+	}
+
+	return stride;
 }
 
 Lust::ShaderDataType Lust::VKShaderReflector::CastToShaderDataType(SpvReflectFormat format)

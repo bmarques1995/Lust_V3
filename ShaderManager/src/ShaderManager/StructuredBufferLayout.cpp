@@ -5,7 +5,6 @@ Lust::StructuredBufferElement Lust::StructuredBufferLayout::s_EmptyElement = Lus
 Lust::StructuredBufferElement::StructuredBufferElement()
 {
 	m_Stride = 0;
-	m_NumberOfBuffers = 0;
 	m_AccessLevel = AccessLevel::ROOT_BUFFER;
 	m_SpaceSet = 0;
 	m_BindingSlot = 0;
@@ -17,13 +16,11 @@ Lust::StructuredBufferElement::StructuredBufferElement()
 }
 
 Lust::StructuredBufferElement::StructuredBufferElement(uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride,
-	size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements) :
-	m_Stride(stride), m_NumberOfBuffers(numberOfBuffers), m_AccessLevel(accessLevel), m_SpaceSet(spaceSet), m_BindingSlot(bindingSlot),
+	AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements) :
+	m_Stride(stride), m_AccessLevel(accessLevel), m_SpaceSet(spaceSet), m_BindingSlot(bindingSlot),
 	m_ShaderRegister(shaderRegister), m_BufferIndex(bufferIndex), m_BufferAlignment(bufferAlignment), m_NumberOfElements(numberOfElements), m_Name(name)
 {
-	size_t bufferCorrection = 0;
-	if((m_Stride*m_NumberOfBuffers) % m_BufferAlignment != 0)
-		bufferCorrection = m_BufferAlignment - ((m_Stride*m_NumberOfBuffers) % m_BufferAlignment);
+	RecalculateBufferAlignment();
 }
 
 Lust::StructuredBufferElement::~StructuredBufferElement()
@@ -55,6 +52,12 @@ uint32_t Lust::StructuredBufferElement::GetNumberOfElements() const
 	return m_NumberOfElements;
 }
 
+void Lust::StructuredBufferElement::SetNumberOfElements(uint32_t numberOfElements) const
+{
+	m_NumberOfElements = numberOfElements;
+	RecalculateBufferAlignment();
+}
+
 uint32_t Lust::StructuredBufferElement::GetSpaceSet() const
 {
 	return m_SpaceSet;
@@ -75,19 +78,21 @@ size_t Lust::StructuredBufferElement::GetStride() const
 	return m_Stride;
 }
 
-size_t Lust::StructuredBufferElement::GetNumberOfBuffers() const
-{
-	return m_NumberOfBuffers;
-}
-
 size_t Lust::StructuredBufferElement::GetSize() const
 {
-	return m_Stride * m_NumberOfBuffers;
+	return m_Stride * m_NumberOfElements;
 }
 
 size_t Lust::StructuredBufferElement::GetBufferAlignment() const
 {
 	return m_BufferAlignment;
+}
+
+void Lust::StructuredBufferElement::RecalculateBufferAlignment() const
+{
+	m_BufferCorrection = 0;
+	if ((m_Stride * m_NumberOfElements) % m_BufferAlignment != 0)
+		m_BufferCorrection = m_BufferAlignment - ((m_Stride * m_NumberOfElements) % m_BufferAlignment);
 }
 
 Lust::StructuredBufferLayout::StructuredBufferLayout(std::initializer_list<StructuredBufferElement> elements, uint32_t allowedStages) :
@@ -125,4 +130,14 @@ Lust::StructuredBufferElement* Lust::StructuredBufferLayout::GetElementPointer(s
 uint32_t Lust::StructuredBufferLayout::GetStages() const
 {
 	return 0;
+}
+
+void Lust::StructuredBufferLayout::Clear()
+{
+	m_StructuredBuffers.clear();
+}
+
+void Lust::StructuredBufferLayout::Upload(const StructuredBufferElement& element)
+{
+	m_StructuredBuffers[element.GetName()] = element;
 }
