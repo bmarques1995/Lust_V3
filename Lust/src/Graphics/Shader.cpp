@@ -18,6 +18,14 @@ Lust::SizeMismatchException::SizeMismatchException(size_t layoutSize, size_t pro
 	m_Reason = buffer.str();
 }
 
+Lust::InputInfo::InputInfo(uint32_t stages) :
+	m_SmallBufferLayout({ {}, stages }), m_UniformLayout({ {}, stages }),
+	m_StructuredBufferLayout({ {}, stages }), m_InputLayout({ {} }),
+	m_TextureLayout({ {}, stages }), m_SamplerLayout({ {} })
+
+{
+}
+
 Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout, StructuredBufferLayout structuredBufferLayout) :
 	m_InputLayout(inputLayout),
 	m_SmallBufferLayout(smallBufferLayout),

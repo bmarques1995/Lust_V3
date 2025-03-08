@@ -148,11 +148,6 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 	if(samplerCount > 0)
 		PreallocateSamplerDescriptors(samplerCount, samplerRootSigIndex);
 
-	for (auto& sampler : m_SamplerLayout.GetElements())
-	{
-		CreateSampler(sampler.second);
-	}
-
 	if(textureCount > 0)
 		PreallocateTextureDescriptors(textureCount, rootSigIndex);
 
@@ -369,19 +364,19 @@ void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, ui
 	assert(hr == S_OK);
 }
 
-void Lust::D3D12Shader::CreateSampler(const SamplerElement& samplerElement)
+void Lust::D3D12Shader::CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info)
 {
 	auto device = m_Context->GetDevicePtr();
 	HRESULT hr;
 
 	D3D12_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.Filter = GetNativeFilter(samplerElement.GetFilter());
-	samplerDesc.AddressU = GetNativeAddressMode(samplerElement.GetAddressMode());
-	samplerDesc.AddressV = GetNativeAddressMode(samplerElement.GetAddressMode());
-	samplerDesc.AddressW = GetNativeAddressMode(samplerElement.GetAddressMode());
+	samplerDesc.Filter = GetNativeFilter(info.GetFilter());
+	samplerDesc.AddressU = GetNativeAddressMode(info.GetAddressMode());
+	samplerDesc.AddressV = GetNativeAddressMode(info.GetAddressMode());
+	samplerDesc.AddressW = GetNativeAddressMode(info.GetAddressMode());
 	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1 << (uint32_t)samplerElement.GetAnisotropicFactor();
-	samplerDesc.ComparisonFunc = (D3D12_COMPARISON_FUNC)((uint32_t)samplerElement.GetComparisonPassMode() + 1);
+	samplerDesc.MaxAnisotropy = 1 << (uint32_t)info.GetAnisotropicFactor();
+	samplerDesc.ComparisonFunc = (D3D12_COMPARISON_FUNC)((uint32_t)info.GetComparisonPassMode() + 1);
 	samplerDesc.MinLOD = 0.0f;
 	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 

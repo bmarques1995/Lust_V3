@@ -4,10 +4,6 @@ Lust::SamplerElement Lust::SamplerLayout::s_EmptyElement = SamplerElement();
 
 Lust::SamplerElement::SamplerElement()
 {
-	m_AddressMode = AddressMode::REPEAT;
-	m_AnisotropicFactor = AnisotropicFactor::FACTOR_0;
-	m_ComparisonPassMode = ComparisonPassMode::NEVER;
-	m_Filter = SamplerFilter::LINEAR;
 	m_SpaceSet = 0;
 	m_ShaderRegister = 0;
 	m_BindingSlot = 0;
@@ -15,12 +11,7 @@ Lust::SamplerElement::SamplerElement()
 	m_Name = "";
 }
 
-Lust::SamplerElement::SamplerElement(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode,
-	uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name) :
-	m_Filter(filter),
-	m_AnisotropicFactor(anisotropicFactor),
-	m_AddressMode(addressMode),
-	m_ComparisonPassMode(comparisonPassMode),
+Lust::SamplerElement::SamplerElement(uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name) :
 	m_BindingSlot(bindingSlot),
 	m_SpaceSet(spaceSet),
 	m_ShaderRegister(shaderRegister),
@@ -32,46 +23,6 @@ Lust::SamplerElement::SamplerElement(SamplerFilter filter, AnisotropicFactor ani
 const std::string& Lust::SamplerElement::GetName() const
 {
 	return m_Name;
-}
-
-Lust::SamplerFilter Lust::SamplerElement::GetFilter() const
-{
-	return m_Filter;
-}
-
-Lust::AnisotropicFactor Lust::SamplerElement::GetAnisotropicFactor() const
-{
-	return m_AnisotropicFactor;
-}
-
-Lust::AddressMode Lust::SamplerElement::GetAddressMode() const
-{
-	return m_AddressMode;
-}
-
-Lust::ComparisonPassMode Lust::SamplerElement::GetComparisonPassMode() const
-{
-	return m_ComparisonPassMode;
-}
-
-void Lust::SamplerElement::SetFilter(SamplerFilter samplerFilter) const
-{
-	m_Filter = samplerFilter;
-}
-
-void Lust::SamplerElement::SetAnisotropicFactor(AnisotropicFactor anisotropicFactor) const
-{
-	m_AnisotropicFactor = anisotropicFactor;
-}
-
-void Lust::SamplerElement::SetAddressMode(AddressMode addressMode) const
-{
-	m_AddressMode = addressMode;
-}
-
-void Lust::SamplerElement::SetComparisonPassMode(ComparisonPassMode comparisonPassMode) const
-{
-	m_ComparisonPassMode = comparisonPassMode;
 }
 
 uint32_t Lust::SamplerElement::GetBindingSlot() const
@@ -124,4 +75,39 @@ void Lust::SamplerLayout::Clear()
 void Lust::SamplerLayout::Upload(const SamplerElement& element)
 {
 	m_Samplers[element.GetName()] = element;
+}
+
+Lust::SamplerInfo::SamplerInfo()
+{
+	m_Filter = SamplerFilter::ANISOTROPIC;
+	m_AnisotropicFactor = AnisotropicFactor::FACTOR_3;
+	m_AddressMode = AddressMode::BORDER;
+	m_ComparisonPassMode = ComparisonPassMode::ALWAYS;
+}
+Lust::SamplerInfo::SamplerInfo(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode) :
+	m_Filter(filter),
+	m_AnisotropicFactor(anisotropicFactor),
+	m_AddressMode(addressMode),
+	m_ComparisonPassMode(comparisonPassMode)
+{
+}
+
+Lust::SamplerFilter Lust::SamplerInfo::GetFilter() const
+{
+	return m_Filter;
+}
+
+Lust::AnisotropicFactor Lust::SamplerInfo::GetAnisotropicFactor() const
+{
+	return m_AnisotropicFactor;
+}
+
+Lust::AddressMode Lust::SamplerInfo::GetAddressMode() const
+{
+	return m_AddressMode;
+}
+
+Lust::ComparisonPassMode Lust::SamplerInfo::GetComparisonPassMode() const
+{
+	return m_ComparisonPassMode;
 }

@@ -255,7 +255,7 @@ void Lust::D3D12ShaderReflector::PushDescriptorTable(const D3D12_ROOT_PARAMETER&
 			case D3D_SIT_SAMPLER:
 				/*SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode,
 	uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name*/
-				m_SamplerLayout.Upload(SamplerElement(SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_3, AddressMode::REPEAT, ComparisonPassMode::ALWAYS, 0, 0, rootIndex, descriptorOffset, bufferName));
+				m_SamplerLayout.Upload(SamplerElement(0, 0, rootIndex, descriptorOffset, bufferName));
 				break;
 			case D3D_SIT_STRUCTURED:
 				/*

@@ -17,7 +17,13 @@ namespace Lust
 		ShaderReflector(uint32_t stages, uint32_t numInstances);
 		virtual ~ShaderReflector() = default;
 
-		void ExportInputLayout(InputBufferLayout* inputBufferLayout);
+		const InputBufferLayout& GetInputLayout() const; // { return m_InputBufferLayout; }
+		const SmallBufferLayout& GetSmallBufferLayout() const; // { return m_SmallBufferLayout; }
+		const UniformLayout& GetUniformLayout() const; // { return m_UniformLayout; }
+		const TextureLayout& GetTextureLayout() const; // { return m_TextureLayout; }
+		const SamplerLayout& GetSamplerLayout() const; // { return m_SamplerLayout; }
+		const StructuredBufferLayout& GetStructuredBufferLayout() const; // { return m_StructuredBufferLayout; }
+
 		static ShaderReflector* Instantiate(std::string_view jsonBasepath, uint32_t stages, uint32_t numInstances = 1);
 	
 	protected:

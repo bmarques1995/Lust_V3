@@ -47,20 +47,12 @@ namespace Lust
 
 	class LUST_SHADER_MNG_API SamplerElement
 	{
+		friend class SamplerLayout;
 	public:
 		SamplerElement();
-		SamplerElement(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name);
+		SamplerElement(uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name);
 
 		const std::string& GetName() const;
-		SamplerFilter GetFilter() const;
-		AnisotropicFactor GetAnisotropicFactor() const;
-		AddressMode GetAddressMode() const;
-		ComparisonPassMode GetComparisonPassMode() const;
-
-		void SetFilter(SamplerFilter samplerFilter) const;
-		void SetAnisotropicFactor(AnisotropicFactor anisotropicFactor) const;
-		void SetAddressMode(AddressMode addressMode) const;
-		void SetComparisonPassMode(ComparisonPassMode comparisonPassMode) const;
 		
 		uint32_t GetBindingSlot() const;
 		uint32_t GetSpaceSet() const;
@@ -69,10 +61,7 @@ namespace Lust
 
 	private:
 		std::string m_Name;
-		mutable SamplerFilter m_Filter;
-		mutable AnisotropicFactor m_AnisotropicFactor;
-		mutable AddressMode m_AddressMode;
-		mutable ComparisonPassMode m_ComparisonPassMode;
+		
 		uint32_t m_BindingSlot;
 		uint32_t m_SpaceSet;
 		uint32_t m_ShaderRegister;
@@ -92,5 +81,23 @@ namespace Lust
 	private:
 		std::unordered_map<std::string, SamplerElement> m_Samplers;
 		static SamplerElement s_EmptyElement;
+	};
+
+	class LUST_SHADER_MNG_API SamplerInfo
+	{
+	public:
+		SamplerInfo();
+		SamplerInfo(SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode);
+
+		SamplerFilter GetFilter() const;
+		AnisotropicFactor GetAnisotropicFactor() const;
+		AddressMode GetAddressMode() const;
+		ComparisonPassMode GetComparisonPassMode() const;
+
+	private:
+		SamplerFilter m_Filter;
+		AnisotropicFactor m_AnisotropicFactor;
+		AddressMode m_AddressMode;
+		ComparisonPassMode m_ComparisonPassMode;
 	};
 }

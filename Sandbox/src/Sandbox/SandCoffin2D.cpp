@@ -22,51 +22,22 @@ void Lust::SandCoffin2D::OnAttach()
 	auto context = Application::GetInstance()->GetContext();
 	m_CameraController.reset(new OrthographicCameraController(window->GetWidth(), window->GetHeight(), true));
 
-	InputBufferLayout layout(
-		{
-			{ShaderDataType::Float3, "POSITION", false},
-			{ShaderDataType::Float2, "TEXCOORD", false},
-		});
-
-	SmallBufferLayout smallBufferLayout({
-			{ 0, 80, 0, context->GetSmallBufferAttachment(), "m_SmallMVP" }
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	UniformLayout uniformsLayout(
-		{
-			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_CompleteMVP" },
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	TextureLayout textureLayout(
-		{
-			//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
-			{ 2, 0, 2, 0, "textureChecker" },
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	SamplerLayout samplerLayout(
-		{
-			//SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex
-			{ SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS, 3, 0, 3, 0, "dynamicSampler" },
-		});
-
-	StructuredBufferLayout structuredBufferLayout({
-
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout, structuredBufferLayout);
+	SamplerInfo samplerInfoController(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
 
 	m_Renderer2DShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/TexturedRenderer2D", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
+	InputInfo inputInfoController(m_Renderer2DShaderReflector->GetInputLayout(), m_Renderer2DShaderReflector->GetSmallBufferLayout(), m_Renderer2DShaderReflector->GetUniformLayout(),
+		m_Renderer2DShaderReflector->GetTextureLayout(), m_Renderer2DShaderReflector->GetSamplerLayout(), m_Renderer2DShaderReflector->GetStructuredBufferLayout());
 	m_Renderer2DShader.reset(Shader::Instantiate(context, "./assets/shaders/TexturedRenderer2D", inputInfoController));
+	m_Renderer2DShader->CreateSampler(m_Renderer2DShader->GetSamplerLayout().GetElement("dynamicSampler"), samplerInfoController);
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
 	
-	m_Renderer2DVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&squareVertices[0], sizeof(squareVertices), layout.GetStride()));
+	m_Renderer2DVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&squareVertices[0], sizeof(squareVertices), m_Renderer2DShader->GetInputLayout().GetStride()));
 	m_Renderer2DIndexBuffer.reset(IndexBuffer::Instantiate(context, (const uint32_t*)&squareIndices[0], sizeof(squareIndices) / sizeof(uint32_t)));
 	m_Renderer2DUniformBuffer.reset(UniformBuffer::Instantiate(context, (const void*)&m_Renderer2DCompleteMVP.model(0,0), sizeof(m_Renderer2DCompleteMVP)));
-	m_Renderer2DRawSmallBufferSize = smallBufferLayout.GetElement("m_SmallMVP").GetSize();
+	m_Renderer2DRawSmallBufferSize = m_Renderer2DShader->GetSmallBufferLayout().GetElement("m_SmallMVP").GetSize();
 	m_Renderer2DRawSmallBuffer = new uint8_t[m_Renderer2DRawSmallBufferSize];
 
-	auto textureElement = m_Renderer2DShader->GetTextureElements().find("textureChecker");
+	auto textureElement = m_Renderer2DShader->GetTextureElements().find("renderTexture");
 	if (textureElement != m_Renderer2DShader->GetTextureElements().end())
 		m_Renderer2DShader->UploadTexture2D(&m_Renderer2DTexture, textureElement->second);
 	else

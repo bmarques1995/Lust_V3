@@ -4,6 +4,7 @@
 #include "OrthographicCamera.hpp"
 #include <Eigen/Eigen>
 #include "Shader.hpp"
+#include "ShaderReflector.hpp"
 #include "Buffer.hpp"
 #include "Texture.hpp"
 #include "Renderer.hpp"
@@ -13,6 +14,7 @@ namespace Lust
 	struct Renderer2DStorage
 	{
 		std::shared_ptr<Shader> m_Shader;
+		std::shared_ptr<ShaderReflector> m_ShaderReflector;
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		std::shared_ptr<UniformBuffer> m_UniformBuffer;

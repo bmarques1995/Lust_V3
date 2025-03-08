@@ -26,25 +26,6 @@ void Lust::ExampleLayer::OnAttach()
 	};
 
 	m_CameraController.reset(new OrthographicCameraController(window->GetWidth(), window->GetHeight(), true));
-	InputBufferLayout layout(
-		{
-			{ShaderDataType::Float3, "POSITION", false},
-			{ShaderDataType::Float4, "COLOR", false},
-			{ShaderDataType::Float2, "TEXCOORD", false},
-		});
-
-	SmallBufferLayout smallBufferLayout(
-		{
-			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 64, 0, context->GetSmallBufferAttachment(), "m_SmallMVP" }
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	UniformLayout uniformsLayout(
-		{
-			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_CompleteMVP"}, //
-			//{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 2, 0, 2, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_SSBO"} //
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
 
 	m_Texture2DLibrary->Load("./assets/textures/yor.png");
 	m_Texture2DLibrary->Load("./assets/textures/nanao.png");
@@ -58,37 +39,18 @@ void Lust::ExampleLayer::OnAttach()
 	Eigen::Transform<float, 3, Eigen::Affine> model_transform = Eigen::Translation3f(0.0f, 0.0f, 0.0f) * Eigen::Scaling(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f);
 
 	m_SmallMVP.model = model_transform.matrix();
-
-	//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t textureIndex
-	//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
-	TextureLayout textureLayout(
-		{
-			{3, 0, 2, 0, "textureChecker"},
-			{4, 0, 2, 1, "textureChecker2"}
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-
-
-	SamplerLayout samplerLayout(
-		{
-			//SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode, uint32_t bindingSlot, uint32_t shaderRegister, uint32_t samplerIndex
-			{SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 5, 0, 3, 0, "dynamicSampler"},
-			{SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS, 6, 0, 3, 1, "dynamicSampler2"},
-		}
-		);
-
-	StructuredBufferLayout structuredBufferLayout(
-		{
-		}
-		, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	InputInfo inputInfoController(layout, smallBufferLayout, uniformsLayout, textureLayout, samplerLayout, structuredBufferLayout);
+	
 	m_ShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/HelloTriangle", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
+	InputInfo inputInfoController(m_ShaderReflector->GetInputLayout(), m_ShaderReflector->GetSmallBufferLayout(), m_ShaderReflector->GetUniformLayout(), 
+		m_ShaderReflector->GetTextureLayout(), m_ShaderReflector->GetSamplerLayout(), m_ShaderReflector->GetStructuredBufferLayout());
 
-	//m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/HelloTriangle", inputInfoController));
 	m_ShaderLibrary->Load("./assets/shaders/HelloTriangle", inputInfoController);
 	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
-	m_Shader->UploadConstantBuffer(&m_UniformBuffer, uniformsLayout.GetElement("m_CompleteMVP"));
+	SamplerInfo dynamicSamplerInfo(SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS);
+	SamplerInfo dynamicSamplerInfo2(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::BORDER, ComparisonPassMode::ALWAYS);
+	m_Shader->CreateSampler(m_Shader->GetSamplerLayout().GetElement("dynamicSampler"), dynamicSamplerInfo);
+	m_Shader->CreateSampler(m_Shader->GetSamplerLayout().GetElement("dynamicSampler2"), dynamicSamplerInfo2);
+	m_Shader->UploadConstantBuffer(&m_UniformBuffer, m_Shader->GetUniformLayout().GetElement("m_CompleteMVP"));
 	std::vector<std::shared_ptr<Texture2D>*> textures;
 	textures.push_back(&m_Texture1);
 	textures.push_back(&m_Texture2);
@@ -99,49 +61,13 @@ void Lust::ExampleLayer::OnAttach()
 		m_Shader->UploadTexture2D((textures[i]), textureElement.second);
 		i++;
 	}
-	m_VertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), layout.GetStride()));
+	m_VertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), m_Shader->GetInputLayout().GetStride()));
 	m_IndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)&m_IBuffer[0], sizeof(m_IBuffer) / sizeof(uint32_t)));
 	
-	InputBufferLayout squareLayout(
-		{
-			{ShaderDataType::Float3, "POSITION", false},
-			{ShaderDataType::Float2, "TEXCOORD", false},
-		});
-
-	SmallBufferLayout squareSmallBufferLayout(
-		{
-			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 96, 0, context->GetSmallBufferAttachment(), "m_SmallMVP" }
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	UniformLayout squareUniformsLayout(
-		{
-			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex, std::string name
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "u_CompleteMVP" } //
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	m_SquareSmallMVP.model = Eigen::Matrix4f::Identity();
-
-	TextureLayout squareTextureLayout(
-		{
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-
-
-	SamplerLayout squareSamplerLayout(
-		{
-		}
-		);
-
 	uint32_t rows = 20, cols = 20;
-	StructuredBufferLayout squareStructuredBufferLayout(
-		{
-			//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name
-			{ 2, 2, 0, 0, sizeof(Eigen::Matrix4f), AccessLevel::ROOT_BUFFER, Application::GetInstance()->GetContext()->GetUniformAttachment(), "u_InstancedMVP", (rows * cols) }
-		}
-	, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	m_SSBO = new uint8_t[squareStructuredBufferLayout.GetElementPointer("u_InstancedMVP")->GetSize()];
+	m_SquareShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/FlatColor", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE, rows * cols));
+	
+	m_SSBO = new uint8_t[m_SquareShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP").GetSize()];
 
 	Eigen::Matrix4f squareSmallBufferMatrix;
 	Eigen::AlignedScaling3f baseScale = Eigen::Scaling(50.0f, 50.0f, 1.0f);
@@ -160,18 +86,18 @@ void Lust::ExampleLayer::OnAttach()
 	m_SquareStructuredBuffer.reset(StructuredBuffer::Instantiate(context, m_SSBO, rows * cols * sizeof(Eigen::Matrix4f)));
 
 	delete[] m_SSBO;
-
-	InputInfo squareInputInfoController(squareLayout, squareSmallBufferLayout, squareUniformsLayout, squareTextureLayout, squareSamplerLayout, squareStructuredBufferLayout);
-	m_SquareShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/FlatColor", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE, rows * cols));
+	
+	InputInfo squareInputInfoController(m_SquareShaderReflector->GetInputLayout(), m_SquareShaderReflector->GetSmallBufferLayout(), m_SquareShaderReflector->GetUniformLayout(),
+		m_SquareShaderReflector->GetTextureLayout(), m_SquareShaderReflector->GetSamplerLayout(), m_SquareShaderReflector->GetStructuredBufferLayout());
 
 	m_ShaderLibrary->Load("./assets/shaders/FlatColor", squareInputInfoController);
 	m_SquareShader = m_ShaderLibrary->Get("FlatColor");
 
 	m_SquareUniformBuffer.reset(UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
-	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, squareUniformsLayout.GetElement("u_CompleteMVP"));
-	m_SquareShader->UploadStructuredBuffer(&m_SquareStructuredBuffer, squareStructuredBufferLayout.GetElement("u_InstancedMVP"));
-	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), squareLayout.GetStride()));
+	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, m_SquareShaderReflector->GetUniformLayout().GetElement("m_CompleteMVP"));
+	m_SquareShader->UploadStructuredBuffer(&m_SquareStructuredBuffer, m_SquareShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP"));
+	m_SquareVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), m_SquareShaderReflector->GetInputLayout().GetStride()));
 	m_SquareIndexBuffer.reset(IndexBuffer::Instantiate(context, (const void*)squareIndices, sizeof(squareIndices)/ sizeof(uint32_t)));
 }
 

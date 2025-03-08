@@ -65,7 +65,32 @@ Lust::ShaderReflector::ShaderReflector(uint32_t stages, uint32_t numInstances) :
 {
 }
 
-void Lust::ShaderReflector::ExportInputLayout(InputBufferLayout* inputBufferLayout)
+const Lust::InputBufferLayout& Lust::ShaderReflector::GetInputLayout() const
 {
-	Console::CoreLog("inspect time");
+	return m_InputBufferLayout;
+}
+
+const Lust::SmallBufferLayout& Lust::ShaderReflector::GetSmallBufferLayout() const
+{
+	return m_SmallBufferLayout;
+}
+
+const Lust::UniformLayout& Lust::ShaderReflector::GetUniformLayout() const
+{
+	return m_UniformLayout;
+}
+
+const Lust::TextureLayout& Lust::ShaderReflector::GetTextureLayout() const
+{
+	return m_TextureLayout;
+}
+
+const Lust::SamplerLayout& Lust::ShaderReflector::GetSamplerLayout() const
+{
+	return m_SamplerLayout;
+}
+
+const Lust::StructuredBufferLayout& Lust::ShaderReflector::GetStructuredBufferLayout() const
+{
+	return m_StructuredBufferLayout;
 }

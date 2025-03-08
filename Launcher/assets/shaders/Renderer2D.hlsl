@@ -61,18 +61,11 @@ struct CompleteMVP
 
 #else
 
-cbuffer u_SmallMVP : register(b0)
-{
-    SmallBuffer m_SmallMVP;
-};
+ConstantBuffer<SmallBuffer> m_SmallMVP : register(b0);
 
 #endif
 
-[[vk::binding(1, 0)]]
-cbuffer u_CompleteMVP : register(b1)
-{
-    CompleteMVP m_CompleteMVP;
-};
+[[vk::binding(1, 0)]] ConstantBuffer<CompleteMVP> m_CompleteMVP : register(b1);
 
 struct PSInput
 {

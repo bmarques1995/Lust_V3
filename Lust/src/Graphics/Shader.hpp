@@ -30,7 +30,8 @@ namespace Lust
 		SamplerLayout m_SamplerLayout;
 		StructuredBufferLayout m_StructuredBufferLayout;
 		Topology m_Topology = Topology::LUST_TOPOLOGY_TRIANGLELIST;
-
+		
+		InputInfo(uint32_t stages);
 		InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout, StructuredBufferLayout structuredBufferLayout);
 	};
 
@@ -63,7 +64,7 @@ namespace Lust
 		virtual void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) = 0;
 
 		const std::unordered_map<std::string, SamplerElement>& GetSamplerElements() const;
-		virtual void CreateSampler(const SamplerElement& samplerElement) = 0;
+		virtual void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) = 0;
 		
 		const std::unordered_map<std::string, SmallBufferElement>& GetSmallBufferElements() const;
 

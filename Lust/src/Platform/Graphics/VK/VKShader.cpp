@@ -85,19 +85,7 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     SetDepthStencil(&depthStencil);
     CreateDescriptorSetLayout();
     CreateDescriptorPool();
-
-    {
-        PreallocatesDescSets();
-
-        auto samplers = m_SamplerLayout.GetElements();
-
-        for (const auto& element : samplers)
-        {
-            CreateSampler(element.second);
-        }
-
-        //CreateDescriptorSets();
-    }
+    PreallocatesDescSets();
 
     std::vector<VkDynamicState> dynamicStates = {
         VK_DYNAMIC_STATE_VIEWPORT,
@@ -632,7 +620,7 @@ uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
     return 0xffffffff;
 }
 
-void Lust::VKShader::CreateSampler(const SamplerElement& samplerElement)
+void Lust::VKShader::CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info)
 {
     VkResult vkr;
     auto device = m_Context->GetDevice();
@@ -649,17 +637,17 @@ void Lust::VKShader::CreateSampler(const SamplerElement& samplerElement)
 
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = GetNativeFilter(samplerElement.GetFilter());
-    samplerInfo.minFilter = GetNativeFilter(samplerElement.GetFilter());
-    samplerInfo.addressModeU = GetNativeAddressMode(samplerElement.GetAddressMode());
-    samplerInfo.addressModeV = GetNativeAddressMode(samplerElement.GetAddressMode());
-    samplerInfo.addressModeW = GetNativeAddressMode(samplerElement.GetAddressMode());
-    samplerInfo.anisotropyEnable = samplerElement.GetFilter() == SamplerFilter::ANISOTROPIC ? VK_TRUE : VK_FALSE;
-    samplerInfo.maxAnisotropy = std::min<float>(properties.limits.maxSamplerAnisotropy, (1 << (uint32_t)samplerElement.GetAnisotropicFactor()) * 1.0f);
+    samplerInfo.magFilter = GetNativeFilter(info.GetFilter());
+    samplerInfo.minFilter = GetNativeFilter(info.GetFilter());
+    samplerInfo.addressModeU = GetNativeAddressMode(info.GetAddressMode());
+    samplerInfo.addressModeV = GetNativeAddressMode(info.GetAddressMode());
+    samplerInfo.addressModeW = GetNativeAddressMode(info.GetAddressMode());
+    samplerInfo.anisotropyEnable = info.GetFilter() == SamplerFilter::ANISOTROPIC ? VK_TRUE : VK_FALSE;
+    samplerInfo.maxAnisotropy = std::min<float>(properties.limits.maxSamplerAnisotropy, (1 << (uint32_t)info.GetAnisotropicFactor()) * 1.0f);
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
     samplerInfo.compareEnable = VK_TRUE;
-    samplerInfo.compareOp = (VkCompareOp)((uint32_t)samplerElement.GetComparisonPassMode());
+    samplerInfo.compareOp = (VkCompareOp)((uint32_t)info.GetComparisonPassMode());
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = FLT_MAX;

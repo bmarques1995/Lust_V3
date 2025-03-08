@@ -36,19 +36,12 @@ struct SSBO
 
 #else
 
-cbuffer u_SmallMVP : register(b0)
-{
-    SmallMVP m_SmallMVP;
-};
+ConstantBuffer<SmallMVP> m_SmallMVP : register(b0);
 
 #endif
 
 
-[[vk::binding(1, 0)]]
-cbuffer m_CompleteMVP : register(b1)
-{
-    CompleteMVP m_CompleteMVP;
-};
+[[vk::binding(1, 0)]] ConstantBuffer<CompleteMVP> m_CompleteMVP : register(b1);
 
 [[vk::binding(3, 0)]] Texture2D<float4> textureChecker : register(t1);
 [[vk::binding(4, 0)]] Texture2D<float4> textureChecker2 : register(t2);

@@ -37,7 +37,7 @@ namespace Lust
 
 		void BindDescriptors() override;
 
-		void CreateSampler(const SamplerElement& samplerElement) override;
+		void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) override;
 
 	private:
 		void StartDXC();

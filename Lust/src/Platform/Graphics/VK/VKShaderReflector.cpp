@@ -186,7 +186,7 @@ void Lust::VKShaderReflector::CreateTextureElement(SpvReflectDescriptorBinding**
 
 void Lust::VKShaderReflector::CreateSamplerElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
 {
-	SamplerElement se(SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_3, AddressMode::REPEAT, ComparisonPassMode::ALWAYS, (*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
+	SamplerElement se((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
 	instance->m_SamplerLayout.Upload(se);
 }
 

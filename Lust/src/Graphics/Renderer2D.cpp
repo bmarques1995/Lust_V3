@@ -24,43 +24,11 @@ void Lust::Renderer2D::Instantiate()
 
 	uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
 
-	InputBufferLayout renderer2DLayout(
-		{
-			{ShaderDataType::Float3, "POSITION", false},
-		});
+	s_Renderer2DStorage->m_ShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/Renderer2D", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
 
-	SmallBufferLayout renderer2DSmallBufferLayout(
-		{
-			//size_t offset, size_t size, uint32_t bindingSlot, uint32_t smallAttachment
-			{ 0, 80, 0, context->GetSmallBufferAttachment(), "m_SmallMVP"}
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	UniformLayout renderer2DUniformsLayout(
-		{
-			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t bufferIndex, std::string name
-			{ BufferType::UNIFORM_CONSTANT_BUFFER, 256, 1, 0, 1, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, "m_CompleteMVP" } //
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-
-	TextureLayout renderer2DTextureLayout(
-		{
-		}, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-
-
-	SamplerLayout renderer2DSamplerLayout(
-		{
-		}
-		);
-
-	size_t rows = 20, cols = 20;
-	StructuredBufferLayout renderer2DStructuredBufferLayout(
-		{
-			//uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride, size_t numberOfBuffers, AccessLevel accessLevel, size_t bufferAlignment, std::string name
-		}
-	, AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE);
-
-	InputInfo renderer2DInputInfoController(renderer2DLayout, renderer2DSmallBufferLayout, renderer2DUniformsLayout, renderer2DTextureLayout, renderer2DSamplerLayout, renderer2DStructuredBufferLayout);
+	InputInfo renderer2DInputInfoController2(s_Renderer2DStorage->m_ShaderReflector->GetInputLayout(), s_Renderer2DStorage->m_ShaderReflector->GetSmallBufferLayout(), 
+		s_Renderer2DStorage->m_ShaderReflector->GetUniformLayout(), s_Renderer2DStorage->m_ShaderReflector->GetTextureLayout(),
+		s_Renderer2DStorage->m_ShaderReflector->GetSamplerLayout(), s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout());
 
 	*s_SceneData = {
 		Eigen::Matrix4f::Identity(),
@@ -69,14 +37,14 @@ void Lust::Renderer2D::Instantiate()
 		Eigen::Matrix4f::Identity()
 	};
 
-	s_Renderer2DStorage->m_RawSmallBufferSize = renderer2DSmallBufferLayout.GetElement("m_SmallMVP").GetSize();
+	s_Renderer2DStorage->m_RawSmallBufferSize = s_Renderer2DStorage->m_ShaderReflector->GetSmallBufferLayout().GetElement("m_SmallMVP").GetSize();
 	s_Renderer2DStorage->m_RawSmallBuffer = new uint8_t[s_Renderer2DStorage->m_RawSmallBufferSize];
 
-	s_Renderer2DStorage->m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/Renderer2D", renderer2DInputInfoController));
-	s_Renderer2DStorage->m_VertexBuffer.reset(VertexBuffer::Instantiate(context, squareVertices, sizeof(squareVertices), renderer2DLayout.GetStride()));
+	s_Renderer2DStorage->m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/Renderer2D", renderer2DInputInfoController2));
+	s_Renderer2DStorage->m_VertexBuffer.reset(VertexBuffer::Instantiate(context, squareVertices, sizeof(squareVertices), s_Renderer2DStorage->m_Shader->GetInputLayout().GetStride()));
 	s_Renderer2DStorage->m_IndexBuffer.reset(IndexBuffer::Instantiate(context, squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 	s_Renderer2DStorage->m_UniformBuffer.reset(UniformBuffer::Instantiate(context, (void*)s_SceneData.get(), sizeof(SceneData)));
-	s_Renderer2DStorage->m_Shader->UploadConstantBuffer(&s_Renderer2DStorage->m_UniformBuffer, renderer2DUniformsLayout.GetElement("m_CompleteMVP"));
+	s_Renderer2DStorage->m_Shader->UploadConstantBuffer(&s_Renderer2DStorage->m_UniformBuffer, s_Renderer2DStorage->m_Shader->GetUniformLayout().GetElement("m_CompleteMVP"));
 }
 
 void Lust::Renderer2D::Destroy()
