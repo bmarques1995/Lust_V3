@@ -53,6 +53,8 @@ Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32
 	m_StructuredBufferLayout.Clear();
 	m_TextureLayout.Clear();
 	m_SamplerLayout.Clear();
+	m_TextureArrayLayout.Clear();
+	m_SamplerArrayLayout.Clear();
 	for (auto it = s_GraphicsPipelineStages.begin(); it != s_GraphicsPipelineStages.end(); it++)
 	{
 		UploadBlob(*it, &m_ShaderBlobs[*it]);

@@ -53,6 +53,48 @@ namespace Lust
 		static TextureElement s_EmptyElement;
 	};
 
+	class LUST_SHADER_MNG_API TextureArray
+	{
+	public:
+		TextureArray();
+		TextureArray(uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, uint32_t numberOfTextures, std::string name);
+
+		const std::string& GetName() const;
+		uint32_t GetBindingSlot() const;
+		uint32_t GetShaderRegister() const;
+		uint32_t GetSpaceSet() const;
+		uint32_t GetTextureIndex() const;
+		uint32_t GetNumberOfTextures() const;
+
+	private:
+
+		uint32_t m_SpaceSet;
+		uint32_t m_BindingSlot;
+		uint32_t m_ShaderRegister;
+		uint32_t m_TextureIndex;
+		uint32_t m_NumberOfTextures;
+		std::string m_Name;
+	};
+
+	class LUST_SHADER_MNG_API TextureArrayLayout
+	{
+	public:
+		TextureArrayLayout(std::initializer_list<TextureArray> elements, uint32_t allowedStages);
+
+		const TextureArray& GetElement(std::string name) const;
+		const std::unordered_map<std::string, TextureArray>& GetElements() const;
+
+		uint32_t GetStages() const;
+
+		void Clear();
+		void Upload(const TextureArray& element);
+
+	private:
+		std::unordered_map<std::string, TextureArray> m_Textures;
+		uint32_t m_Stages;
+		static TextureArray s_EmptyElement;
+	};
+
 	class LUST_SHADER_MNG_API TextureBuffer
 	{
 		friend class Texture2D;

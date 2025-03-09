@@ -54,43 +54,6 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 	auto uniforms = m_UniformLayout.GetElements();
 	auto structuredBuffers = m_StructuredBufferLayout.GetElements();
 
-	for (auto& smallBuffer : smallBuffers)
-	{
-		m_RootSignatureSize += smallBuffer.second.GetSize();
-	}
-
-	for (auto& uniform : uniforms)
-	{
-		if (uniform.second.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
-			m_RootSignatureSize += 8;
-		else
-		{
-			m_RootSignatureSize += 4;
-			break;
-		}
-	}
-
-	for (auto& structuredBuffer : structuredBuffers)
-	{
-		if (structuredBuffer.second.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
-			m_RootSignatureSize += 8;
-		else
-		{
-			m_RootSignatureSize += 4;
-			break;
-		}
-	}
-
-	auto textureCount = m_TextureLayout.GetElements().size();
-	auto rootSigIndex = m_TextureLayout.GetElements().size() > 0 ? m_TextureLayout.GetElements().begin()->second.GetShaderRegister() : 0;
-	if (textureCount > 0)
-		m_RootSignatureSize += 4;
-
-	auto samplerCount = m_SamplerLayout.GetElements().size();
-	auto samplerRootSigIndex = m_SamplerLayout.GetElements().size() > 0 ? m_SamplerLayout.GetElements().begin()->second.GetShaderRegister() : 0;
-	if (samplerCount > 0)
-		m_RootSignatureSize += 4;
-
 	auto nativeElements = m_Layout.GetElements();
 	D3D12_INPUT_ELEMENT_DESC* ied = new D3D12_INPUT_ELEMENT_DESC[nativeElements.size()];
 
@@ -145,12 +108,53 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 		i++;
 	}
 
-	if(samplerCount > 0)
-		PreallocateSamplerDescriptors(samplerCount, samplerRootSigIndex);
+	uint32_t samplersNumber = 0;
+	uint32_t samplersRootSigIndex = 0xffffffff;
 
-	if(textureCount > 0)
-		PreallocateTextureDescriptors(textureCount, rootSigIndex);
+	if(m_SamplerLayout.GetElements().begin() != m_SamplerLayout.GetElements().end())
+		samplersRootSigIndex = m_SamplerLayout.GetElements().begin()->second.GetShaderRegister();
+	else
+	{
+		if (m_SamplerArrayLayout.GetElements().begin() != m_SamplerArrayLayout.GetElements().end())
+		{
+			samplersRootSigIndex = m_SamplerArrayLayout.GetElements().begin()->second.GetShaderRegister();
+		}
+	}
 
+	samplersNumber+= m_SamplerLayout.GetElements().size();
+	
+	for (auto samplerArray : m_SamplerArrayLayout.GetElements())
+	{
+		samplersNumber += samplerArray.second.GetNumberOfSamplers();
+	}
+
+	uint32_t texturesNumber = 0;
+	uint32_t texturesRootSigIndex = 0xffffffff;
+
+	if (m_TextureLayout.GetElements().begin() != m_TextureLayout.GetElements().end())
+		texturesRootSigIndex = m_TextureLayout.GetElements().begin()->second.GetShaderRegister();
+	else
+	{
+		if (m_TextureArrayLayout.GetElements().begin() != m_TextureArrayLayout.GetElements().end())
+		{
+			texturesRootSigIndex = m_TextureArrayLayout.GetElements().begin()->second.GetShaderRegister();
+		}
+	}
+
+	texturesNumber += m_TextureLayout.GetElements().size();
+
+	for (auto textureArray : m_TextureArrayLayout.GetElements())
+	{
+		texturesNumber += textureArray.second.GetNumberOfTextures();
+	}
+
+	if(samplersNumber > 0)
+		PreallocateSamplerDescriptors(samplersNumber, samplersRootSigIndex);
+
+	if(texturesNumber > 0)
+		PreallocateTextureDescriptors(texturesNumber, texturesRootSigIndex);
+
+	
 	for (auto& desc : m_TabledDescriptors)
 		m_MergedHeaps.push_back(desc.second.Get());
 	for (auto& desc : m_SamplerDescriptors)
@@ -349,6 +353,10 @@ void Lust::D3D12Shader::CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* 
 	device->CreateShaderResourceView((*texture)->GetResource(), &srvDesc, srvHeapStartHandle);
 }
 
+void Lust::D3D12Shader::CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
+{
+}
+
 void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex)
 {
 	auto device = m_Context->GetDevicePtr();
@@ -385,6 +393,14 @@ void Lust::D3D12Shader::CreateSampler(const SamplerElement& samplerElement, cons
 	samplerHeapStartHandle.ptr += (samplerElement.GetSamplerIndex() * samplerDescriptorSize);
 
 	device->CreateSampler(&samplerDesc, samplerHeapStartHandle);
+}
+
+void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
+{
+}
+
+void Lust::D3D12Shader::CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset)
+{
 }
 
 void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex)

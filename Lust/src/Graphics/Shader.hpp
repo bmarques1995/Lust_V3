@@ -28,11 +28,14 @@ namespace Lust
 		UniformLayout m_UniformLayout;
 		TextureLayout m_TextureLayout;
 		SamplerLayout m_SamplerLayout;
+		TextureArrayLayout m_TextureArrayLayout;
+		SamplerArrayLayout m_SamplerArrayLayout;
 		StructuredBufferLayout m_StructuredBufferLayout;
 		Topology m_Topology = Topology::LUST_TOPOLOGY_TRIANGLELIST;
 		
 		InputInfo(uint32_t stages);
-		InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout, StructuredBufferLayout structuredBufferLayout);
+		InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout, 
+			TextureArrayLayout textureArrayLayout, SamplerArrayLayout samplerArrayLayout, StructuredBufferLayout structuredBufferLayout);
 	};
 
 	class LUST_API Shader
@@ -45,6 +48,8 @@ namespace Lust
 		const UniformLayout& GetUniformLayout() const;
 		const TextureLayout& GetTextureLayout() const;
 		const SamplerLayout& GetSamplerLayout() const;
+		const TextureArrayLayout& GetTextureArrayLayout() const;
+		const SamplerArrayLayout& GetSamplerArrayLayout() const;
 
 		virtual ~Shader() = default;
 		virtual void Stage() = 0;
@@ -54,19 +59,14 @@ namespace Lust
 		const std::string& GetName() const;
 		void SetName(const std::string& name);
 
-		const std::unordered_map<std::string, TextureElement>& GetTextureElements() const;
 		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) = 0;
-
-		const std::unordered_map<std::string, UniformElement>& GetUniformElements() const;
+		virtual void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset) = 0;
 		virtual void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) = 0;
 
-		const std::unordered_map<std::string, StructuredBufferElement>& GetStructuredBufferElements() const;
 		virtual void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) = 0;
 
-		const std::unordered_map<std::string, SamplerElement>& GetSamplerElements() const;
 		virtual void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) = 0;
-		
-		const std::unordered_map<std::string, SmallBufferElement>& GetSmallBufferElements() const;
+		virtual void CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset) = 0;
 
 		virtual void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;
@@ -83,6 +83,8 @@ namespace Lust
 		UniformLayout m_UniformLayout;
 		TextureLayout m_TextureLayout;
 		SamplerLayout m_SamplerLayout;
+		TextureArrayLayout m_TextureArrayLayout;
+		SamplerArrayLayout m_SamplerArrayLayout;
 		StructuredBufferLayout m_StructuredBufferLayout;
 
 		static void InitJsonAndPaths(std::string json_controller_path, Json::Value* pipelineInfo, std::string* shaderDir);

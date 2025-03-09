@@ -28,7 +28,8 @@ void Lust::Renderer2D::Instantiate()
 
 	InputInfo renderer2DInputInfoController2(s_Renderer2DStorage->m_ShaderReflector->GetInputLayout(), s_Renderer2DStorage->m_ShaderReflector->GetSmallBufferLayout(), 
 		s_Renderer2DStorage->m_ShaderReflector->GetUniformLayout(), s_Renderer2DStorage->m_ShaderReflector->GetTextureLayout(),
-		s_Renderer2DStorage->m_ShaderReflector->GetSamplerLayout(), s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout());
+		s_Renderer2DStorage->m_ShaderReflector->GetSamplerLayout(), s_Renderer2DStorage->m_ShaderReflector->GetTextureArrayLayout(),
+		s_Renderer2DStorage->m_ShaderReflector->GetSamplerArrayLayout(), s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout());
 
 	*s_SceneData = {
 		Eigen::Matrix4f::Identity(),

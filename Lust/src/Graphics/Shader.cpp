@@ -21,17 +21,20 @@ Lust::SizeMismatchException::SizeMismatchException(size_t layoutSize, size_t pro
 Lust::InputInfo::InputInfo(uint32_t stages) :
 	m_SmallBufferLayout({ {}, stages }), m_UniformLayout({ {}, stages }),
 	m_StructuredBufferLayout({ {}, stages }), m_InputLayout({ {} }),
-	m_TextureLayout({ {}, stages }), m_SamplerLayout({ {} })
-
+	m_TextureLayout({ {}, stages }), m_SamplerLayout({ {} }),
+	m_TextureArrayLayout({ {}, stages }), m_SamplerArrayLayout({ {} })
 {
 }
 
-Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout, StructuredBufferLayout structuredBufferLayout) :
+Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smallBufferLayout, UniformLayout uniformLayout, TextureLayout textureLayout, SamplerLayout samplerLayout,
+	TextureArrayLayout textureArrayLayout, SamplerArrayLayout samplerArrayLayout, StructuredBufferLayout structuredBufferLayout) :
 	m_InputLayout(inputLayout),
 	m_SmallBufferLayout(smallBufferLayout),
 	m_UniformLayout(uniformLayout),
 	m_TextureLayout(textureLayout),
 	m_SamplerLayout(samplerLayout),
+	m_TextureArrayLayout(textureArrayLayout),
+	m_SamplerArrayLayout(samplerArrayLayout),
 	m_StructuredBufferLayout(structuredBufferLayout)
 {
 }
@@ -42,6 +45,8 @@ Lust::Shader::Shader(const InputInfo& inputInfo, const std::string& filepath)
 	m_UniformLayout(inputInfo.m_UniformLayout),
 	m_TextureLayout(inputInfo.m_TextureLayout),
 	m_SamplerLayout(inputInfo.m_SamplerLayout),
+	m_TextureArrayLayout(inputInfo.m_TextureArrayLayout),
+	m_SamplerArrayLayout(inputInfo.m_SamplerArrayLayout),
 	m_StructuredBufferLayout(inputInfo.m_StructuredBufferLayout)
 {
 	std::filesystem::path fpath = filepath;
@@ -73,19 +78,14 @@ const Lust::SamplerLayout& Lust::Shader::GetSamplerLayout() const
 	return m_SamplerLayout;
 }
 
-const std::unordered_map<std::string, Lust::TextureElement>& Lust::Shader::GetTextureElements() const
+const Lust::TextureArrayLayout& Lust::Shader::GetTextureArrayLayout() const
 {
-	return m_TextureLayout.GetElements();
+	return m_TextureArrayLayout;
 }
 
-const std::unordered_map<std::string, Lust::UniformElement>& Lust::Shader::GetUniformElements() const
+const Lust::SamplerArrayLayout& Lust::Shader::GetSamplerArrayLayout() const
 {
-	return m_UniformLayout.GetElements();
-}
-
-const std::unordered_map<std::string, Lust::StructuredBufferElement>& Lust::Shader::GetStructuredBufferElements() const
-{
-	return m_StructuredBufferLayout.GetElements();
+	return m_SamplerArrayLayout;
 }
 
 const std::string& Lust::Shader::GetName() const

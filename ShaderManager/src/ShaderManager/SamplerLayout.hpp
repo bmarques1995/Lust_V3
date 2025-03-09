@@ -83,6 +83,46 @@ namespace Lust
 		static SamplerElement s_EmptyElement;
 	};
 
+	class LUST_SHADER_MNG_API SamplerArray
+	{
+		friend class SamplerLayout;
+	public:
+		SamplerArray();
+		SamplerArray(uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, uint32_t numberOfSamplers, const std::string& name);
+
+		const std::string& GetName() const;
+
+		uint32_t GetBindingSlot() const;
+		uint32_t GetSpaceSet() const;
+		uint32_t GetShaderRegister() const;
+		uint32_t GetSamplerIndex() const;
+		uint32_t GetNumberOfSamplers() const;
+
+	private:
+		std::string m_Name;
+
+		uint32_t m_NumberOfSamplers;
+		uint32_t m_BindingSlot;
+		uint32_t m_SpaceSet;
+		uint32_t m_ShaderRegister;
+		uint32_t m_SamplerIndex;
+	};
+
+	class LUST_SHADER_MNG_API SamplerArrayLayout
+	{
+	public:
+		SamplerArrayLayout(std::initializer_list<SamplerArray> elements);
+
+		const SamplerArray& GetElement(std::string name) const;
+		const std::unordered_map<std::string, SamplerArray>& GetElements() const;
+
+		void Clear();
+		void Upload(const SamplerArray& element);
+	private:
+		std::unordered_map<std::string, SamplerArray> m_Samplers;
+		static SamplerArray s_EmptyElement;
+	};
+
 	class LUST_SHADER_MNG_API SamplerInfo
 	{
 	public:

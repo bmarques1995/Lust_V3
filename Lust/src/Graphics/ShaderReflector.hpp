@@ -17,12 +17,14 @@ namespace Lust
 		ShaderReflector(uint32_t stages, uint32_t numInstances);
 		virtual ~ShaderReflector() = default;
 
-		const InputBufferLayout& GetInputLayout() const; // { return m_InputBufferLayout; }
-		const SmallBufferLayout& GetSmallBufferLayout() const; // { return m_SmallBufferLayout; }
-		const UniformLayout& GetUniformLayout() const; // { return m_UniformLayout; }
-		const TextureLayout& GetTextureLayout() const; // { return m_TextureLayout; }
-		const SamplerLayout& GetSamplerLayout() const; // { return m_SamplerLayout; }
-		const StructuredBufferLayout& GetStructuredBufferLayout() const; // { return m_StructuredBufferLayout; }
+		const InputBufferLayout& GetInputLayout() const;
+		const SmallBufferLayout& GetSmallBufferLayout() const;
+		const UniformLayout& GetUniformLayout() const;
+		const TextureLayout& GetTextureLayout() const;
+		const SamplerLayout& GetSamplerLayout() const;
+		const TextureArrayLayout& GetTextureArrayLayout() const;
+		const SamplerArrayLayout& GetSamplerArrayLayout() const;
+		const StructuredBufferLayout& GetStructuredBufferLayout() const;
 
 		static ShaderReflector* Instantiate(std::string_view jsonBasepath, uint32_t stages, uint32_t numInstances = 1);
 	
@@ -33,6 +35,8 @@ namespace Lust
 		StructuredBufferLayout m_StructuredBufferLayout;
 		TextureLayout m_TextureLayout;
 		SamplerLayout m_SamplerLayout;
+		TextureArrayLayout m_TextureArrayLayout;
+		SamplerArrayLayout m_SamplerArrayLayout;
 
 		Json::Value m_PipelineInfo;
 		std::string m_ShaderDir;

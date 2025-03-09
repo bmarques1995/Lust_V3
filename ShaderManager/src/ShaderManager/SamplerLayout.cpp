@@ -1,6 +1,7 @@
 #include "SamplerLayout.hpp"
 
 Lust::SamplerElement Lust::SamplerLayout::s_EmptyElement = SamplerElement();
+Lust::SamplerArray Lust::SamplerArrayLayout::s_EmptyElement = SamplerArray();
 
 Lust::SamplerElement::SamplerElement()
 {
@@ -73,6 +74,88 @@ void Lust::SamplerLayout::Clear()
 }
 
 void Lust::SamplerLayout::Upload(const SamplerElement& element)
+{
+	m_Samplers[element.GetName()] = element;
+}
+
+Lust::SamplerArray::SamplerArray()
+{
+	m_SpaceSet = 0;
+	m_ShaderRegister = 0;
+	m_BindingSlot = 0;
+	m_SamplerIndex = 0;
+	m_NumberOfSamplers = 2;
+	m_Name = "";
+}
+
+Lust::SamplerArray::SamplerArray(uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, uint32_t numberOfSamplers, const std::string& name) :
+	m_BindingSlot(bindingSlot),
+	m_SpaceSet(spaceSet),
+	m_ShaderRegister(shaderRegister),
+	m_SamplerIndex(samplerIndex),
+	m_NumberOfSamplers(numberOfSamplers),
+	m_Name(name)
+{
+}
+
+const std::string& Lust::SamplerArray::GetName() const
+{
+	return m_Name;
+}
+
+uint32_t Lust::SamplerArray::GetBindingSlot() const
+{
+	return m_BindingSlot;
+}
+
+uint32_t Lust::SamplerArray::GetSpaceSet() const
+{
+	return m_SpaceSet;
+}
+
+uint32_t Lust::SamplerArray::GetShaderRegister() const
+{
+	return m_ShaderRegister;
+}
+
+uint32_t Lust::SamplerArray::GetSamplerIndex() const
+{
+	return m_SamplerIndex;
+}
+
+uint32_t Lust::SamplerArray::GetNumberOfSamplers() const
+{
+	return m_NumberOfSamplers;
+}
+
+Lust::SamplerArrayLayout::SamplerArrayLayout(std::initializer_list<SamplerArray> elements)
+{
+	for (auto& element : elements)
+	{
+		m_Samplers[element.GetName()] = element;
+	}
+}
+
+const Lust::SamplerArray& Lust::SamplerArrayLayout::GetElement(std::string name) const
+{
+	auto it = m_Samplers.find(name);
+	if (it != m_Samplers.end())
+		return it->second;
+	else
+		return s_EmptyElement;
+}
+
+const std::unordered_map<std::string, Lust::SamplerArray>& Lust::SamplerArrayLayout::GetElements() const
+{
+	return m_Samplers;
+}
+
+void Lust::SamplerArrayLayout::Clear()
+{
+	m_Samplers.clear();
+}
+
+void Lust::SamplerArrayLayout::Upload(const SamplerArray& element)
 {
 	m_Samplers[element.GetName()] = element;
 }

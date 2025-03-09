@@ -25,8 +25,10 @@ void Lust::SandCoffin2D::OnAttach()
 	SamplerInfo samplerInfoController(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
 
 	m_Renderer2DShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/TexturedRenderer2D", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
-	InputInfo inputInfoController(m_Renderer2DShaderReflector->GetInputLayout(), m_Renderer2DShaderReflector->GetSmallBufferLayout(), m_Renderer2DShaderReflector->GetUniformLayout(),
-		m_Renderer2DShaderReflector->GetTextureLayout(), m_Renderer2DShaderReflector->GetSamplerLayout(), m_Renderer2DShaderReflector->GetStructuredBufferLayout());
+	InputInfo inputInfoController(m_Renderer2DShaderReflector->GetInputLayout(), m_Renderer2DShaderReflector->GetSmallBufferLayout(),
+		m_Renderer2DShaderReflector->GetUniformLayout(), m_Renderer2DShaderReflector->GetTextureLayout(),
+		m_Renderer2DShaderReflector->GetSamplerLayout(), m_Renderer2DShaderReflector->GetTextureArrayLayout(),
+		m_Renderer2DShaderReflector->GetSamplerArrayLayout(), m_Renderer2DShaderReflector->GetStructuredBufferLayout());
 	m_Renderer2DShader.reset(Shader::Instantiate(context, "./assets/shaders/TexturedRenderer2D", inputInfoController));
 	m_Renderer2DShader->CreateSampler(m_Renderer2DShader->GetSamplerLayout().GetElement("dynamicSampler"), samplerInfoController);
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
@@ -37,14 +39,14 @@ void Lust::SandCoffin2D::OnAttach()
 	m_Renderer2DRawSmallBufferSize = m_Renderer2DShader->GetSmallBufferLayout().GetElement("m_SmallMVP").GetSize();
 	m_Renderer2DRawSmallBuffer = new uint8_t[m_Renderer2DRawSmallBufferSize];
 
-	auto textureElement = m_Renderer2DShader->GetTextureElements().find("renderTexture");
-	if (textureElement != m_Renderer2DShader->GetTextureElements().end())
+	auto textureElement = m_Renderer2DShader->GetTextureLayout().GetElements().find("renderTexture");
+	if (textureElement != m_Renderer2DShader->GetTextureLayout().GetElements().end())
 		m_Renderer2DShader->UploadTexture2D(&m_Renderer2DTexture, textureElement->second);
 	else
 		Lust::Console::Assert(false, "Could not find texture element in shader: {}", m_Renderer2DShader->GetName());
 
-	auto uniformElement = m_Renderer2DShader->GetUniformElements().find("m_CompleteMVP");
-	if (uniformElement != m_Renderer2DShader->GetUniformElements().end())
+	auto uniformElement = m_Renderer2DShader->GetUniformLayout().GetElements().find("m_CompleteMVP");
+	if (uniformElement != m_Renderer2DShader->GetUniformLayout().GetElements().end())
 		m_Renderer2DShader->UploadConstantBuffer(&m_Renderer2DUniformBuffer, uniformElement->second);
 	else
 		Lust::Console::Assert(false, "Could not find uniform element in shader: {}", m_Renderer2DShader->GetName());

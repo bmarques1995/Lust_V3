@@ -39,6 +39,9 @@ namespace Lust
 
 		void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) override;
 
+		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset) override;
+		void CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset) override;
+
 	private:
 		void StartDXC();
 
@@ -48,6 +51,7 @@ namespace Lust
 		void CreateTabledSRV(const std::shared_ptr<D3D12StructuredBuffer>* buffer, StructuredBufferElement uniformElement);
 
 		void CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement);
+		void CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureArray& textureArray, uint32_t offset);
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
 		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);
 

@@ -38,18 +38,23 @@ namespace Lust
 
 		void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) override;
 
+		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset) override;
+		void CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset) override;
+
 	private:
 
 		void PreallocatesDescSets();
 
 		void CreateDescriptorSetLayout();
 		void CreateDescriptorPool();
-		void CreateDescriptorSets();
 
 		void CreateBuffer(size_t bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
 
 		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureElement& textureElement);
+		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset);
+		
 		void CreateUniformDescriptorSet(const std::shared_ptr<VKUniformBuffer>* buffer, const UniformElement& uniformElement);
+		
 		void CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& uniformElement);
 
 		void UpdateSamplerDescriptorSet(const SamplerElement& samplerElement);

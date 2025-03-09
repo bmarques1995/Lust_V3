@@ -89,6 +89,8 @@ Lust::D3D12ShaderReflector::D3D12ShaderReflector(std::string_view jsonFilepath, 
 	m_StructuredBufferLayout.Clear();
 	m_TextureLayout.Clear();
 	m_SamplerLayout.Clear();
+	m_TextureArrayLayout.Clear();
+	m_SamplerArrayLayout.Clear();
 	UploadBlob("rs", m_RootBlob.GetAddressOf());
 	ReflectRootBlob();
 	for (auto it = s_GraphicsPipelineStages.begin(); it != s_GraphicsPipelineStages.end(); it++)

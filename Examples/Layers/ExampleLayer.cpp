@@ -42,8 +42,10 @@ void ExampleLayer::OnAttach()
 	m_SmallMVP.model = model_transform.matrix();
 
 	m_ShaderReflector.reset(Lust::ShaderReflector::Instantiate("./Examples/Layers/assets/shaders/HelloTriangle", Lust::AllowedStages::VERTEX_STAGE | Lust::AllowedStages::PIXEL_STAGE));
-	Lust::InputInfo inputInfoController(m_ShaderReflector->GetInputLayout(), m_ShaderReflector->GetSmallBufferLayout(), m_ShaderReflector->GetUniformLayout(),
-		m_ShaderReflector->GetTextureLayout(), m_ShaderReflector->GetSamplerLayout(), m_ShaderReflector->GetStructuredBufferLayout());
+	Lust::InputInfo inputInfoController(m_ShaderReflector->GetInputLayout(), m_ShaderReflector->GetSmallBufferLayout(),
+		m_ShaderReflector->GetUniformLayout(),	m_ShaderReflector->GetTextureLayout(),
+		m_ShaderReflector->GetSamplerLayout(), m_ShaderReflector->GetTextureArrayLayout(),
+		m_ShaderReflector->GetSamplerArrayLayout(), m_ShaderReflector->GetStructuredBufferLayout());
 
 	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/HelloTriangle", inputInfoController);
 	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
@@ -55,7 +57,7 @@ void ExampleLayer::OnAttach()
 	std::vector<std::shared_ptr<Lust::Texture2D>*> textures;
 	textures.push_back(&m_Texture1);
 	textures.push_back(&m_Texture2);
-	auto textureElements = m_Shader->GetTextureElements();
+	auto textureElements = m_Shader->GetTextureLayout().GetElements();
 	size_t i = 0;
 	for (auto& textureElement : textureElements)
 	{
@@ -88,10 +90,12 @@ void ExampleLayer::OnAttach()
 
 	delete[] m_SSBO;
 
-	Lust::InputInfo squareInputInfoController(m_SquareShaderReflector->GetInputLayout(), m_SquareShaderReflector->GetSmallBufferLayout(), m_SquareShaderReflector->GetUniformLayout(),
-		m_SquareShaderReflector->GetTextureLayout(), m_SquareShaderReflector->GetSamplerLayout(), m_SquareShaderReflector->GetStructuredBufferLayout());
+	Lust::InputInfo squareInputInfoController(m_SquareShaderReflector->GetInputLayout(), m_SquareShaderReflector->GetSmallBufferLayout(),
+		m_SquareShaderReflector->GetUniformLayout(), m_SquareShaderReflector->GetTextureLayout(),
+		m_SquareShaderReflector->GetSamplerLayout(), m_SquareShaderReflector->GetTextureArrayLayout(),
+		m_SquareShaderReflector->GetSamplerArrayLayout(), m_SquareShaderReflector->GetStructuredBufferLayout());
 
-	m_ShaderLibrary->Load("./Examples/Layers//assets/shaders/FlatColor", squareInputInfoController);
+	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/FlatColor", squareInputInfoController);
 	m_SquareShader = m_ShaderLibrary->Get("FlatColor");
 
 	m_SquareUniformBuffer.reset(Lust::UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
