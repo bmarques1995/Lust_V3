@@ -163,3 +163,10 @@ target_installation_behaviour(
 				  ./include/Lust/third_party/imgui/public)
 
 # TODO: Adicione testes e instale destinos, se necessário.
+
+add_custom_target(copy_core_assets ALL
+			COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"${CMAKE_CURRENT_SOURCE_DIR}/assets"
+			${CMAKE_PREFIX_PATH}/bin/assets
+			COMMENT "Copying D3D12Core dll into binary directory")
+add_dependencies(${TARGET_NAME} copy_core_assets)
