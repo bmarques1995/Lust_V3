@@ -44,6 +44,9 @@ namespace Lust
 
 		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset) override;
 
+		void UploadTexturePackedDescSet(const TextureArray& textureArray) override;
+		void UploadSamplerPackedDescSet(const SamplerArray& samplerArray) override;
+
 	private:
 		void StartDXC();
 

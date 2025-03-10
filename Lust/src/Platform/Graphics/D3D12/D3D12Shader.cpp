@@ -436,6 +436,14 @@ void Lust::D3D12Shader::UploadSampler(const std::shared_ptr<Sampler>* sampler, c
 	CreateSamplerView((const std::shared_ptr<D3D12Sampler>*) sampler, samplerArray, offset);
 }
 
+void Lust::D3D12Shader::UploadTexturePackedDescSet(const TextureArray& textureArray)
+{
+}
+
+void Lust::D3D12Shader::UploadSamplerPackedDescSet(const SamplerArray& samplerArray)
+{
+}
+
 void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex)
 {	
 	auto device = m_Context->GetDevicePtr();

@@ -577,21 +577,6 @@ void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2
     imageInfo.sampler = nullptr;
 
     m_TextureArrayDescriptors[textureArray.GetName()][offset] = imageInfo;
-
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-
-    VkWriteDescriptorSet descriptorWrite{};
-
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_DescriptorSets[textureArray.GetSpaceSet()];
-    descriptorWrite.dstBinding = textureArray.GetBindingSlot();
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
-    descriptorWrite.descriptorCount = textureArray.GetNumberOfTextures();
-    descriptorWrite.pImageInfo = m_TextureArrayDescriptors[textureArray.GetName()].data();
-
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::CreateSamplerDescriptorSet(const std::shared_ptr<VKSampler>* sampler, const SamplerElement& samplerElement)
@@ -625,22 +610,7 @@ void Lust::VKShader::CreateSamplerDescriptorSet(const std::shared_ptr<VKSampler>
     imageInfo.imageView = nullptr;
     imageInfo.sampler = (*sampler)->GetSampler();
 
-    m_TextureArrayDescriptors[samplerArray.GetName()][offset] = imageInfo;
-
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-
-    VkWriteDescriptorSet descriptorWrite{};
-
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = m_DescriptorSets[samplerArray.GetSpaceSet()];
-    descriptorWrite.dstBinding = samplerArray.GetBindingSlot();
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
-    descriptorWrite.descriptorCount = samplerArray.GetNumberOfSamplers();
-    descriptorWrite.pImageInfo = m_SamplerArrayDescriptors[samplerArray.GetName()].data();
-
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    m_SamplerArrayDescriptors[samplerArray.GetName()][offset] = imageInfo;
 }
 
 void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& structuredBufferElement)
@@ -717,6 +687,42 @@ void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, 
 void Lust::VKShader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset)
 {
 	CreateSamplerDescriptorSet((const std::shared_ptr<VKSampler>*) sampler, samplerArray, offset);
+}
+
+void Lust::VKShader::UploadTexturePackedDescSet(const TextureArray& textureArray)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[textureArray.GetSpaceSet()];
+    descriptorWrite.dstBinding = textureArray.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
+    descriptorWrite.descriptorCount = textureArray.GetNumberOfTextures();
+    descriptorWrite.pImageInfo = m_TextureArrayDescriptors[textureArray.GetName()].data();
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+}
+
+void Lust::VKShader::UploadSamplerPackedDescSet(const SamplerArray& samplerArray)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[samplerArray.GetSpaceSet()];
+    descriptorWrite.dstBinding = samplerArray.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
+    descriptorWrite.descriptorCount = samplerArray.GetNumberOfSamplers();
+    descriptorWrite.pImageInfo = m_SamplerArrayDescriptors[samplerArray.GetName()].data();
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc)

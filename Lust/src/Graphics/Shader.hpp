@@ -72,6 +72,9 @@ namespace Lust
 		virtual void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;
 
+		virtual void UploadTexturePackedDescSet(const TextureArray& textureArray) = 0;
+		virtual void UploadSamplerPackedDescSet(const SamplerArray& samplerArray) = 0;
+
 		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo);
 
 	protected:

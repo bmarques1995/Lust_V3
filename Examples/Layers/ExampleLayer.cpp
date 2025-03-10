@@ -54,8 +54,8 @@ void ExampleLayer::OnAttach()
 	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/HelloTriangle", inputInfoController);
 	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
 	
-	m_Shader->UploadSampler(&m_LinearSampler, m_Shader->GetSamplerLayout().GetElement("dynamicSampler"));
-	m_Shader->UploadSampler(&m_PointSampler, m_Shader->GetSamplerLayout().GetElement("dynamicSampler2"));
+	//m_Shader->UploadSampler(&m_LinearSampler, m_Shader->GetSamplerLayout().GetElement("dynamicSampler"));
+	//m_Shader->UploadSampler(&m_PointSampler, m_Shader->GetSamplerLayout().GetElement("dynamicSampler2"));
 	m_Shader->UploadConstantBuffer(&m_UniformBuffer, m_Shader->GetUniformLayout().GetElement("m_CompleteMVP"));
 	std::vector<std::shared_ptr<Lust::Texture2D>*> textures;
 	textures.push_back(&m_Texture1);
@@ -67,6 +67,19 @@ void ExampleLayer::OnAttach()
 		{
 			m_Shader->UploadTexture2D((textures[j]), textureArray.second, j);
 		}
+		m_Shader->UploadTexturePackedDescSet(textureArray.second);
+	}
+	std::vector<std::shared_ptr<Lust::Sampler>*> samplers;
+	samplers.push_back(&m_LinearSampler);
+	samplers.push_back(&m_PointSampler);
+	auto samplerArrays = m_Shader->GetSamplerArrayLayout().GetElements();
+	for (auto& samplerArray : samplerArrays)
+	{
+		for (size_t j = 0; j < samplerArray.second.GetNumberOfSamplers(); j++)
+		{
+			m_Shader->UploadSampler((samplers[j]), samplerArray.second, j);
+		}
+		m_Shader->UploadSamplerPackedDescSet(samplerArray.second);
 	}
 	m_VertexBuffer.reset(Lust::VertexBuffer::Instantiate(context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), m_Shader->GetInputLayout().GetStride()));
 	m_IndexBuffer.reset(Lust::IndexBuffer::Instantiate(context, (const void*)&m_IBuffer[0], sizeof(m_IBuffer) / sizeof(uint32_t)));
@@ -116,6 +129,8 @@ void ExampleLayer::OnDetach()
 	m_SquareVertexBuffer.reset();
 	m_SquareShader.reset();
 	m_CameraController.reset();
+	m_LinearSampler.reset();
+	m_PointSampler.reset();
 	m_Texture2.reset();
 	m_Texture1.reset();
 	m_IndexBuffer.reset();
