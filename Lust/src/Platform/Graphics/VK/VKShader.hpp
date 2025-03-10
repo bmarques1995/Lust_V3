@@ -39,6 +39,7 @@ namespace Lust
 		void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) override;
 
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset) override;
+
 		void CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset) override;
 
 	private:
@@ -51,7 +52,7 @@ namespace Lust
 		void CreateBuffer(size_t bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
 
 		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureElement& textureElement);
-		void CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset);
+		void CreateTextureDescriptorSetInfo(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset);
 		
 		void CreateUniformDescriptorSet(const std::shared_ptr<VKUniformBuffer>* buffer, const UniformElement& uniformElement);
 		
@@ -85,6 +86,9 @@ namespace Lust
 
 		std::unordered_map<std::string, VkShaderModule> m_Modules;
 		std::unordered_map<std::string, std::string> m_ModulesEntrypoint;
+
+		std::unordered_map<std::string, std::vector<VkDescriptorImageInfo>> m_TextureArrayDescriptors;
+		std::unordered_map<std::string, std::vector<VkDescriptorImageInfo>> m_SamplerArrayDescriptors;
 
 		//std::unordered_map<uint32_t, RM> m_Uniforms;
 		//std::unordered_map<uint32_t, RM> m_SSBOs;

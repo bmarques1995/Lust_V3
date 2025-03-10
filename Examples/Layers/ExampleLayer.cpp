@@ -57,12 +57,13 @@ void ExampleLayer::OnAttach()
 	std::vector<std::shared_ptr<Lust::Texture2D>*> textures;
 	textures.push_back(&m_Texture1);
 	textures.push_back(&m_Texture2);
-	auto textureElements = m_Shader->GetTextureLayout().GetElements();
-	size_t i = 0;
-	for (auto& textureElement : textureElements)
+	auto textureArrays = m_Shader->GetTextureArrayLayout().GetElements();
+	for (auto& textureArray : textureArrays)
 	{
-		m_Shader->UploadTexture2D((textures[i]), textureElement.second);
-		i++;
+		for (size_t j = 0; j < textureArray.second.GetNumberOfTextures(); j++)
+		{
+			m_Shader->UploadTexture2D((textures[j]), textureArray.second, j);
+		}
 	}
 	m_VertexBuffer.reset(Lust::VertexBuffer::Instantiate(context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), m_Shader->GetInputLayout().GetStride()));
 	m_IndexBuffer.reset(Lust::IndexBuffer::Instantiate(context, (const void*)&m_IBuffer[0], sizeof(m_IBuffer) / sizeof(uint32_t)));

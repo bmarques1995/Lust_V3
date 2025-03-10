@@ -355,6 +355,25 @@ void Lust::D3D12Shader::CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* 
 
 void Lust::D3D12Shader::CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
 {
+	auto device = m_Context->GetDevicePtr();
+	size_t descriptorOffset = textureArray.GetTextureIndex() + offset;
+
+	auto srvHeapStartHandle = m_TabledDescriptors[textureArray.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
+	UINT srvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	srvHeapStartHandle.ptr += (descriptorOffset * srvDescriptorSize);
+
+	auto textureBufferDesc = (*texture)->GetResource()->GetDesc1();
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = textureBufferDesc.Format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = -1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0;
+	srvDesc.Texture2D.PlaneSlice = 0;
+
+	device->CreateShaderResourceView((*texture)->GetResource(), &srvDesc, srvHeapStartHandle);
 }
 
 void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex)
@@ -397,6 +416,7 @@ void Lust::D3D12Shader::CreateSampler(const SamplerElement& samplerElement, cons
 
 void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
 {
+	CreateTextureSRV((const std::shared_ptr<D3D12Texture2D>*) texture, textureArray, offset);
 }
 
 void Lust::D3D12Shader::CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset)

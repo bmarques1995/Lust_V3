@@ -218,58 +218,72 @@ void Lust::D3D12ShaderReflector::PushDescriptorTable(const D3D12_ROOT_PARAMETER&
 	auto context = Application::GetInstance()->GetContext();
 	for (size_t j = 0; j < param.DescriptorTable.NumDescriptorRanges; j++)
 	{
-		for (size_t k = 0; k < param.DescriptorTable.pDescriptorRanges[j].NumDescriptors; k++, descriptorOffset++)
+		auto it = s_ReturnRangeTypesMap.find(param.DescriptorTable.pDescriptorRanges[j].RangeType);
+		if (it != s_ReturnRangeTypesMap.end())
 		{
-			auto it = s_ReturnRangeTypesMap.find(param.DescriptorTable.pDescriptorRanges[j].RangeType);
-			if (it != s_ReturnRangeTypesMap.end())
-			{
-				index = ((uint32_t)it->second << 16);
-				index += (param.DescriptorTable.pDescriptorRanges[j].BaseShaderRegister + k);
-			}
+			index = ((uint32_t)it->second << 16);
+			index += (param.DescriptorTable.pDescriptorRanges[j].BaseShaderRegister);
+		}
 
-			auto buffersIt = m_BuffersMap.find(index);
-			size_t bufferSize = 0;
-			D3D12_SHADER_INPUT_BIND_DESC bufferDesc = buffersIt != m_BuffersMap.end() ? buffersIt->second : D3D12_SHADER_INPUT_BIND_DESC{};
+		
 
-			auto bufferNamesIt = m_BuffersMapName.find(index);
-			std::string bufferName = bufferNamesIt != m_BuffersMapName.end() ? bufferNamesIt->second : "";
+		auto buffersIt = m_BuffersMap.find(index);
+		size_t bufferSize = 0;
+		D3D12_SHADER_INPUT_BIND_DESC bufferDesc = buffersIt != m_BuffersMap.end() ? buffersIt->second : D3D12_SHADER_INPUT_BIND_DESC{};
 
-			if (bufferDesc.Type == D3D_SIT_CBUFFER)
-			{
-				auto bufferMapIt = m_BuffersMapSizes.find(index);
-				D3D12_SHADER_BUFFER_DESC cbDesc = bufferMapIt != m_BuffersMapSizes.end() ? bufferMapIt->second : D3D12_SHADER_BUFFER_DESC{};
-				bufferSize = cbDesc.Size;
-			}
-			if (bufferDesc.Type == D3D_SIT_STRUCTURED)
-			{
-				bufferSize = bufferDesc.NumSamples;
-			}
-			switch (bufferDesc.Type)
-			{
-			case D3D_SIT_CBUFFER:
-				//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex, std::string name
-				m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, rootIndex, AccessLevel::DESCRIPTOR_BUFFER, 1, context->GetUniformAttachment(), descriptorOffset, bufferName));
-				break;
-			case D3D_SIT_TEXTURE:
+		auto bufferNamesIt = m_BuffersMapName.find(index);
+		std::string bufferName = bufferNamesIt != m_BuffersMapName.end() ? bufferNamesIt->second : "";
+
+		if (bufferDesc.Type == D3D_SIT_CBUFFER)
+		{
+			auto bufferMapIt = m_BuffersMapSizes.find(index);
+			D3D12_SHADER_BUFFER_DESC cbDesc = bufferMapIt != m_BuffersMapSizes.end() ? bufferMapIt->second : D3D12_SHADER_BUFFER_DESC{};
+			bufferSize = cbDesc.Size;
+		}
+		if (bufferDesc.Type == D3D_SIT_STRUCTURED)
+		{
+			bufferSize = bufferDesc.NumSamples;
+		}
+		switch (bufferDesc.Type)
+		{
+		case D3D_SIT_CBUFFER:
+			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex, std::string name
+			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, rootIndex, AccessLevel::DESCRIPTOR_BUFFER, 1, context->GetUniformAttachment(), descriptorOffset, bufferName));
+			break;
+		case D3D_SIT_TEXTURE:
+		{
+			if (param.DescriptorTable.pDescriptorRanges[j].NumDescriptors > 1)
+				//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
+				m_TextureArrayLayout.Upload(TextureArray(0, 0, rootIndex, descriptorOffset, param.DescriptorTable.pDescriptorRanges[j].NumDescriptors, bufferName));
+			
+			else
 				//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
 				m_TextureLayout.Upload(TextureElement(0, 0, rootIndex, descriptorOffset, bufferName));
-				break;
-			case D3D_SIT_SAMPLER:
-				/*SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode,
-	uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t samplerIndex, const std::string& name*/
-				m_SamplerLayout.Upload(SamplerElement(0, 0, rootIndex, descriptorOffset, bufferName));
-				break;
-			case D3D_SIT_STRUCTURED:
-				/*
-				uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride,
-	AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements
-				*/
-				m_StructuredBufferLayout.Upload(StructuredBufferElement(0, rootIndex, 0, descriptorOffset, bufferSize, AccessLevel::DESCRIPTOR_BUFFER, context->GetUniformAttachment(), bufferName, m_NumberOfInstances));
-				break;
-			default:
-				break;
-			}
+			break;
 		}
+		case D3D_SIT_SAMPLER:
+		{
+			if (param.DescriptorTable.pDescriptorRanges[j].NumDescriptors > 1)
+				//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
+				m_SamplerArrayLayout.Upload(SamplerArray(0, 0, rootIndex, descriptorOffset, param.DescriptorTable.pDescriptorRanges[j].NumDescriptors, bufferName));
+
+			else
+				//uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, uint32_t textureIndex, std::string name
+				m_SamplerLayout.Upload(SamplerElement(0, 0, rootIndex, descriptorOffset, bufferName));
+			break;
+		}
+		case D3D_SIT_STRUCTURED:
+			/*
+			uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride,
+AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements
+			*/
+			m_StructuredBufferLayout.Upload(StructuredBufferElement(0, rootIndex, 0, descriptorOffset, bufferSize, AccessLevel::DESCRIPTOR_BUFFER, context->GetUniformAttachment(), bufferName, m_NumberOfInstances));
+			break;
+		default:
+			break;
+		}
+
+		descriptorOffset += param.DescriptorTable.pDescriptorRanges[j].NumDescriptors;
 	}
 }
 

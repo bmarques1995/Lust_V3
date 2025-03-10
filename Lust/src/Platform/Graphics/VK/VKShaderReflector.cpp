@@ -182,14 +182,30 @@ void Lust::VKShaderReflector::CreateUniformElement(SpvReflectDescriptorBinding**
 
 void Lust::VKShaderReflector::CreateTextureElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
 {
-	TextureElement te((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
-	instance->m_TextureLayout.Upload(te);
+	if ((*reflector_binder)->count > 1)
+	{
+		TextureArray ta((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->count, (*reflector_binder)->name);
+		instance->m_TextureArrayLayout.Upload(ta);
+	}
+	else
+	{
+		TextureElement te((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
+		instance->m_TextureLayout.Upload(te);
+	}
 }
 
 void Lust::VKShaderReflector::CreateSamplerElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
 {
-	SamplerElement se((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
-	instance->m_SamplerLayout.Upload(se);
+	if ((*reflector_binder)->count > 1)
+	{
+		SamplerArray sa((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->count, (*reflector_binder)->name);
+		instance->m_SamplerArrayLayout.Upload(sa);
+	}
+	else
+	{
+		SamplerElement se((*reflector_binder)->binding, (*reflector_binder)->set, 0, 0, (*reflector_binder)->name);
+		instance->m_SamplerLayout.Upload(se);
+	}
 }
 
 void Lust::VKShaderReflector::CreateStructuredBufferElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)

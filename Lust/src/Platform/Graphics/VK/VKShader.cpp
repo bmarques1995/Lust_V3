@@ -338,12 +338,48 @@ void Lust::VKShader::CreateDescriptorSetLayout()
         bindings.push_back(binding);
     }
 
+    auto textureArrays = m_TextureArrayLayout.GetElements();
+    for (auto& i : textureArrays)
+    {
+        VkDescriptorSetLayoutBinding binding{};
+        binding.binding = i.second.GetBindingSlot();
+        binding.descriptorCount = i.second.GetNumberOfTextures();
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        binding.pImmutableSamplers = nullptr;
+        VkShaderStageFlags stageFlag = 0x0;
+
+        for (auto& i : s_EnumStageCaster)
+            if ((i.first & m_UniformLayout.GetStages()) != 0)
+                stageFlag |= i.second;
+
+        binding.stageFlags = stageFlag;
+        bindings.push_back(binding);
+    }
+
     auto samplerElements = m_SamplerLayout.GetElements();
     for (auto& i : samplerElements)
     {
         VkDescriptorSetLayoutBinding binding{};
         binding.binding = i.second.GetBindingSlot();
         binding.descriptorCount = 1;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+        binding.pImmutableSamplers = nullptr;
+        VkShaderStageFlags stageFlag = 0x0;
+
+        for (auto& i : s_EnumStageCaster)
+            if ((i.first & m_UniformLayout.GetStages()) != 0)
+                stageFlag |= i.second;
+
+        binding.stageFlags = stageFlag;
+        bindings.push_back(binding);
+    }
+
+    auto samplerArrays = m_SamplerArrayLayout.GetElements();
+    for (auto& i : samplerArrays)
+    {
+        VkDescriptorSetLayoutBinding binding{};
+        binding.binding = i.second.GetBindingSlot();
+        binding.descriptorCount = i.second.GetNumberOfSamplers();
         binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
         binding.pImmutableSamplers = nullptr;
         VkShaderStageFlags stageFlag = 0x0;
@@ -410,6 +446,18 @@ void Lust::VKShader::CreateDescriptorPool()
         poolSize.push_back(poolSizer);
     }
 
+    auto textureArrays = m_TextureArrayLayout.GetElements();
+    for (auto& i : textureArrays)
+    {
+        VkDescriptorPoolSize poolSizer;
+        poolSizer.type = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
+        poolSizer.descriptorCount = i.second.GetNumberOfTextures();
+        poolSize.push_back(poolSizer);
+        m_TextureArrayDescriptors[i.first].clear();
+        m_TextureArrayDescriptors[i.first].reserve(poolSizer.descriptorCount);
+        m_TextureArrayDescriptors[i.first].resize(poolSizer.descriptorCount);
+    }
+
     auto samplerElements = m_SamplerLayout.GetElements();
     for (auto& i : samplerElements)
     {
@@ -419,22 +467,16 @@ void Lust::VKShader::CreateDescriptorPool()
         poolSize.push_back(poolSizer);
     }
 
-    auto textureArrays = m_TextureArrayLayout.GetElements();
-    for (auto& i : textureArrays)
-    {
-        VkDescriptorPoolSize poolSizer;
-        poolSizer.type = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
-        poolSizer.descriptorCount = 1;
-        poolSize.push_back(poolSizer);
-    }
-
     auto samplerArrays = m_SamplerArrayLayout.GetElements();
     for (auto& i : samplerArrays)
     {
         VkDescriptorPoolSize poolSizer;
         poolSizer.type = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
-        poolSizer.descriptorCount = 1;
+        poolSizer.descriptorCount = i.second.GetNumberOfSamplers();
         poolSize.push_back(poolSizer);
+        m_SamplerArrayDescriptors[i.first].clear();
+        m_SamplerArrayDescriptors[i.first].reserve(poolSizer.descriptorCount);
+        m_SamplerArrayDescriptors[i.first].resize(poolSizer.descriptorCount);
     }
 
     VkDescriptorPoolCreateInfo poolInfo{};
@@ -521,8 +563,30 @@ void Lust::VKShader::CreateUniformDescriptorSet(const std::shared_ptr<VKUniformB
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
-void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset)
+void Lust::VKShader::CreateTextureDescriptorSetInfo(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset)
 {
+    VkDescriptorImageInfo imageInfo{};
+
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = (*texture)->GetView();
+    imageInfo.sampler = nullptr;
+
+    m_TextureArrayDescriptors[textureArray.GetName()][offset] = imageInfo;
+
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[textureArray.GetSpaceSet()];
+    descriptorWrite.dstBinding = textureArray.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
+    descriptorWrite.descriptorCount = textureArray.GetNumberOfTextures();
+    descriptorWrite.pImageInfo = m_TextureArrayDescriptors[textureArray.GetName()].data();
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& structuredBufferElement)
@@ -631,6 +695,7 @@ void Lust::VKShader::CreateSampler(const SamplerElement& samplerElement, const S
 
 void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
 {
+    CreateTextureDescriptorSetInfo((const std::shared_ptr<VKTexture2D>*) texture, textureArray, offset);
 }
 
 void Lust::VKShader::CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset)

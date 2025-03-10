@@ -6,7 +6,7 @@ RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT\
 | DENY_DOMAIN_SHADER_ROOT_ACCESS), \
 RootConstants(num32BitConstants=16, b0), \
 CBV(b1),\
-DescriptorTable(SRV(t1, numDescriptors = 1), SRV(t2, numDescriptors = 1)), \
+DescriptorTable(SRV(t1, numDescriptors = 2)), \
 DescriptorTable(Sampler(s1, numDescriptors = 1), Sampler(s2, numDescriptors = 1)), \
 
 struct SmallMVP
@@ -43,8 +43,8 @@ ConstantBuffer<SmallMVP> m_SmallMVP : register(b0);
 
 [[vk::binding(1, 0)]] ConstantBuffer<CompleteMVP> m_CompleteMVP : register(b1);
 
-[[vk::binding(2, 0)]] Texture2D<float4> textureChecker : register(t1);
-[[vk::binding(3, 0)]] Texture2D<float4> textureChecker2 : register(t2);
+[[vk::binding(2, 0)]] Texture2D<float4> textureChecker[2] : register(t1);
+//[[vk::binding(3, 0)]] Texture2D<float4> textureChecker2 : register(t2);
 
 [[vk::binding(4, 0)]] SamplerState dynamicSampler : register(s1);
 [[vk::binding(5, 0)]] SamplerState dynamicSampler2 : register(s2);
@@ -76,8 +76,8 @@ PSInput vs_main(VSInput vsInput)
 
 float4 ps_main(PSInput psInput) : SV_TARGET0
 {
-    float4 pixel1 = textureChecker.SampleLevel(dynamicSampler, psInput.txc, 0.0f);
-    float4 pixel2 = textureChecker2.SampleLevel(dynamicSampler2, psInput.txc, 0.0f);
+    float4 pixel1 = textureChecker[0].SampleLevel(dynamicSampler, psInput.txc, 0.0f);
+    float4 pixel2 = textureChecker[1].SampleLevel(dynamicSampler2, psInput.txc, 0.0f);
     float4 mixPixel;
     if (pixel1.a < 0.8f)
         mixPixel = pixel2;
