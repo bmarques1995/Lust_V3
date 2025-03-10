@@ -232,6 +232,11 @@ void Lust::VKShader::BindDescriptors()
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
 }
 
+void Lust::VKShader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement)
+{
+    CreateSamplerDescriptorSet((const std::shared_ptr<VKSampler>*) sampler, textureElement);
+}
+
 void Lust::VKShader::PreallocatesDescSets()
 {
     auto device = m_Context->GetDevice();
@@ -563,7 +568,7 @@ void Lust::VKShader::CreateUniformDescriptorSet(const std::shared_ptr<VKUniformB
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
 
-void Lust::VKShader::CreateTextureDescriptorSetInfo(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset)
+void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset)
 {
     VkDescriptorImageInfo imageInfo{};
 
@@ -585,6 +590,55 @@ void Lust::VKShader::CreateTextureDescriptorSetInfo(const std::shared_ptr<VKText
     descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::TEXTURE_BUFFER);
     descriptorWrite.descriptorCount = textureArray.GetNumberOfTextures();
     descriptorWrite.pImageInfo = m_TextureArrayDescriptors[textureArray.GetName()].data();
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+}
+
+void Lust::VKShader::CreateSamplerDescriptorSet(const std::shared_ptr<VKSampler>* sampler, const SamplerElement& samplerElement)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+    VkDescriptorImageInfo imageInfo{};
+
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = nullptr;
+    imageInfo.sampler = (*sampler)->GetSampler();
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[samplerElement.GetSpaceSet()];
+    descriptorWrite.dstBinding = samplerElement.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
+    descriptorWrite.descriptorCount = 1;
+    descriptorWrite.pImageInfo = &imageInfo;
+
+    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+}
+
+void Lust::VKShader::CreateSamplerDescriptorSet(const std::shared_ptr<VKSampler>* sampler, const SamplerArray& samplerArray, uint32_t offset)
+{
+    VkDescriptorImageInfo imageInfo{};
+
+    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo.imageView = nullptr;
+    imageInfo.sampler = (*sampler)->GetSampler();
+
+    m_TextureArrayDescriptors[samplerArray.GetName()][offset] = imageInfo;
+
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+
+    VkWriteDescriptorSet descriptorWrite{};
+
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = m_DescriptorSets[samplerArray.GetSpaceSet()];
+    descriptorWrite.dstBinding = samplerArray.GetBindingSlot();
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = GetNativeDescriptorType(BufferType::SAMPLER_BUFFER);
+    descriptorWrite.descriptorCount = samplerArray.GetNumberOfSamplers();
+    descriptorWrite.pImageInfo = m_SamplerArrayDescriptors[samplerArray.GetName()].data();
 
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
 }
@@ -655,51 +709,14 @@ uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
     return 0xffffffff;
 }
 
-void Lust::VKShader::CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info)
-{
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-    auto adapter = m_Context->GetAdapter();
-
-    if (m_Samplers[samplerElement.GetBindingSlot()] != VK_NULL_HANDLE)
-    {
-        vkDeviceWaitIdle(device);
-        vkDestroySampler(device, m_Samplers[samplerElement.GetBindingSlot()], nullptr);
-    }
-
-    VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(adapter, &properties);
-
-    VkSamplerCreateInfo samplerInfo{};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = GetNativeFilter(info.GetFilter());
-    samplerInfo.minFilter = GetNativeFilter(info.GetFilter());
-    samplerInfo.addressModeU = GetNativeAddressMode(info.GetAddressMode());
-    samplerInfo.addressModeV = GetNativeAddressMode(info.GetAddressMode());
-    samplerInfo.addressModeW = GetNativeAddressMode(info.GetAddressMode());
-    samplerInfo.anisotropyEnable = info.GetFilter() == SamplerFilter::ANISOTROPIC ? VK_TRUE : VK_FALSE;
-    samplerInfo.maxAnisotropy = std::min<float>(properties.limits.maxSamplerAnisotropy, (1 << (uint32_t)info.GetAnisotropicFactor()) * 1.0f);
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_TRUE;
-    samplerInfo.compareOp = (VkCompareOp)((uint32_t)info.GetComparisonPassMode());
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = FLT_MAX;
-
-    vkr = vkCreateSampler(device, &samplerInfo, nullptr, &m_Samplers[samplerElement.GetBindingSlot()]);
-    assert(vkr == VK_SUCCESS);
-
-    UpdateSamplerDescriptorSet(samplerElement);
-}
-
 void Lust::VKShader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
 {
-    CreateTextureDescriptorSetInfo((const std::shared_ptr<VKTexture2D>*) texture, textureArray, offset);
+    CreateTextureDescriptorSet((const std::shared_ptr<VKTexture2D>*) texture, textureArray, offset);
 }
 
-void Lust::VKShader::CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset)
+void Lust::VKShader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset)
 {
+	CreateSamplerDescriptorSet((const std::shared_ptr<VKSampler>*) sampler, samplerArray, offset);
 }
 
 void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc)
@@ -850,39 +867,6 @@ VkBufferUsageFlagBits Lust::VKShader::GetNativeBufferUsage(BufferType type)
     default:
     case BufferType::INVALID_BUFFER_TYPE:
         return VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
-    }
-}
-
-VkFilter Lust::VKShader::GetNativeFilter(SamplerFilter filter)
-{
-    switch (filter)
-    {
-    case SamplerFilter::ANISOTROPIC:
-    case SamplerFilter::LINEAR:
-        return VK_FILTER_LINEAR;
-    case SamplerFilter::NEAREST:
-        return VK_FILTER_NEAREST;
-    default:
-        return VK_FILTER_MAX_ENUM;
-    }
-}
-
-VkSamplerAddressMode Lust::VKShader::GetNativeAddressMode(AddressMode addressMode)
-{
-    switch (addressMode)
-    {
-    case AddressMode::REPEAT:
-        return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    case AddressMode::MIRROR:
-        return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-    case AddressMode::CLAMP:
-        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    case AddressMode::BORDER:
-        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-    case AddressMode::MIRROR_ONCE:
-        return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
-    default:
-        return VK_SAMPLER_ADDRESS_MODE_MAX_ENUM;
     }
 }
 

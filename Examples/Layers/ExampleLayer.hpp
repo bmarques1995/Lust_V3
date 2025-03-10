@@ -55,6 +55,9 @@ private:
 	std::shared_ptr<Lust::ShaderLibrary> m_ShaderLibrary;
 	std::shared_ptr<Lust::Texture2DLibrary> m_Texture2DLibrary;
 
+	std::shared_ptr<Lust::Sampler> m_LinearSampler;
+	std::shared_ptr<Lust::Sampler> m_PointSampler;
+
 	std::shared_ptr<Lust::ShaderReflector> m_SquareShaderReflector;
 	std::shared_ptr<Lust::Shader> m_SquareShader;
 	std::shared_ptr<Lust::VertexBuffer> m_SquareVertexBuffer;

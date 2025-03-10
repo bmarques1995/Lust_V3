@@ -8,6 +8,7 @@
 #include "StructuredBufferLayout.hpp"
 #include "Topology.hpp"
 #include "Texture.hpp"
+#include "Sampler.hpp"
 #include "Buffer.hpp"
 #include "GraphicsContext.hpp"
 #include <json/json.h>
@@ -65,8 +66,8 @@ namespace Lust
 
 		virtual void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) = 0;
 
-		virtual void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) = 0;
-		virtual void CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset) = 0;
+		virtual void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& samplerElement) = 0;
+		virtual void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset) = 0;
 
 		virtual void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) = 0;
 		virtual void BindDescriptors() = 0;

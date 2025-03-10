@@ -271,6 +271,11 @@ void Lust::D3D12Shader::BindDescriptors()
 	}
 }
 
+void Lust::D3D12Shader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement)
+{
+	CreateSamplerView((const std::shared_ptr<D3D12Sampler>*) sampler, textureElement);
+}
+
 void Lust::D3D12Shader::StartDXC()
 {
 	HRESULT hr;
@@ -376,6 +381,36 @@ void Lust::D3D12Shader::CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* 
 	device->CreateShaderResourceView((*texture)->GetResource(), &srvDesc, srvHeapStartHandle);
 }
 
+void Lust::D3D12Shader::CreateSamplerView(const std::shared_ptr<D3D12Sampler>* sampler, const SamplerElement& samplerElement)
+{
+	auto device = m_Context->GetDevicePtr();
+	HRESULT hr;
+
+	D3D12_SAMPLER_DESC samplerDesc = (*sampler)->GetSampler();
+
+	auto samplerHeapStartHandle = m_SamplerDescriptors[samplerElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
+	UINT samplerDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	samplerHeapStartHandle.ptr += (samplerElement.GetSamplerIndex() * samplerDescriptorSize);
+
+	device->CreateSampler(&samplerDesc, samplerHeapStartHandle);
+}
+
+void Lust::D3D12Shader::CreateSamplerView(const std::shared_ptr<D3D12Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset)
+{
+	auto device = m_Context->GetDevicePtr();
+	HRESULT hr;
+
+	size_t descriptorOffset = samplerArray.GetSamplerIndex() + offset;
+
+	D3D12_SAMPLER_DESC samplerDesc = (*sampler)->GetSampler();
+
+	auto samplerHeapStartHandle = m_SamplerDescriptors[samplerArray.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
+	UINT samplerDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	samplerHeapStartHandle.ptr += (descriptorOffset * samplerDescriptorSize);
+
+	device->CreateSampler(&samplerDesc, samplerHeapStartHandle);
+}
+
 void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex)
 {
 	auto device = m_Context->GetDevicePtr();
@@ -391,36 +426,14 @@ void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, ui
 	assert(hr == S_OK);
 }
 
-void Lust::D3D12Shader::CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info)
-{
-	auto device = m_Context->GetDevicePtr();
-	HRESULT hr;
-
-	D3D12_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.Filter = GetNativeFilter(info.GetFilter());
-	samplerDesc.AddressU = GetNativeAddressMode(info.GetAddressMode());
-	samplerDesc.AddressV = GetNativeAddressMode(info.GetAddressMode());
-	samplerDesc.AddressW = GetNativeAddressMode(info.GetAddressMode());
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1 << (uint32_t)info.GetAnisotropicFactor();
-	samplerDesc.ComparisonFunc = (D3D12_COMPARISON_FUNC)((uint32_t)info.GetComparisonPassMode() + 1);
-	samplerDesc.MinLOD = 0.0f;
-	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-
-	auto samplerHeapStartHandle = m_SamplerDescriptors[samplerElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart();
-	UINT samplerDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-	samplerHeapStartHandle.ptr += (samplerElement.GetSamplerIndex() * samplerDescriptorSize);
-
-	device->CreateSampler(&samplerDesc, samplerHeapStartHandle);
-}
-
 void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
 {
 	CreateTextureSRV((const std::shared_ptr<D3D12Texture2D>*) texture, textureArray, offset);
 }
 
-void Lust::D3D12Shader::CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset)
+void Lust::D3D12Shader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset)
 {
+	CreateSamplerView((const std::shared_ptr<D3D12Sampler>*) sampler, samplerArray, offset);
 }
 
 void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex)

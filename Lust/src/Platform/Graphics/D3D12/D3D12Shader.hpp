@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "D3D12Context.hpp"
 #include "D3D12Texture.hpp"
+#include "D3D12Sampler.hpp"
 #include "D3D12Buffer.hpp"
 #include "DXCSafeInclude.hpp"
 #include <functional>
@@ -37,10 +38,11 @@ namespace Lust
 
 		void BindDescriptors() override;
 
-		void CreateSampler(const SamplerElement& samplerElement, const SamplerInfo& info) override;
+		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement) override;
 
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset) override;
-		void CreateSampler(const SamplerArray& samplerArray, const SamplerInfo& info, uint32_t offset) override;
+
+		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset) override;
 
 	private:
 		void StartDXC();
@@ -52,6 +54,9 @@ namespace Lust
 
 		void CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureElement& textureElement);
 		void CreateTextureSRV(const std::shared_ptr<D3D12Texture2D>* texture, const TextureArray& textureArray, uint32_t offset);
+		void CreateSamplerView(const std::shared_ptr<D3D12Sampler>* sampler, const SamplerElement& samplerElement);
+		void CreateSamplerView(const std::shared_ptr<D3D12Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset);
+
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
 		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);
 

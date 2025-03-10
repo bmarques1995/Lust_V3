@@ -1,3 +1,5 @@
+#ifdef LUST_USES_WINDOWS
+
 #include "D3D12Drawer.hpp"
 
 Lust::D3D12Drawer::D3D12Drawer(const D3D12Context* context) :
@@ -20,3 +22,5 @@ void Lust::D3D12Drawer::DrawIndexed(uint32_t count, uint32_t instances)
 	auto cmdList = m_Context->GetCurrentCommandList();
 	cmdList->DrawIndexedInstanced(count, instances, 0, 0, 0);
 }
+
+#endif

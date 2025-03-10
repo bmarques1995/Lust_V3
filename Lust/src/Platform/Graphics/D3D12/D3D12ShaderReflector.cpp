@@ -1,3 +1,5 @@
+#ifdef LUST_USES_WINDOWS
+
 #include "D3D12ShaderReflector.hpp"
 #include "FileHandler.hpp"
 #include <Application.hpp>
@@ -399,3 +401,5 @@ Lust::ShaderDataType Lust::D3D12ShaderReflector::CastToShaderDataType(int8_t mas
 	else
 		return ShaderDataType::None;
 }
+
+#endif

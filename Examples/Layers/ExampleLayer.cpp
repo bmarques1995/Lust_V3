@@ -18,6 +18,10 @@ void ExampleLayer::OnAttach()
 
 	m_ShaderLibrary.reset(new Lust::ShaderLibrary(context));
 	m_Texture2DLibrary.reset(new Lust::Texture2DLibrary(context));
+	Lust::SamplerInfo dynamicSamplerInfo(Lust::SamplerFilter::LINEAR, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::BORDER, Lust::ComparisonPassMode::ALWAYS);
+	Lust::SamplerInfo dynamicSamplerInfo2(Lust::SamplerFilter::NEAREST, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::BORDER, Lust::ComparisonPassMode::ALWAYS);
+	m_LinearSampler.reset(Lust::Sampler::Instantiate(context, dynamicSamplerInfo));
+	m_PointSampler.reset(Lust::Sampler::Instantiate(context, dynamicSamplerInfo2));
 
 	m_CompleteMVP = {
 		Eigen::Matrix4f::Identity(),
@@ -49,10 +53,9 @@ void ExampleLayer::OnAttach()
 
 	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/HelloTriangle", inputInfoController);
 	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
-	Lust::SamplerInfo dynamicSamplerInfo(Lust::SamplerFilter::LINEAR, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::BORDER, Lust::ComparisonPassMode::ALWAYS);
-	Lust::SamplerInfo dynamicSamplerInfo2(Lust::SamplerFilter::NEAREST, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::BORDER, Lust::ComparisonPassMode::ALWAYS);
-	m_Shader->CreateSampler(m_Shader->GetSamplerLayout().GetElement("dynamicSampler"), dynamicSamplerInfo);
-	m_Shader->CreateSampler(m_Shader->GetSamplerLayout().GetElement("dynamicSampler2"), dynamicSamplerInfo2);
+	
+	m_Shader->UploadSampler(&m_LinearSampler, m_Shader->GetSamplerLayout().GetElement("dynamicSampler"));
+	m_Shader->UploadSampler(&m_PointSampler, m_Shader->GetSamplerLayout().GetElement("dynamicSampler2"));
 	m_Shader->UploadConstantBuffer(&m_UniformBuffer, m_Shader->GetUniformLayout().GetElement("m_CompleteMVP"));
 	std::vector<std::shared_ptr<Lust::Texture2D>*> textures;
 	textures.push_back(&m_Texture1);

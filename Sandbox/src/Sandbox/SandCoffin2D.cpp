@@ -23,6 +23,7 @@ void Lust::SandCoffin2D::OnAttach()
 	m_CameraController.reset(new OrthographicCameraController(window->GetWidth(), window->GetHeight(), true));
 
 	SamplerInfo samplerInfoController(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
+	m_Renderer2DSampler.reset(Sampler::Instantiate(context, samplerInfoController));
 
 	m_Renderer2DShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/TexturedRenderer2D", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
 	InputInfo inputInfoController(m_Renderer2DShaderReflector->GetInputLayout(), m_Renderer2DShaderReflector->GetSmallBufferLayout(),
@@ -30,7 +31,7 @@ void Lust::SandCoffin2D::OnAttach()
 		m_Renderer2DShaderReflector->GetSamplerLayout(), m_Renderer2DShaderReflector->GetTextureArrayLayout(),
 		m_Renderer2DShaderReflector->GetSamplerArrayLayout(), m_Renderer2DShaderReflector->GetStructuredBufferLayout());
 	m_Renderer2DShader.reset(Shader::Instantiate(context, "./assets/shaders/TexturedRenderer2D", inputInfoController));
-	m_Renderer2DShader->CreateSampler(m_Renderer2DShader->GetSamplerLayout().GetElement("dynamicSampler"), samplerInfoController);
+	m_Renderer2DShader->UploadSampler(&m_Renderer2DSampler, m_Renderer2DShader->GetSamplerLayout().GetElement("dynamicSampler"));
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
 	
 	m_Renderer2DVertexBuffer.reset(VertexBuffer::Instantiate(context, (const void*)&squareVertices[0], sizeof(squareVertices), m_Renderer2DShader->GetInputLayout().GetStride()));

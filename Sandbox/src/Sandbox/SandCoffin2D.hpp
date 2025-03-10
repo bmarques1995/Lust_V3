@@ -6,6 +6,7 @@
 #include <Input.hpp>
 #include <Console.hpp>
 #include <Texture.hpp>
+#include <Sampler.hpp>
 #include <Shader.hpp>
 #include <ShaderReflector.hpp>
 #include <Buffer.hpp>
@@ -45,6 +46,7 @@ namespace Lust
 		std::shared_ptr<IndexBuffer> m_Renderer2DIndexBuffer;
 		std::shared_ptr<UniformBuffer> m_Renderer2DUniformBuffer;
 		std::shared_ptr<Texture2D> m_Renderer2DTexture;
+		std::shared_ptr<Sampler> m_Renderer2DSampler;
 
 		Eigen::Vector4f m_Renderer2DColor = { .2f, 0.3f, 0.8f, 1.0f };
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef LUST_USES_WINDOWS
+
 #include "ShaderReflector.hpp"
 #include <ComPointer.hpp>
 #include "DXCSafeInclude.hpp"
@@ -49,3 +51,5 @@ namespace Lust
 		static const std::unordered_map<D3D12_DESCRIPTOR_RANGE_TYPE, uint16_t> s_ReturnRangeTypesMap;
 	};
 }
+
+#endif
