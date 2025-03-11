@@ -28,20 +28,16 @@ namespace Lust
 		uint32_t GetOffset() const override;
 
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) override;
-
-		void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) override;
-
-		void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) override;
-
-		void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) override;
-
-		void BindDescriptors() override;
-
-		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement) override;
-
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset) override;
 
+		void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) override;
+		void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) override;
+
+		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement) override;
 		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset) override;
+
+		void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) override;
+		void BindDescriptors() override;
 
 		void UploadTexturePackedDescSet(const TextureArray& textureArray) override;
 		void UploadSamplerPackedDescSet(const SamplerArray& samplerArray) override;
@@ -61,15 +57,10 @@ namespace Lust
 		void CreateSamplerDescriptorSet(const std::shared_ptr<VKSampler>* sampler, const SamplerArray& samplerArray, uint32_t offset);
 
 		void CreateUniformDescriptorSet(const std::shared_ptr<VKUniformBuffer>* buffer, const UniformElement& uniformElement);
-		
 		void CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& uniformElement);
-
-		void UpdateSamplerDescriptorSet(const SamplerElement& samplerElement);
 
 		bool IsUniformValid(size_t size);
 
-		//void PreallocateSSBO(const StructuredBufferElement& structuredBufferElement, uint32_t offset);
-		//void MapSSBO(const void* data, size_t size, uint32_t shaderRegister, uint32_t offset);
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		void PushShader(std::string_view stage, VkPipelineShaderStageCreateInfo* graphicsDesc);
@@ -81,8 +72,6 @@ namespace Lust
 		static VkFormat GetNativeFormat(ShaderDataType type);
 		static VkDescriptorType GetNativeDescriptorType(BufferType type);
 		static VkBufferUsageFlagBits GetNativeBufferUsage(BufferType type);
-		//static VkFilter GetNativeFilter(SamplerFilter filter);
-		//static VkSamplerAddressMode GetNativeAddressMode(AddressMode addressMode);
 		static VkPrimitiveTopology GetNativeTopology(Topology topology);
 
 		static const std::list<std::string> s_GraphicsPipelineStages;
@@ -95,10 +84,6 @@ namespace Lust
 
 		std::unordered_map<std::string, std::vector<VkDescriptorImageInfo>> m_TextureArrayDescriptors;
 		std::unordered_map<std::string, std::vector<VkDescriptorImageInfo>> m_SamplerArrayDescriptors;
-
-		//std::unordered_map<uint32_t, RM> m_Uniforms;
-		//std::unordered_map<uint32_t, RM> m_SSBOs;
-		std::unordered_map<uint32_t, VkSampler> m_Samplers;
 
 		VkDescriptorSetLayout m_RootSignature;
 		VkDescriptorPool m_DescriptorPool;

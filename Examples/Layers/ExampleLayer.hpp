@@ -48,7 +48,6 @@ private:
 	std::shared_ptr<Lust::Texture2D> m_Texture1;
 	std::shared_ptr<Lust::Texture2D> m_Texture2;
 	std::shared_ptr<Lust::UniformBuffer> m_UniformBuffer;
-	std::shared_ptr<Lust::UniformBuffer> m_UniformBuffer2;
 	std::shared_ptr<Lust::VertexBuffer> m_VertexBuffer;
 	std::shared_ptr<Lust::IndexBuffer> m_IndexBuffer;
 

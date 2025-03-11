@@ -204,6 +204,11 @@ void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* textur
 	CreateTextureSRV((const std::shared_ptr<D3D12Texture2D>*) texture, textureElement);
 }
 
+void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
+{
+	CreateTextureSRV((const std::shared_ptr<D3D12Texture2D>*) texture, textureArray, offset);
+}
+
 void Lust::D3D12Shader::UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV)
 {
 	if (uploadCBV.GetAccessLevel() == AccessLevel::ROOT_BUFFER)
@@ -226,6 +231,16 @@ void Lust::D3D12Shader::UploadStructuredBuffer(const std::shared_ptr<StructuredB
 	{
 		CreateTabledSRV((const std::shared_ptr<D3D12StructuredBuffer>*) buffer, uploadSRV);
 	}
+}
+
+void Lust::D3D12Shader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement)
+{
+	CreateSamplerView((const std::shared_ptr<D3D12Sampler>*) sampler, textureElement);
+}
+
+void Lust::D3D12Shader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset)
+{
+	CreateSamplerView((const std::shared_ptr<D3D12Sampler>*) sampler, samplerArray, offset);
 }
 
 void Lust::D3D12Shader::BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset)
@@ -271,9 +286,12 @@ void Lust::D3D12Shader::BindDescriptors()
 	}
 }
 
-void Lust::D3D12Shader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement)
+void Lust::D3D12Shader::UploadTexturePackedDescSet(const TextureArray& textureArray)
 {
-	CreateSamplerView((const std::shared_ptr<D3D12Sampler>*) sampler, textureElement);
+}
+
+void Lust::D3D12Shader::UploadSamplerPackedDescSet(const SamplerArray& samplerArray)
+{
 }
 
 void Lust::D3D12Shader::StartDXC()
@@ -426,24 +444,6 @@ void Lust::D3D12Shader::PreallocateSamplerDescriptors(uint32_t numOfSamplers, ui
 	assert(hr == S_OK);
 }
 
-void Lust::D3D12Shader::UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset)
-{
-	CreateTextureSRV((const std::shared_ptr<D3D12Texture2D>*) texture, textureArray, offset);
-}
-
-void Lust::D3D12Shader::UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset)
-{
-	CreateSamplerView((const std::shared_ptr<D3D12Sampler>*) sampler, samplerArray, offset);
-}
-
-void Lust::D3D12Shader::UploadTexturePackedDescSet(const TextureArray& textureArray)
-{
-}
-
-void Lust::D3D12Shader::UploadSamplerPackedDescSet(const SamplerArray& samplerArray)
-{
-}
-
 void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex)
 {	
 	auto device = m_Context->GetDevicePtr();
@@ -456,42 +456,6 @@ void Lust::D3D12Shader::PreallocateTextureDescriptors(uint32_t numOfTextures, ui
 	srvDescriptorHeapDesc.NodeMask = 0;
 
 	hr = device->CreateDescriptorHeap(&srvDescriptorHeapDesc, IID_PPV_ARGS(m_TabledDescriptors[rootSigIndex].GetAddressOf()));
-	assert(hr == S_OK);
-}
-
-void Lust::D3D12Shader::CreateBuffer(size_t bufferSize, DXGI_FORMAT format, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_DIMENSION dimension, ID3D12Resource2** buffer)
-{
-	auto device = m_Context->GetDevicePtr();
-	HRESULT hr;
-
-	D3D12_RESOURCE_DESC1 constantBufferDesc = {};
-	constantBufferDesc.Dimension = dimension;
-	constantBufferDesc.Width = bufferSize;
-	constantBufferDesc.Height = 1;
-	constantBufferDesc.DepthOrArraySize = 1;
-	constantBufferDesc.MipLevels = 1;
-	constantBufferDesc.Format = format;
-	constantBufferDesc.SampleDesc.Count = 1;
-	constantBufferDesc.SampleDesc.Quality = 0;
-	constantBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	constantBufferDesc.Flags = flags;
-
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = heapType;
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProps.CreationNodeMask = 1;
-	heapProps.VisibleNodeMask = 1;
-
-	hr = device->CreateCommittedResource2(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&constantBufferDesc,
-		D3D12_RESOURCE_STATE_COMMON,
-		nullptr,
-		nullptr,
-		IID_PPV_ARGS(buffer));
-
 	assert(hr == S_OK);
 }
 

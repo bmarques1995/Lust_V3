@@ -68,6 +68,11 @@ const Lust::UniformLayout& Lust::Shader::GetUniformLayout() const
 	return m_UniformLayout;
 }
 
+const Lust::StructuredBufferLayout& Lust::Shader::GetStructuredBufferLayout() const
+{
+	return m_StructuredBufferLayout;
+}
+
 const Lust::TextureLayout& Lust::Shader::GetTextureLayout() const
 {
 	return m_TextureLayout;

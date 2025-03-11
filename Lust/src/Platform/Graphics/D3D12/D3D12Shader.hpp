@@ -29,20 +29,16 @@ namespace Lust
 		virtual uint32_t GetOffset() const override;
 
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureElement& textureElement) override;
-
-		void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) override;
-
-		void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) override;
-
-		void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) override;
-
-		void BindDescriptors() override;
-
-		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement) override;
-
 		void UploadTexture2D(const std::shared_ptr<Texture2D>* texture, const TextureArray& textureArray, uint32_t offset) override;
 
+		void UploadConstantBuffer(const std::shared_ptr<UniformBuffer>* buffer, const UniformElement& uploadCBV) override;
+		void UploadStructuredBuffer(const std::shared_ptr<StructuredBuffer>* buffer, const StructuredBufferElement& uploadSRV) override;
+
+		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerElement& textureElement) override;
 		void UploadSampler(const std::shared_ptr<Sampler>* sampler, const SamplerArray& samplerArray, uint32_t offset) override;
+
+		void BindSmallBuffer(const void* data, size_t size, const SmallBufferElement& smallBuffer, size_t offset) override;
+		void BindDescriptors() override;
 
 		void UploadTexturePackedDescSet(const TextureArray& textureArray) override;
 		void UploadSamplerPackedDescSet(const SamplerArray& samplerArray) override;
@@ -62,8 +58,6 @@ namespace Lust
 
 		void PreallocateSamplerDescriptors(uint32_t numOfSamplers, uint32_t rootSigIndex);
 		void PreallocateTextureDescriptors(uint32_t numOfTextures, uint32_t rootSigIndex);
-
-		void CreateBuffer(size_t bufferSize, DXGI_FORMAT format, D3D12_HEAP_TYPE heapType, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_DIMENSION dimension, ID3D12Resource2** buffer);
 
 		bool IsBufferValid(size_t size);
 		void PreallocateRootCBuffer(const void* data, UniformElement uniformElement);

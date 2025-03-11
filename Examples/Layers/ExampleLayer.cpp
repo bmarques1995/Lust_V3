@@ -39,7 +39,6 @@ void ExampleLayer::OnAttach()
 	m_Texture1 = m_Texture2DLibrary->Get("nanao");
 	m_Texture2 = m_Texture2DLibrary->Get("sample");
 	m_UniformBuffer.reset(Lust::UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
-	m_UniformBuffer2.reset(Lust::UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
 	Eigen::Transform<float, 3, Eigen::Affine> model_transform = Eigen::Translation3f(0.0f, 0.0f, 0.0f) * Eigen::Scaling(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f);
 
@@ -168,7 +167,6 @@ void ExampleLayer::OnUpdate(Lust::Timestep ts)
 
 	Lust::Renderer::BeginScene(m_CameraController->GetCamera());
 	Lust::Renderer::SubmitCBV(&m_UniformBuffer);
-	Lust::Renderer::SubmitCBV(&m_UniformBuffer2);
 	Lust::Renderer::SubmitShader(m_Shader, m_VertexBuffer, m_IndexBuffer);
 	Lust::Renderer::SubmitSmallBuffer(m_Shader, m_SmallMVP.model.data(), sizeof(m_SmallMVP.model), m_Shader->GetSmallBufferLayout().GetElement("m_SmallMVP"));
 	Lust::RenderCommand::DrawIndexed(m_IndexBuffer->GetCount());

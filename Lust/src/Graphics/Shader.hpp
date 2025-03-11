@@ -47,6 +47,7 @@ namespace Lust
 		const InputBufferLayout& GetInputLayout() const;
 		const SmallBufferLayout& GetSmallBufferLayout() const;
 		const UniformLayout& GetUniformLayout() const;
+		const StructuredBufferLayout& GetStructuredBufferLayout() const;
 		const TextureLayout& GetTextureLayout() const;
 		const SamplerLayout& GetSamplerLayout() const;
 		const TextureArrayLayout& GetTextureArrayLayout() const;
