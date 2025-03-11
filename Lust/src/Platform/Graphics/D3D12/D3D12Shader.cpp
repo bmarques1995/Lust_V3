@@ -258,15 +258,13 @@ void Lust::D3D12Shader::BindDescriptors()
 	auto cmdList = m_Context->GetCurrentCommandList();
 	for (auto& rootDescriptor : m_RootCBVDescriptors)
 	{
-		uint64_t bufferLocation = (((uint64_t)rootDescriptor.first << 32) + 1);
-		cmdList->SetGraphicsRootConstantBufferView(rootDescriptor.first, m_CBVAddresses[bufferLocation]);
+		cmdList->SetGraphicsRootConstantBufferView(rootDescriptor.first, m_CBVAddresses[rootDescriptor.first]);
 		//cmdList->SetGraphicsRootConstantBufferView(rootDescriptor.first, m_CBVResources[bufferLocation]->GetGPUVirtualAddress());
 	}
 
 	for (auto& rootDescriptor : m_RootSRVDescriptors)
 	{
-		uint64_t bufferLocation = (((uint64_t)rootDescriptor.first << 32) + 1);
-		cmdList->SetGraphicsRootShaderResourceView(rootDescriptor.first, m_SRVAddresses[bufferLocation]);
+		cmdList->SetGraphicsRootShaderResourceView(rootDescriptor.first, m_SRVAddresses[rootDescriptor.first]);
 	}
 
 	//cmdList->SetGraphicsRootShaderResourceView
@@ -303,14 +301,13 @@ void Lust::D3D12Shader::StartDXC()
 
 void Lust::D3D12Shader::CreateRootCBV(const std::shared_ptr<D3D12UniformBuffer>* buffer, UniformElement uniformElement)
 {
-	uint64_t bufferLocation = (((uint64_t)uniformElement.GetShaderRegister() << 32) + 1);
 	auto device = m_Context->GetDevicePtr();
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
 	cbvDesc.BufferLocation = (*buffer)->GetResource()->GetGPUVirtualAddress();
 	cbvDesc.SizeInBytes = uniformElement.GetSize();
 
-	m_CBVAddresses[bufferLocation] = cbvDesc.BufferLocation;
+	m_CBVAddresses[uniformElement.GetShaderRegister()] = cbvDesc.BufferLocation;
 
 	device->CreateConstantBufferView(&cbvDesc, m_RootCBVDescriptors[uniformElement.GetShaderRegister()]->GetCPUDescriptorHandleForHeapStart());
 }
@@ -333,10 +330,9 @@ void Lust::D3D12Shader::CreateTabledCBV(const std::shared_ptr<D3D12UniformBuffer
 
 void Lust::D3D12Shader::CreateRootSRV(const std::shared_ptr<D3D12StructuredBuffer>* buffer, StructuredBufferElement structuredBufferElement)
 {
-	uint64_t bufferLocation = (((uint64_t)structuredBufferElement.GetShaderRegister() << 32) + 1);
 	auto device = m_Context->GetDevicePtr();
 
-	m_SRVAddresses[bufferLocation] = (*buffer)->GetResource()->GetGPUVirtualAddress();
+	m_SRVAddresses[structuredBufferElement.GetShaderRegister()] = (*buffer)->GetResource()->GetGPUVirtualAddress();
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -466,7 +462,6 @@ bool Lust::D3D12Shader::IsBufferValid(size_t size)
 
 void Lust::D3D12Shader::PreallocateRootCBuffer(const void* data, UniformElement uniformElement)
 {
-	uint64_t bufferLocation = (((uint64_t)uniformElement.GetShaderRegister() << 32) + 1);
 	if (!IsBufferValid(uniformElement.GetSize()))
 		throw AttachmentMismatchException(uniformElement.GetSize(), m_Context->GetSmallBufferAttachment());
 
@@ -513,8 +508,6 @@ void Lust::D3D12Shader::PreallocateTabledCBuffer(const void* data, UniformElemen
 
 	for (UINT i = 0; i < uniformElement.GetNumberOfBuffers(); ++i)
 	{
-		uint64_t bufferLocation = (((uint64_t)uniformElement.GetShaderRegister() << 32) + 1);
-
 		// Create the CBV and advance the descriptor handle
 		device->CreateConstantBufferView(nullptr, cbvHandle);
 		cbvHandle.ptr += cbvDescriptorSize;
@@ -524,7 +517,6 @@ void Lust::D3D12Shader::PreallocateTabledCBuffer(const void* data, UniformElemen
 
 void Lust::D3D12Shader::PreallocateRootSSBO(const StructuredBufferElement& structuredBufferElement)
 {
-	uint64_t bufferLocation = (((uint64_t)structuredBufferElement.GetShaderRegister() << 32) + 1);
 	if (!IsBufferValid(structuredBufferElement.GetSize()))
 		throw AttachmentMismatchException(structuredBufferElement.GetSize(), m_Context->GetSmallBufferAttachment());
 
@@ -579,7 +571,6 @@ void Lust::D3D12Shader::PreallocateTabledSSBO(const StructuredBufferElement& str
 
 	for (UINT i = 0; i < structuredBufferElement.GetNumberOfElements(); ++i)
 	{
-		uint64_t bufferLocation = (((uint64_t)structuredBufferElement.GetShaderRegister() << 32) + 1);
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;

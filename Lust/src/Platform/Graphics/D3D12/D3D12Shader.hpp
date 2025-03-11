@@ -88,8 +88,8 @@ namespace Lust
 
 		Json::Value m_PipelineInfo;
 
-		std::unordered_map<uint64_t, D3D12_GPU_VIRTUAL_ADDRESS> m_CBVAddresses;
-		std::unordered_map<uint64_t, D3D12_GPU_VIRTUAL_ADDRESS> m_SRVAddresses;
+		std::unordered_map<uint32_t, D3D12_GPU_VIRTUAL_ADDRESS> m_CBVAddresses;
+		std::unordered_map<uint32_t, D3D12_GPU_VIRTUAL_ADDRESS> m_SRVAddresses;
 		//std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_CBVResources;
 		//std::unordered_map<uint64_t, ComPointer<ID3D12Resource2>> m_SSBOResources;
 
