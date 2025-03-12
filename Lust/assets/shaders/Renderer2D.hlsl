@@ -34,11 +34,14 @@ RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT\
     | DENY_HULL_SHADER_ROOT_ACCESS \
     | DENY_DOMAIN_SHADER_ROOT_ACCESS), \
 RootConstants(num32BitConstants=20, b0), \
-CBV(b1)
+CBV(b1), \
+DescriptorTable(SRV(t1, numDescriptors = 2)), \
+DescriptorTable(Sampler(s1, numDescriptors = 2)), \
 
 struct VSInput
 {
     [[vk::location(0)]]float3 pos : POSITION;
+    [[vk::location(1)]]float2 txc : TEXCOORD;
 };
 
 struct SmallBuffer
@@ -66,10 +69,13 @@ ConstantBuffer<SmallBuffer> m_SmallMVP : register(b0);
 #endif
 
 [[vk::binding(1, 0)]] ConstantBuffer<CompleteMVP> m_CompleteMVP : register(b1);
+[[vk::binding(2, 0)]] Texture2D<float4> renderTexture[2] : register(t1);
+[[vk::binding(3, 0)]] SamplerState dynamicSampler[2] : register(s1);
 
 struct PSInput
 {
     float4 pos : SV_POSITION;
+    float2 txc : TEXCOORD;
 };
 
 PSInput vs_main(VSInput vsinput)
@@ -79,10 +85,16 @@ PSInput vs_main(VSInput vsinput)
     vsoutput.pos = mul(m_SmallMVP.Model, vsoutput.pos);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
+    vsoutput.txc = vsinput.txc;
     return vsoutput;
 }
 
 float4 ps_main(PSInput psinput) : SV_TARGET0
 {
-    return m_SmallMVP.Color;
+    float4 final_color = float4(m_SmallMVP.Color.xyz, 1.0f);
+    if (m_SmallMVP.Color.w == 1.0f)
+        return renderTexture[1].SampleLevel(dynamicSampler[1], psinput.txc * 10.0f, 0.0f) * m_SmallMVP.Color;
+    else
+        return renderTexture[0].SampleLevel(dynamicSampler[0], psinput.txc * 10.0f, 0.0f) * final_color;
+    return float4(1.0f, 1.0f, 1.0f, 1.0f);
 }

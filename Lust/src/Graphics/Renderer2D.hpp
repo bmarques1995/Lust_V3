@@ -18,6 +18,10 @@ namespace Lust
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		std::shared_ptr<UniformBuffer> m_UniformBuffer;
+		std::shared_ptr<Texture2D> m_Texture;
+		std::shared_ptr<Sampler> m_Sampler;
+		std::shared_ptr<Texture2D> m_WhiteTexture;
+		std::shared_ptr<Sampler> m_WhiteSampler;
 		uint8_t *m_RawSmallBuffer;
 		size_t m_RawSmallBufferSize;
 	};
@@ -30,8 +34,12 @@ namespace Lust
 		static void BeginScene(const OrthographicCamera& camera);
 		static void EndScene();
 
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name);
 		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name);
+
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, std::string_view element_name);
 	private:
 		struct CompleteMVP
 		{

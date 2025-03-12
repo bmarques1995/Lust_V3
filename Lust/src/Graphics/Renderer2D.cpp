@@ -13,13 +13,14 @@ void Lust::Renderer2D::Instantiate()
 	s_Renderer2DStorage = std::make_shared<Renderer2DStorage>();
 	s_SceneData.reset(new SceneData);
 
+
 	SmallMVP m_Renderer2DSmallMVP;
 
-	float squareVertices[3 * 4] = {
-			-.5f, -.5f, .0f,
-			-.5f, .5f, .0f,
-			.5f, -.5f, .0f,
-			.5f, .5f, .0f
+	float squareVertices[5 * 4] = {
+			-.5f, -.5f, .0f, 0.0f, 1.0f,
+			-.5f, .5f, .0f, 0.0f, 0.0f,
+			.5f, -.5f, .0f, 1.0f, 1.0f,
+			.5f, .5f, .0f, 1.0f, 0.0f
 	};
 
 	uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
@@ -46,11 +47,30 @@ void Lust::Renderer2D::Instantiate()
 	s_Renderer2DStorage->m_IndexBuffer.reset(IndexBuffer::Instantiate(context, squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 	s_Renderer2DStorage->m_UniformBuffer.reset(UniformBuffer::Instantiate(context, (void*)s_SceneData.get(), sizeof(SceneData)));
 	s_Renderer2DStorage->m_Shader->UploadConstantBuffer(&s_Renderer2DStorage->m_UniformBuffer, s_Renderer2DStorage->m_Shader->GetUniformLayout().GetElement("m_CompleteMVP"));
+
+	Lust::SamplerInfo dynamicSamplerInfo2(Lust::SamplerFilter::NEAREST, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::REPEAT, Lust::ComparisonPassMode::ALWAYS);
+	s_Renderer2DStorage->m_WhiteSampler.reset(Sampler::Instantiate(context, dynamicSamplerInfo2));
+	s_Renderer2DStorage->m_WhiteTexture.reset(Texture2D::Instantiate(context, 64, 64, "WhiteTexture"));
+	auto textureArray = s_Renderer2DStorage->m_Shader->GetTextureArrayLayout().GetElement("renderTexture");
+	auto samplerArray = s_Renderer2DStorage->m_Shader->GetSamplerArrayLayout().GetElement("dynamicSampler");
+	for (size_t i = 0; i < textureArray.GetNumberOfTextures(); i++)
+	{
+		s_Renderer2DStorage->m_Shader->UploadTexture2D(&s_Renderer2DStorage->m_WhiteTexture, textureArray, i);
+	}
+
+	for (size_t i = 0; i < samplerArray.GetNumberOfSamplers(); i++)
+	{
+		s_Renderer2DStorage->m_Shader->UploadSampler(&s_Renderer2DStorage->m_WhiteSampler, samplerArray, i);
+	}
+	s_Renderer2DStorage->m_Shader->UploadTexturePackedDescSet(textureArray);
+	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
 }
 
 void Lust::Renderer2D::Destroy()
 {
 	delete[] s_Renderer2DStorage->m_RawSmallBuffer;
+	s_Renderer2DStorage->m_WhiteSampler.reset();
+	s_Renderer2DStorage->m_WhiteTexture.reset();
 	s_Renderer2DStorage->m_RawSmallBufferSize = 0;
 	s_Renderer2DStorage->m_UniformBuffer.reset();
 	s_Renderer2DStorage->m_IndexBuffer.reset();
@@ -70,9 +90,15 @@ void Lust::Renderer2D::EndScene()
 {
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name)
 {
 	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color, element_name);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name)
+{
+	Eigen::Vector4f finalColor = Eigen::Vector4f(color(0), color(1), color(2), 0.0f);
+	DrawQuad(position, size, finalColor, element_name);
 }
 
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name)
@@ -90,4 +116,27 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	s_Renderer2DStorage->m_Shader->BindSmallBuffer((void*)&s_Renderer2DStorage->m_RawSmallBuffer[0], s_Renderer2DStorage->m_RawSmallBufferSize,
 												   s_Renderer2DStorage->m_Shader->GetSmallBufferLayout().GetElement(element_name.data()), 0);
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, std::string_view element_name)
+{
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, texture, sampler, element_name);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, std::string_view element_name)
+{
+	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f);
+	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
+	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+	auto textureArray = s_Renderer2DStorage->m_Shader->GetTextureArrayLayout().GetElement("renderTexture");
+	auto samplerArray = s_Renderer2DStorage->m_Shader->GetSamplerArrayLayout().GetElement("dynamicSampler");
+
+	s_Renderer2DStorage->m_Shader->UploadTexture2D(&texture, textureArray, 1);
+	s_Renderer2DStorage->m_Shader->UploadSampler(&sampler, samplerArray, 1);
+
+	s_Renderer2DStorage->m_Shader->UploadTexturePackedDescSet(textureArray);
+	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
+
+	DrawQuad(position, size, color, element_name);
 }

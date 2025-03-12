@@ -47,6 +47,39 @@ Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, co
 	return nullptr;
 }
 
+Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, uint32_t width, uint32_t height, std::string name)
+{
+	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
+	std::shared_ptr<Image> texture;
+	uint8_t* buffer = new uint8_t[width * height * 4];
+	for (size_t i = 0; i < (width * height * 4); i++)
+	{
+		buffer[i] = 255;
+	}
+	texture.reset(Image::CreateImage((std::byte*)buffer, width, height, ImageFormat::PNG));
+	delete[] buffer;
+	TextureBuffer specification =
+		//std::shared_ptr<Image> img, TextureTensor tensor, std::string filepath
+	{ texture, TextureTensor::TENSOR_2, name};
+	switch (api)
+	{
+#ifdef LUST_USES_WINDOWS
+	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	{
+
+		return new D3D12Texture2D((const D3D12Context*)(context), specification);
+	}
+#endif
+	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	{
+		return new VKTexture2D((const VKContext*)(context), specification);
+	}
+	default:
+		break;
+	}
+	return nullptr;
+}
+
 const std::string& Lust::Texture::GetName() const
 {
 	return m_Name;

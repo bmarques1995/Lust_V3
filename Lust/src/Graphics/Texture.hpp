@@ -49,6 +49,7 @@ namespace Lust
 		// For D3D12, I'm using the heapSlot(RootSignature descriptor range index) and textureIndex(a descriptor table can handle multiple textures)
 		// In the moment that I add shaders preprocessing, I will set these parameters to the shader result
 		static Texture2D* Instantiate(const GraphicsContext* context, const std::string& path);
+		static Texture2D* Instantiate(const GraphicsContext* context, uint32_t width, uint32_t height, std::string name);
 	};
 
 	class LUST_API Texture2DLibrary
