@@ -90,6 +90,18 @@ void Lust::Renderer2D::EndScene()
 {
 }
 
+void Lust::Renderer2D::UploadTexture2D(const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler)
+{
+	auto textureArray = s_Renderer2DStorage->m_Shader->GetTextureArrayLayout().GetElement("renderTexture");
+	auto samplerArray = s_Renderer2DStorage->m_Shader->GetSamplerArrayLayout().GetElement("dynamicSampler");
+
+	s_Renderer2DStorage->m_Shader->UploadTexture2D(&texture, textureArray, 1);
+	s_Renderer2DStorage->m_Shader->UploadSampler(&sampler, samplerArray, 1);
+
+	s_Renderer2DStorage->m_Shader->UploadTexturePackedDescSet(textureArray);
+	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
+}
+
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name)
 {
 	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color, element_name);
@@ -118,25 +130,15 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, std::string_view element_name)
 {
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, texture, sampler, element_name);
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, element_name);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, std::string_view element_name)
 {
-	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f);
-	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
 	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-	auto textureArray = s_Renderer2DStorage->m_Shader->GetTextureArrayLayout().GetElement("renderTexture");
-	auto samplerArray = s_Renderer2DStorage->m_Shader->GetSamplerArrayLayout().GetElement("dynamicSampler");
-
-	s_Renderer2DStorage->m_Shader->UploadTexture2D(&texture, textureArray, 1);
-	s_Renderer2DStorage->m_Shader->UploadSampler(&sampler, samplerArray, 1);
-
-	s_Renderer2DStorage->m_Shader->UploadTexturePackedDescSet(textureArray);
-	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
 
 	DrawQuad(position, size, color, element_name);
 }

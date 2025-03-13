@@ -657,7 +657,7 @@ VkSurfaceFormatKHR Lust::VKContext::ChooseSwapSurfaceFormat(const std::vector<Vk
 VkPresentModeKHR Lust::VKContext::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
     for (const auto& availablePresentMode : availablePresentModes) {
-        if ((availablePresentMode == VK_PRESENT_MODE_FIFO_RELAXED_KHR) && m_IsVSyncEnabled) {
+        if ((availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) && m_IsVSyncEnabled) {
             return availablePresentMode;
         }
     }
@@ -834,6 +834,8 @@ void Lust::VKContext::CreateDepthStencilView()
 {
     VkResult vkr;
 
+    m_DepthStencilImageFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -842,7 +844,7 @@ void Lust::VKContext::CreateDepthStencilView()
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
-    imageInfo.format = VK_FORMAT_D24_UNORM_S8_UINT;
+    imageInfo.format = m_DepthStencilImageFormat;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;

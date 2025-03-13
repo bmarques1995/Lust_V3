@@ -149,6 +149,7 @@ namespace Lust
 		VkImage* m_SwapChainImages;
 		uint32_t m_SwapChainImageCount;
 		VkFormat m_SwapChainImageFormat;
+		VkFormat m_DepthStencilImageFormat;
 		VkExtent2D m_SwapChainExtent;
 		VkImageView* m_SwapChainImageViews;
 		VkRenderPass m_RenderPass;
