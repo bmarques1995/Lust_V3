@@ -40,8 +40,8 @@ namespace Lust
 		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name);
 		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name);
 
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, std::string_view element_name);
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name);
 	private:
 		struct CompleteMVP
 		{

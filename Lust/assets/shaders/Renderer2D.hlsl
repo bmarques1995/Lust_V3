@@ -92,9 +92,9 @@ PSInput vs_main(VSInput vsinput)
 float4 ps_main(PSInput psinput) : SV_TARGET0
 {
     float4 final_color = float4(m_SmallMVP.Color.xyz, 1.0f);
-    if (m_SmallMVP.Color.w == 1.0f)
-        return renderTexture[1].SampleLevel(dynamicSampler[1], psinput.txc * 10.0f, 0.0f) * m_SmallMVP.Color;
+    if (m_SmallMVP.Color.w == 0.0f)
+        return renderTexture[0].SampleLevel(dynamicSampler[0], psinput.txc, 0.0f) * final_color;
     else
-        return renderTexture[0].SampleLevel(dynamicSampler[0], psinput.txc * 10.0f, 0.0f) * final_color;
+        return renderTexture[1].SampleLevel(dynamicSampler[1], psinput.txc * m_SmallMVP.Color.w, 0.0f) * final_color;
     return float4(1.0f, 1.0f, 1.0f, 1.0f);
 }

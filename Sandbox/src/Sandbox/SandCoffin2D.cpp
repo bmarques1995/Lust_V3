@@ -109,7 +109,7 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 	Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), m_Renderer2DColor, "m_SmallMVP");
 	Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), Eigen::Vector4f(.8f, .2f, .3f, 0.0f), "m_SmallMVP");
 	//Modify system, update texture and sampler once and only rebind if the texture or sampler changes
-	Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, "m_SmallMVP");
+	Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, 12.0f, "m_SmallMVP");
 	Renderer2D::EndScene();
 	timer.Stop("Renderer2D Sample Draw");
 }

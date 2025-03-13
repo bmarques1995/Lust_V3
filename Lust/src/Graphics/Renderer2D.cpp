@@ -130,14 +130,14 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name)
 {
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, element_name);
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, tilingFactor, element_name);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name)
 {
-	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, tilingFactor);
 
 
 	DrawQuad(position, size, color, element_name);
