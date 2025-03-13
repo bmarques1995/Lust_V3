@@ -6,16 +6,18 @@
 #include <Renderer2D.hpp>
 #include <chrono>
 #include <iostream>
+#include <cstdio>
 
 namespace Lust
 {
+	template<typename Fn>
 	class Timer
 	{
 	public:
-		Timer(const char* name) :
-			m_Name(name), m_Stopped(false)
+		Timer(const char* name, Fn function) :
+			m_Name(name), m_Stopped(false), m_Function(function)
 		{
-			m_StartTimepoint = std::chrono::steady_clock::now();
+			Start();
 		}
 
 		~Timer()
@@ -26,19 +28,37 @@ namespace Lust
 			}
 		}
 
+		void Start()
+		{
+			m_StartTimepoint = std::chrono::steady_clock::now();
+		}
+
 		void Stop()
+		{
+			m_Function({ m_Name, FinishClock() });
+		}
+
+		void Stop(const char* actionName)
+		{
+			m_Function({ actionName, FinishClock() });
+		}
+
+	private:
+		float FinishClock()
 		{
 			auto endTimepoint = std::chrono::steady_clock::now();
 			long long start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch().count();
 			long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch().count();
-		
-			std::cout << "Duration: " << end - start << " us" << std::endl;
+
+			float duration = (end - start) * 0.001f;
 			m_Stopped = true;
+
+			return duration;
 		}
-	private:
 		const char* m_Name;
 		std::chrono::time_point<std::chrono::steady_clock> m_StartTimepoint;
 		bool m_Stopped;
+		Fn m_Function;
 	};
 }
 
@@ -74,25 +94,42 @@ void Lust::SandCoffin2D::OnDetach()
 
 void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 {
-	Timer timer("SandCoffin2D::OnUpdate");
+	Timer timer("SandCoffin2D::OnUpdate", [&](ProfileResult profileResult) { m_ProfileResults.push_back(profileResult); });
+	
+	timer.Start();
 	m_CameraController->OnUpdate(ts);
+	timer.Stop("CameraController::OnUpdate");
 
+	timer.Start();
 	Eigen::Vector2f texSize = Eigen::Vector2f((float)m_Renderer2DTexture->GetWidth() * 25, (float)m_Renderer2DTexture->GetHeight() * 25);
+	timer.Stop("Get Texture Size");
 
+	timer.Start();
 	Renderer2D::BeginScene(m_CameraController->GetCamera());
 	Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), m_Renderer2DColor, "m_SmallMVP");
 	Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), Eigen::Vector4f(.8f, .2f, .3f, 0.0f), "m_SmallMVP");
 	//Modify system, update texture and sampler once and only rebind if the texture or sampler changes
 	Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, "m_SmallMVP");
 	Renderer2D::EndScene();
-
-	Renderer::EndScene();
+	timer.Stop("Renderer2D Sample Draw");
 }
 
 void Lust::SandCoffin2D::OnImGuiRender()
 {
 	ImGui::Begin("Color Editor");
 	ImGui::ColorEdit3("Square Color", &m_Renderer2DColor(0));
+	if (ImGui::Button("Reset camera"))
+	{
+		m_CameraController->ResetCamera();
+	}
+	for (auto& profile: m_ProfileResults)
+	{
+		char label[100];
+		snprintf(label, sizeof(label), "%s %.3fms", profile.Name, profile.Time);
+
+		ImGui::Text(label);
+	}
+	m_ProfileResults.clear();
 	ImGui::End();
 }
 

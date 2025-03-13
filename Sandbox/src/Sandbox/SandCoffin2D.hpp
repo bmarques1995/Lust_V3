@@ -31,6 +31,13 @@ namespace Lust
 
 		bool OnWindowResize(WindowResizedEvent& e);
 
+		struct ProfileResult
+		{
+			const char* Name;
+			float Time;
+		};
+
+		std::vector<ProfileResult> m_ProfileResults;
 
 		std::shared_ptr<Texture2D> m_Renderer2DTexture;
 		std::shared_ptr<Sampler> m_Renderer2DSampler;
