@@ -5,6 +5,11 @@
 
 GameLayer::GameLayer()
 {
+	auto window = Lust::Application::GetInstance()->GetWindow();
+	auto context = Lust::Application::GetInstance()->GetEditableContext();
+	context->SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+	CreateCamera(window->GetWidth(), window->GetHeight());
 }
 
 GameLayer::~GameLayer()
@@ -13,11 +18,7 @@ GameLayer::~GameLayer()
 
 void GameLayer::OnAttach()
 {
-	auto window = Lust::Application::GetInstance()->GetWindow();
-	auto context = Lust::Application::GetInstance()->GetEditableContext();
-	context->SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
-	CreateCamera(window->GetWidth(), window->GetHeight());
+	m_Level.Init();
 }
 
 void GameLayer::OnDetach()
@@ -26,7 +27,9 @@ void GameLayer::OnDetach()
 
 void GameLayer::OnUpdate(Lust::Timestep ts)
 {
+	m_Level.OnUpdate(ts);
 	Lust::Renderer2D::BeginScene(m_Camera.get());
+	m_Level.OnRender();
 	Lust::Renderer2D::EndScene();
 }
 
@@ -41,7 +44,6 @@ void GameLayer::OnEvent(Lust::Event& event)
 {
 	Lust::EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<Lust::WindowResizedEvent>(std::bind(&GameLayer::OnWindowResize, this, std::placeholders::_1), false);
-	m_CameraController->OnEvent(event);
 }
 
 bool GameLayer::OnWindowResize(Lust::WindowResizedEvent& e)
@@ -55,7 +57,7 @@ void GameLayer::CreateCamera(uint32_t width, uint32_t height)
 	float aspectRatio = (float)width / (float)height;
 	float camWidth = 10.0f;
 	float bottom = -camWidth;
-	float top = -camWidth;
+	float top = camWidth;
 	float left = -camWidth * aspectRatio;
 	float right = camWidth * aspectRatio;
 	m_Camera = std::make_unique<Lust::OrthographicCamera>(left, right, bottom, top);

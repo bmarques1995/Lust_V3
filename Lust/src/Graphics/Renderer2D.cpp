@@ -144,6 +144,5 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 {
 	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, tilingFactor);
 
-
 	DrawQuad(position, size, color, element_name);
 }

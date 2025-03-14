@@ -103,9 +103,17 @@ void Lust::D3D12Texture2D::CopyBuffer()
 	auto copyCommandAllocator = (*copyPipeline)->GetCommandAllocator();
 	auto copyCommandQueue = (*copyPipeline)->GetCommandQueue();
 
+	uint32_t numRows;
+	size_t rowSize;
+	//PlacedFootprint.Footprint.RowPitch * (height - 1) + rowSize
+	size_t totalSize;
+	D3D12_RESOURCE_DESC1 textureDesc = m_Texture->GetDesc1();
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedFootprint = {};
+	device->GetCopyableFootprints1(&textureDesc, 0, 1, 0, &placedFootprint, &numRows, &rowSize, &totalSize);
+
 	D3D12_RESOURCE_DESC uploadBufferDesc = {};
 	uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	uploadBufferDesc.Width = (m_Specification.GetWidth() * m_Specification.GetHeight() * m_Specification.GetDepth() * m_Specification.GetChannels());
+	uploadBufferDesc.Width = totalSize;
 	uploadBufferDesc.Height = 1;
 	uploadBufferDesc.DepthOrArraySize = 1;
 	uploadBufferDesc.MipLevels = 1;
@@ -129,19 +137,25 @@ void Lust::D3D12Texture2D::CopyBuffer()
 	assert(hr == S_OK);
 
 	D3D12_RANGE readRange = { 0 };
-	void* gpuData = nullptr;
-	hr = textureBuffer->Map(0, &readRange, &gpuData);
+	uint8_t* gpuData = nullptr;
+	hr = textureBuffer->Map(0, &readRange, (void**)&gpuData);
 	assert(hr == S_OK);
 	size_t textureSize = (m_Specification.GetWidth() * m_Specification.GetHeight() * m_Specification.GetDepth() * m_Specification.GetChannels());
-	memcpy(gpuData, m_Specification.GetTextureBuffer(), textureSize);
+	if(placedFootprint.Footprint.RowPitch == rowSize)
+		memcpy(gpuData, m_Specification.GetTextureBuffer(), textureSize);
+	else
+	{
+		for (size_t i = 0; i < numRows; i++)
+		{
+			memcpy(gpuData + (i * placedFootprint.Footprint.RowPitch), m_Specification.GetTextureBuffer() + (i * rowSize), rowSize);
+		}
+	}
 	textureBuffer->Unmap(0, NULL);
 
 	D3D12_TEXTURE_COPY_LOCATION destLocation = {};
 	destLocation.pResource = m_Texture;
 	destLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 	destLocation.SubresourceIndex = 0;
-
-	D3D12_RESOURCE_DESC1 textureDesc = m_Texture->GetDesc1();
 
 	D3D12_TEXTURE_COPY_LOCATION srcLocation = {};
 	srcLocation.pResource = textureBuffer.Get();
