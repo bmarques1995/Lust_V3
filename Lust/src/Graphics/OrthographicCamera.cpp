@@ -2,7 +2,7 @@
 #include "Operations.hpp"
 
 Lust::OrthographicCamera::OrthographicCamera(float left, float right, float bottom, float top) :
-	m_ProjectionMatrix(Ortho(left, right, bottom, top, 0.0f, 1.0f)), m_ViewMatrix(Eigen::Matrix4f::Identity())
+	m_ProjectionMatrix(Ortho(left, right, bottom, top, 0.0f, 1.0f)), m_ViewMatrix(Eigen::Matrix4f::Identity()), m_Rotation(0.0f)
 {
 	m_ViewProjectionMatrix = m_ViewMatrix * m_ProjectionMatrix;
 }

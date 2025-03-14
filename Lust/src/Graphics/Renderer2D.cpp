@@ -112,17 +112,66 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Ve
 	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color, element_name);
 }
 
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, std::string_view element_name)
+{
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color, rotation, element_name);
+}
+
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name)
 {
 	Eigen::Vector4f finalColor = Eigen::Vector4f(color(0), color(1), color(2), 0.0f);
 	DrawQuad(position, size, finalColor, element_name);
 }
 
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, std::string_view element_name)
+{
+	Eigen::Vector4f finalColor = Eigen::Vector4f(color(0), color(1), color(2), 0.0f);
+	DrawQuad(position, size, finalColor, rotation, element_name);
+}
+
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, std::string_view element_name)
 {
-	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) ;
+	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f);
 	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
 
+	RenderAction(squareSmallBufferMatrix, color, element_name);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, float rotation, std::string_view element_name)
+{
+	Eigen::Quaternionf q(Eigen::AngleAxisf(rotation, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
+	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) * q;
+	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
+
+	RenderAction(squareSmallBufferMatrix, color, element_name);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name)
+{
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, tilingFactor, element_name);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, std::string_view element_name)
+{
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, tilingFactor, rotation, element_name);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name)
+{
+	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, tilingFactor);
+
+	DrawQuad(position, size, color, element_name);
+}
+
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, std::string_view element_name)
+{
+	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, tilingFactor);
+
+	DrawQuad(position, size, color, rotation, element_name);
+}
+
+void Lust::Renderer2D::RenderAction(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_name)
+{
 	s_Renderer2DStorage->m_UniformBuffer->Remap((void*)s_SceneData.get(), sizeof(SceneData));
 	s_Renderer2DStorage->m_Shader->Stage();
 	s_Renderer2DStorage->m_Shader->BindDescriptors();
@@ -131,18 +180,6 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &s_Renderer2DStorage->m_RawSmallBuffer, 0);
 	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[sizeof(squareSmallBufferMatrix)], color.data(), sizeof(color));
 	s_Renderer2DStorage->m_Shader->BindSmallBuffer((void*)&s_Renderer2DStorage->m_RawSmallBuffer[0], s_Renderer2DStorage->m_RawSmallBufferSize,
-												   s_Renderer2DStorage->m_Shader->GetSmallBufferLayout().GetElement(element_name.data()), 0);
+		s_Renderer2DStorage->m_Shader->GetSmallBufferLayout().GetElement(element_name.data()), 0);
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name)
-{
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, tilingFactor, element_name);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, std::string_view element_name)
-{
-	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, tilingFactor);
-
-	DrawQuad(position, size, color, element_name);
 }

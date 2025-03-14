@@ -7,7 +7,7 @@ GameLayer::GameLayer()
 {
 	auto window = Lust::Application::GetInstance()->GetWindow();
 	auto context = Lust::Application::GetInstance()->GetEditableContext();
-	context->SetClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	context->SetClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
 	CreateCamera(window->GetWidth(), window->GetHeight());
 }
@@ -28,6 +28,9 @@ void GameLayer::OnDetach()
 void GameLayer::OnUpdate(Lust::Timestep ts)
 {
 	m_Level.OnUpdate(ts);
+
+	const auto& playerPos = m_Level.GetPlayer().GetPosition();
+	m_Camera->SetPosition(Eigen::Vector3f{ playerPos.x(), 0.0f, 0.0f });
 	Lust::Renderer2D::BeginScene(m_Camera.get());
 	m_Level.OnRender();
 	Lust::Renderer2D::EndScene();
@@ -37,6 +40,7 @@ void GameLayer::OnImGuiRender()
 {
 	ImGui::Begin("Settings");
 	ImGui::ColorEdit3("Square Color", m_SquareColor.data());
+	m_Level.OnImGuiRender();
 	ImGui::End();
 }
 

@@ -41,21 +41,29 @@ Lust::ApplicationStarter::ApplicationStarter(std::string_view jsonFilepath) :
 		healthy &= reader.parse(jsonResult, m_Starter);
 		healthy &= IsPropertyPresent("FullscreenMode");
 		healthy &= IsPropertyPresent("GraphicsAPI");
+		healthy &= IsPropertyPresent("Width");
+		healthy &= IsPropertyPresent("Height");
 
 		auto it = s_GraphicsAPIMapper.find(m_Starter["GraphicsAPI"].asString());
 		if ((it == s_GraphicsAPIMapper.end()) || (!healthy))
 		{
-			m_Starter["GraphicsAPI"] = "SAMPLE_RENDER_GRAPHICS_API_VK";
+			m_Width = 1280;
+			m_Height = 720;
 			m_API = SAMPLE_RENDER_GRAPHICS_API_VK;
 			m_FullscreenMode = false;
+			m_Starter["GraphicsAPI"] = "SAMPLE_RENDER_GRAPHICS_API_VK";
 			m_Starter["FullscreenMode"] = m_FullscreenMode;
-			
+			m_Starter["Width"] = m_Width;
+			m_Starter["Height"] = m_Height;
+
 			FileHandler::WriteTextFile(jsonFilepath.data(), m_Starter.toStyledString());
 		}
 		else
 		{
 			m_API = it->second;
 			m_FullscreenMode = m_Starter["FullscreenMode"].asBool();
+			m_Width = m_Starter["Width"].as<uint32_t>();
+			m_Height = m_Starter["Height"].as<uint32_t>();
 		}
 
 	}
@@ -66,7 +74,7 @@ Lust::ApplicationStarter::~ApplicationStarter()
 	FileHandler::WriteTextFile(m_Filepath, m_Starter.toStyledString());
 }
 
-bool Lust::ApplicationStarter::GetFullscreenMode()
+bool Lust::ApplicationStarter::GetFullscreenMode() const
 {
 	return m_FullscreenMode;
 }
@@ -77,9 +85,19 @@ void Lust::ApplicationStarter::SetFullscreenMode(bool fullscreen)
 	m_FullscreenMode = fullscreen;
 }
 
-Lust::GraphicsAPI Lust::ApplicationStarter::GetCurrentAPI()
+Lust::GraphicsAPI Lust::ApplicationStarter::GetCurrentAPI() const
 {
 	return m_API;
+}
+
+uint32_t Lust::ApplicationStarter::GetWidth() const
+{
+	return m_Width;
+}
+
+uint32_t Lust::ApplicationStarter::GetHeight() const
+{
+	return m_Height;
 }
 
 void Lust::ApplicationStarter::SetAPI(GraphicsAPI api)

@@ -22,7 +22,8 @@ Lust::Application::Application()
 	Console::Init();
 	Renderer::Init();
 	m_Starter.reset(new ApplicationStarter("controller.json"));
-	m_Window.reset(Window::Instantiate());
+	WindowProps props("Lust Engine", m_Starter->GetWidth(), m_Starter->GetHeight());
+	m_Window.reset(Window::Instantiate(props));
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
