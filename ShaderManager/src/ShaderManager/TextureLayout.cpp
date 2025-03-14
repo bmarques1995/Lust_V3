@@ -178,6 +178,7 @@ Lust::TextureBuffer::TextureBuffer()
 	m_Height = 1;
 	m_MipsLevel = 1;
 	m_Channels = 4;
+	m_ImageAlignment = ImageAlignment::COMPENSED;
 	m_Filepath = "";
 }
 
@@ -191,6 +192,7 @@ Lust::TextureBuffer::TextureBuffer(std::shared_ptr<Image> img, TextureTensor ten
 		m_Height = img->GetHeight();
 		m_MipsLevel = img->GetMips();
 		m_Channels = img->GetChannels();
+		m_ImageAlignment = img->GetImageAlignment();
 	}
 	else
 	{
@@ -198,6 +200,7 @@ Lust::TextureBuffer::TextureBuffer(std::shared_ptr<Image> img, TextureTensor ten
 		m_Height = 0;
 		m_MipsLevel = 0;
 		m_Channels = 4;
+		m_ImageAlignment = ImageAlignment::COMPENSED;
 	}
 }
 
@@ -242,6 +245,11 @@ uint32_t Lust::TextureBuffer::GetChannels() const
 Lust::TextureTensor Lust::TextureBuffer::GetTensor() const
 {
 	return m_Tensor;
+}
+
+Lust::ImageAlignment Lust::TextureBuffer::GetAlignment() const
+{
+	return m_ImageAlignment;
 }
 
 const std::string& Lust::TextureBuffer::GetFilepath() const

@@ -6,13 +6,13 @@
 Lust::PNGImage::PNGImage(std::string_view path)
 {
 	LoadPNGFromFile(path);
-	PostLoadAssert();
+	PostLoadAlign();
 }
 
 Lust::PNGImage::PNGImage(const std::byte* buffer, size_t size)
 {
 	LoadPNGFromMemory(buffer, size);
-	PostLoadAssert();
+	PostLoadAlign();
 }
 
 Lust::PNGImage::PNGImage(const std::byte* rawBuffer, uint32_t width, uint32_t height)

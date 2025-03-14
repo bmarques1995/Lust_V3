@@ -86,6 +86,11 @@ void Lust::Renderer2D::BeginScene(const OrthographicCamera& camera)
 	s_SceneData->projection = camera.GetProjectionMatrix();
 }
 
+void Lust::Renderer2D::BeginScene(const OrthographicCamera* camera)
+{
+	BeginScene(*camera);
+}
+
 void Lust::Renderer2D::EndScene()
 {
 }

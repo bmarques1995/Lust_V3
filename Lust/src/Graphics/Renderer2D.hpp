@@ -32,6 +32,7 @@ namespace Lust
 		static void Destroy();
 
 		static void BeginScene(const OrthographicCamera& camera);
+		static void BeginScene(const OrthographicCamera* camera);
 		static void EndScene();
 
 		static void UploadTexture2D(const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler);

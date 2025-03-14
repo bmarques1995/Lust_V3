@@ -114,6 +114,7 @@ namespace Lust
 		uint32_t GetMipsLevel() const;
 		uint32_t GetChannels() const;
 		TextureTensor GetTensor() const;
+		ImageAlignment GetAlignment() const;
 
 		const std::string& GetFilepath() const;
 
@@ -126,6 +127,7 @@ namespace Lust
 		uint32_t m_Height;
 		uint32_t m_MipsLevel;
 		uint32_t m_Channels;
+		ImageAlignment m_ImageAlignment;
 		std::string m_Filepath;
 	};
 }

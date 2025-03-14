@@ -48,6 +48,11 @@ uint32_t Lust::Image::GetMips() const
 	return mipLevels;
 }
 
+Lust::ImageAlignment Lust::Image::GetImageAlignment() const
+{
+	return m_ImageAlignment;
+}
+
 Lust::Image* Lust::Image::CreateImage(std::string_view path)
 {
 	ImageFormat format = GetImageFormat(path);
@@ -199,8 +204,8 @@ void Lust::Image::CastBMPToJPEG(const unsigned char* pixels, uint32_t width, uin
 	jpeg_destroy_compress(&cinfo);
 }
 
-void Lust::Image::PostLoadAssert()
+void Lust::Image::PostLoadAlign()
 {
 	assert(m_Channels == 4);
-	assert((m_Width % 64) == 0);
+	m_ImageAlignment = ((m_Width % 64) == 0) ? ImageAlignment::PERFECT : ImageAlignment::COMPENSED;
 }

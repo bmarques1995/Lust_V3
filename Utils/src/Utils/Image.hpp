@@ -17,6 +17,12 @@ namespace Lust
 		JPEG = 2
 	};
 
+	enum class ImageAlignment
+	{
+		PERFECT = 0,
+		COMPENSED = 1
+	};
+
 	class LUST_UTILS_API Image
 	{
 	public:
@@ -27,6 +33,7 @@ namespace Lust
 		virtual uint32_t GetHeight() const;
 		virtual uint32_t GetChannels() const;
 		virtual uint32_t GetMips() const;
+		virtual ImageAlignment GetImageAlignment() const;
 
 		static Image* CreateImage(std::string_view path);
 		static Image* CreateImage(const std::byte* buffer, size_t dataSize, ImageFormat format);
@@ -39,8 +46,9 @@ namespace Lust
 		uint32_t m_Width;
 		uint32_t m_Height;
 		uint32_t m_Channels;
+		ImageAlignment m_ImageAlignment = ImageAlignment::COMPENSED;
 
-		void PostLoadAssert();
+		void PostLoadAlign();
 
 		unsigned char* m_Data;
 

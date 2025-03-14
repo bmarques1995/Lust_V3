@@ -61,7 +61,7 @@ void Lust::D3D12Texture2D::CreateResource()
 
 	D3D12_RESOURCE_DESC1 textureBufferDesc = {};
 	textureBufferDesc.Dimension = GetNativeTensor(m_Specification.GetTensor());
-	textureBufferDesc.Alignment = 0;
+	textureBufferDesc.Alignment = m_Specification.GetAlignment() == ImageAlignment::PERFECT ? 0 : 65536;
 	textureBufferDesc.Width = m_Specification.GetWidth(); //mandatory
 	textureBufferDesc.Height = m_Specification.GetHeight(); // mandatory 2 and 3
 	textureBufferDesc.DepthOrArraySize = m_Specification.GetDepth(); // mandatory 3

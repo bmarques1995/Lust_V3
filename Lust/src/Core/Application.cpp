@@ -6,6 +6,7 @@
 #include "CompilerExceptions.hpp"
 #include "Input.hpp"
 #include "TextureLayout.hpp"
+#include "Instrumentator.hpp"
 #include "SamplerLayout.hpp"
 #include "Operations.hpp"
 #include "RenderCommand.hpp"
@@ -86,7 +87,9 @@ void Lust::Application::Run()
 	
 	while (m_Running)
 	{
+		Lust::InstrumentationTimer timer("Frametime");
 		RenderAction();
+		timer.Stop();
 	}
 }
 

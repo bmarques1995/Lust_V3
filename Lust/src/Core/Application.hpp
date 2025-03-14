@@ -48,6 +48,11 @@ namespace Lust
 			return m_Context.get();
 		}
 
+		inline GraphicsContext* GetEditableContext()
+		{
+			return m_Context.get();
+		}
+
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 

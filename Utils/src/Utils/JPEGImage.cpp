@@ -5,13 +5,13 @@
 Lust::JPEGImage::JPEGImage(std::string_view path)
 {
 	LoadJPEGFromFile(path);
-	PostLoadAssert();
+	PostLoadAlign();
 }
 
 Lust::JPEGImage::JPEGImage(const std::byte* data, size_t size)
 {
 	LoadJPEGFromMemory(data, size);
-	PostLoadAssert();
+	PostLoadAlign();
 }
 
 Lust::JPEGImage::JPEGImage(const std::byte* rawBuffer, uint32_t width, uint32_t height)
