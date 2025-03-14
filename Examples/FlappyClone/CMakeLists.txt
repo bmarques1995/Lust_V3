@@ -7,13 +7,13 @@ set(SAMPLE_IMAGES
     "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/Triangle.png"
 )
 
-download_remote_files(SOURCE_INPUTS ${SAMPLE_IMAGES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Examples/Layers/assets/textures)
+download_remote_files(SOURCE_INPUTS ${SAMPLE_IMAGES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Examples/FlappyClone/assets/textures)
 
 set(SAMPLE_FONTS
     "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/fonts/OpenSans-Regular.ttf"
 )
 
-download_remote_files(SOURCE_INPUTS ${SAMPLE_FONTS} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Examples/Layers/assets/fonts)
+download_remote_files(SOURCE_INPUTS ${SAMPLE_FONTS} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Examples/FlappyClone/assets/fonts)
 
 file(GLOB_RECURSE LAUNCHER_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.hpp")
 file(GLOB_RECURSE LAUNCHER_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp")
