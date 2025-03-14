@@ -20,7 +20,7 @@ void Player::OnRender()
 {
 	
 	auto context = Lust::Application::GetInstance()->GetContext();
-	Lust::Renderer2D::DrawQuad(m_Position, Eigen::Vector2f(3.0f, 3.0f), 10.0f, "m_SmallMVP");
+	Lust::Renderer2D::DrawQuad(m_Position, Eigen::Vector2f(9.0f, 13.0f), 1.0f, "m_SmallMVP");
 } 
 
 void Player::OnUpdate(Lust::Timestep ts)

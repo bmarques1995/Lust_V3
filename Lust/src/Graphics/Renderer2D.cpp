@@ -50,7 +50,7 @@ void Lust::Renderer2D::Instantiate()
 
 	Lust::SamplerInfo dynamicSamplerInfo2(Lust::SamplerFilter::NEAREST, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::REPEAT, Lust::ComparisonPassMode::ALWAYS);
 	s_Renderer2DStorage->m_WhiteSampler.reset(Sampler::Instantiate(context, dynamicSamplerInfo2));
-	s_Renderer2DStorage->m_WhiteTexture.reset(Texture2D::Instantiate(context, 64, 64, "WhiteTexture"));
+	s_Renderer2DStorage->m_WhiteTexture.reset(Texture2D::Instantiate(context, 1, 1, "WhiteTexture"));
 	auto textureArray = s_Renderer2DStorage->m_Shader->GetTextureArrayLayout().GetElement("renderTexture");
 	auto samplerArray = s_Renderer2DStorage->m_Shader->GetSamplerArrayLayout().GetElement("dynamicSampler");
 	for (size_t i = 0; i < textureArray.GetNumberOfTextures(); i++)
