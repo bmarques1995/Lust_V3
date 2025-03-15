@@ -36,4 +36,5 @@ private:
 	std::vector<Pillar> m_Pillars;
 
 	std::shared_ptr<Lust::Texture2D> m_TriangleTexture;
+	std::shared_ptr<Lust::Sampler> m_TriangleSampler;
 };

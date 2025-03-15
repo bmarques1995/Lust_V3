@@ -20,14 +20,15 @@ void Player::LoadAssets()
 	m_ShipTexture.reset(Lust::Texture2D::Instantiate(context, "./Examples/FlappyClone/assets/textures/LustShip.png"));
 	m_ShipSampler.reset(Lust::Sampler::Instantiate(context, sInfo));
 	m_Velocity.x() = 10.0f;
-	Lust::Renderer2D::UploadTexture2D(m_ShipTexture, m_ShipSampler);
+	Lust::Renderer2D::UploadTexture2D(m_ShipTexture, m_ShipSampler, 1, 1);
 }
 
 void Player::OnRender()
 {
+	Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>( 1, 0, 0, 0 );
 	float rotation = (m_Velocity.y() * m_AngleGain) - 90.0f;
 	auto context = Lust::Application::GetInstance()->GetContext();
-	Lust::Renderer2D::DrawQuad(m_Position, m_Size, 1.0f, Lust::Radians(rotation), "m_SmallMVP");
+	Lust::Renderer2D::DrawQuad(m_Position, m_Size, 1.0f, Lust::Radians(rotation), controllerInfo, "m_SmallMVP");
 } 
 
 void Player::OnUpdate(Lust::Timestep ts)

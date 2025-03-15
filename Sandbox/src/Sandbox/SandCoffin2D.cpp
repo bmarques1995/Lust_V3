@@ -50,11 +50,12 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 		texSize = Eigen::Vector2f((float)m_Renderer2DTexture->GetWidth() * 25, (float)m_Renderer2DTexture->GetHeight() * 25);
 	}
 	{
+		Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>( 1, 1, 0, 0 );
 		Renderer2D::BeginScene(m_CameraController->GetCamera());
 		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), m_Renderer2DColor, "m_SmallMVP");
-		Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), Eigen::Vector4f(.8f, .2f, .3f, 0.0f), "m_SmallMVP");
+		Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), Eigen::Vector3f(.8f, .2f, .3f), "m_SmallMVP");
 		//Modify system, update texture and sampler once and only rebind if the texture or sampler changes
-		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, 12.0f, "m_SmallMVP");
+		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, 12.0f, controllerInfo, "m_SmallMVP");
 		Renderer2D::EndScene();
 	}
 }
