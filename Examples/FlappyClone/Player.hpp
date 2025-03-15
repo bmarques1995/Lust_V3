@@ -29,5 +29,4 @@ private:
 	bool m_Running = false;
 
 	std::shared_ptr<Lust::Texture2D> m_ShipTexture;
-	std::shared_ptr<Lust::Sampler> m_ShipSampler;
 };

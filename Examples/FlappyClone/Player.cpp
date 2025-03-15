@@ -18,10 +18,8 @@ void Player::LoadAssets()
 	//SamplerFilter filter, AnisotropicFactor anisotropicFactor, AddressMode addressMode, ComparisonPassMode comparisonPassMode
 	Lust::SamplerInfo sInfo(Lust::SamplerFilter::NEAREST, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::REPEAT, Lust::ComparisonPassMode::ALWAYS);
 	m_ShipTexture.reset(Lust::Texture2D::Instantiate(context, "./Examples/FlappyClone/assets/textures/LustShip.png"));
-	m_ShipSampler.reset(Lust::Sampler::Instantiate(context, sInfo));
 	m_Velocity.x() = 10.0f;
 	Lust::Renderer2D::UploadTexture2D(m_ShipTexture, 1);
-	Lust::Renderer2D::UploadSampler(m_ShipSampler, 1);
 }
 
 void Player::OnRender()
