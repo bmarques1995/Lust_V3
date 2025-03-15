@@ -22,7 +22,8 @@ void Level::Init()
 
 	m_TriangleTexture.reset(Lust::Texture2D::Instantiate(context, "./Examples/FlappyClone/assets/textures/Triangle.png"));
 	m_TriangleSampler.reset(Lust::Sampler::Instantiate(context, Lust::SamplerInfo(Lust::SamplerFilter::ANISOTROPIC, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::REPEAT, Lust::ComparisonPassMode::ALWAYS)));
-	Lust::Renderer2D::UploadTexture2D(m_TriangleTexture, m_TriangleSampler, 2, 2);
+	Lust::Renderer2D::UploadTexture2D(m_TriangleTexture, 2);
+	Lust::Renderer2D::UploadSampler(m_TriangleSampler, 2);
 }
 
 void Level::OnUpdate(Lust::Timestep ts)

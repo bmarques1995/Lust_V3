@@ -30,7 +30,8 @@ void Lust::SandCoffin2D::OnAttach()
 	m_Renderer2DSampler.reset(Sampler::Instantiate(context, samplerInfoController));
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
 
-	Renderer2D::UploadTexture2D(m_Renderer2DTexture, m_Renderer2DSampler);
+	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
+	Renderer2D::UploadSampler(m_Renderer2DSampler);
 }
 
 void Lust::SandCoffin2D::OnDetach()

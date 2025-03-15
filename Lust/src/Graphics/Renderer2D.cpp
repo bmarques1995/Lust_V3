@@ -95,16 +95,17 @@ void Lust::Renderer2D::EndScene()
 {
 }
 
-/*Split texture and samplers*/
-void Lust::Renderer2D::UploadTexture2D(const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, uint32_t textureSlot, uint32_t samplerSlot)
+void Lust::Renderer2D::UploadTexture2D(const std::shared_ptr<Texture2D>& texture, uint32_t textureSlot)
 {
 	auto textureArray = s_Renderer2DStorage->m_Shader->GetTextureArrayLayout().GetElement("renderTexture");
-	auto samplerArray = s_Renderer2DStorage->m_Shader->GetSamplerArrayLayout().GetElement("dynamicSampler");
-
 	s_Renderer2DStorage->m_Shader->UploadTexture2D(&texture, textureArray, textureSlot);
-	s_Renderer2DStorage->m_Shader->UploadSampler(&sampler, samplerArray, samplerSlot);
-
 	s_Renderer2DStorage->m_Shader->UploadTexturePackedDescSet(textureArray);
+}
+
+void Lust::Renderer2D::UploadSampler(const std::shared_ptr<Sampler>& sampler, uint32_t samplerSlot)
+{
+	auto samplerArray = s_Renderer2DStorage->m_Shader->GetSamplerArrayLayout().GetElement("dynamicSampler");
+	s_Renderer2DStorage->m_Shader->UploadSampler(&sampler, samplerArray, samplerSlot);
 	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
 }
 

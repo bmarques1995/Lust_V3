@@ -34,7 +34,8 @@ namespace Lust
 		static void BeginScene(const OrthographicCamera& camera);
 		static void BeginScene(const OrthographicCamera* camera);
 		static void EndScene();
-		static void UploadTexture2D(const std::shared_ptr<Texture2D>& texture, const std::shared_ptr<Sampler>& sampler, uint32_t textureSlot = 1, uint32_t samplerSlot = 1);
+		static void UploadTexture2D(const std::shared_ptr<Texture2D>& texture, uint32_t textureSlot = 1);
+		static void UploadSampler(const std::shared_ptr<Sampler>& sampler, uint32_t samplerSlot = 1);
 
 		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name);
 		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, std::string_view element_name);
