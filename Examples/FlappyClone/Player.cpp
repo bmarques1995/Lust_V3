@@ -57,6 +57,11 @@ void Player::OnImGuiRender()
 	ImGui::Checkbox("Running", &m_Running);
 }
 
+float Player::GetRotation()
+{
+	return (m_Velocity.y() * m_AngleGain) - 90.0f;
+}
+
 Eigen::Vector2f Player::GetPosition()
 {
 	return m_Position;

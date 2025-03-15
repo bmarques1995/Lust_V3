@@ -16,6 +16,8 @@ public:
 
 	void OnImGuiRender();
 
+	float GetRotation();
+
 	Eigen::Vector2f GetPosition();
 private:
 	Eigen::Vector2f m_Position = Eigen::Vector2f(0.0f, 0.0f);

@@ -5,10 +5,10 @@
 struct Pillar
 {
 	Eigen::Vector3f TopPosition = Eigen::Vector3f{ 0.0f, 10.0f, 0.0f };
-	Eigen::Vector2f TopScale = Eigen::Vector2f{ 5.0f, 15.0f };
+	Eigen::Vector2f TopScale = Eigen::Vector2f{ 15.0f, 15.0f };
 
 	Eigen::Vector3f BottomPosition = Eigen::Vector3f{ 10.0f, 10.0f, 0.0f };
-	Eigen::Vector2f BottomScale = Eigen::Vector2f{ 5.0f, 15.0f };
+	Eigen::Vector2f BottomScale = Eigen::Vector2f{ 15.0f, 15.0f };
 };
 
 
@@ -24,11 +24,15 @@ public:
 	Player& GetPlayer() { return m_Player; }
 
 	void OnImGuiRender();
+
 private:
 	Player m_Player;
 	bool m_GameOver = false;
 
 	void CreatePillar(size_t index, float offset);
+	bool CollisionTest();
+	bool tempCollided = false;
+
 	float floorDistance = 34.0f;
 	float m_PillarTarget = 30.0f;
 	int m_PillarIndex = 0;
