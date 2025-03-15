@@ -11,6 +11,7 @@
 #include "Operations.hpp"
 #include "RenderCommand.hpp"
 #include "Renderer2D.hpp"
+#include "Sleeper.hpp"
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -18,6 +19,8 @@ bool Lust::Application::s_SingletonEnabled = false;
 Lust::Application::Application()
 {
 	EnableSingleton(this);
+
+	Sleeper::SetFrameTime(1.0f / 60.0f);
 
 	Console::Init();
 	Renderer::Init();
@@ -131,6 +134,7 @@ std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
 
 void Lust::Application::RenderAction()
 {
+	Sleeper::StartTracking();
 	Uint64 now = SDL_GetPerformanceCounter();
 	Uint64 frequency = SDL_GetPerformanceFrequency();
 	double time = (double)now / (double)frequency;
@@ -185,6 +189,7 @@ void Lust::Application::RenderAction()
 			exit(2);
 		}
 	}
+	Sleeper::Sleep();
 }
 
 bool Lust::Application::OnWindowClose(WindowClosedEvent& e)
