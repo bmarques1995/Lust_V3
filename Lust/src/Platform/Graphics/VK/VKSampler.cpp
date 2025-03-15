@@ -1,4 +1,5 @@
 #include "VKSampler.hpp"
+#include <cassert>
 
 Lust::VKSampler::VKSampler(const VKContext* context, const SamplerInfo& info) :
     m_Context(context)

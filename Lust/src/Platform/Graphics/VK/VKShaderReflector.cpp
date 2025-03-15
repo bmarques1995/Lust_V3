@@ -221,6 +221,7 @@ void Lust::VKShaderReflector::CreateStructuredBufferElement(SpvReflectDescriptor
 	instance->m_StructuredBufferLayout.Upload(sbe);
 }
 
+#ifdef LUST_DEBUG_MODE
 size_t Lust::VKShaderReflector::GetStructuredBufferStrideRecursively(const SpvReflectTypeDescription* type_desc)
 {
 	size_t stride = 0;
@@ -237,6 +238,7 @@ size_t Lust::VKShaderReflector::GetStructuredBufferStrideRecursively(const SpvRe
 	}
 	return stride;
 }
+#endif
 
 size_t Lust::VKShaderReflector::GetStructuredBufferStride(const SpvReflectTypeDescription* type_desc)
 {
