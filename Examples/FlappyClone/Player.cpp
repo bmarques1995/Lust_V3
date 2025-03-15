@@ -32,22 +32,19 @@ void Player::OnRender()
 
 void Player::OnUpdate(Lust::Timestep ts)
 {
-	if (m_Running)
+	if (Lust::Input::IsKeyPressed(Lust::Key::LUST_KEYCODE_SPACE) || Lust::Input::IsGamepadKeyPressed(Lust::Gamepad::LUST_GAMEPAD_BUTTON_SOUTH))
 	{
-		if (Lust::Input::IsKeyPressed(Lust::Key::LUST_KEYCODE_SPACE) || Lust::Input::IsGamepadKeyPressed(Lust::Gamepad::LUST_GAMEPAD_BUTTON_SOUTH))
-		{
-			m_Velocity.y() += m_EnginePower;
-			if (m_Velocity.y() < 0.0f)
-				m_Velocity.y() += m_EnginePower * 2.0f;
-		}
-		else
-		{
-			m_Velocity.y() -= m_Gravity;
-		}
-
-		m_Velocity.y() = std::clamp(m_Velocity.y(), -m_MaxVelocity, m_MaxVelocity);
- 		m_Position += m_Velocity * ts;
+		m_Velocity.y() += m_EnginePower;
+		if (m_Velocity.y() < 0.0f)
+			m_Velocity.y() += m_EnginePower * 2.0f;
 	}
+	else
+	{
+		m_Velocity.y() -= m_Gravity;
+	}
+
+	m_Velocity.y() = std::clamp(m_Velocity.y(), -m_MaxVelocity, m_MaxVelocity);
+ 	m_Position += m_Velocity * ts;
 }
 
 void Player::OnImGuiRender()
@@ -60,6 +57,12 @@ void Player::OnImGuiRender()
 float Player::GetRotation()
 {
 	return (m_Velocity.y() * m_AngleGain) - 90.0f;
+}
+
+void Player::Reset()
+{
+	m_Position = { -10.0f, 0.0f };
+	m_Velocity = { 5.0f, 0.0f };
 }
 
 Eigen::Vector2f Player::GetPosition()

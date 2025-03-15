@@ -21,18 +21,21 @@ public:
 	void OnUpdate(Lust::Timestep ts);
 	void OnRender();
 
+	bool IsGameOver() const { return m_GameOver; }
 	Player& GetPlayer() { return m_Player; }
 
 	void OnImGuiRender();
 
+	void Reset();
+
 private:
-	Player m_Player;
-	bool m_GameOver = false;
 
 	void CreatePillar(size_t index, float offset);
 	bool CollisionTest();
-	bool tempCollided = false;
+	void GameOver();
 
+	Player m_Player;
+	bool m_GameOver = false;
 	float floorDistance = 34.0f;
 	float m_PillarTarget = 30.0f;
 	int m_PillarIndex = 0;

@@ -48,12 +48,8 @@ void Level::OnUpdate(Lust::Timestep ts)
 
 	if (CollisionTest())
 	{
-		tempCollided = true;
-	}
-
-	else
-	{
-		tempCollided = false;
+		GameOver();
+		return;
 	}
 
 	if (m_Player.GetPosition().x() > m_PillarTarget)
@@ -87,17 +83,25 @@ void Level::OnImGuiRender()
 	m_Player.OnImGuiRender();
 	ImGui::InputFloat("FloorDistance", &floorDistance, .5f);
 	ImGui::InputFloat("PillarHeight", &pillarHeight, .5f);
-
-	if(tempCollided)
-		ImGui::Text("You Collided!");
-	else
-		ImGui::Text("You didn't collide!");
+	ImGui::Text("Player score: %u", m_Player.GetScore());
 
 	for (auto& pillar : m_Pillars)
 	{
 		pillar.TopScale.y() = pillarHeight;
 		pillar.BottomScale.y() = pillarHeight;
 	}
+}
+
+void Level::Reset()
+{
+	m_GameOver = false;
+
+	m_Player.Reset();
+
+	m_PillarTarget = 30.0f;
+	m_PillarIndex = 0;
+	for (int i = 0; i < 5; i++)
+		CreatePillar(i, i * 10.0f);
 }
 
 void Level::CreatePillar(size_t index, float offset)
@@ -180,4 +184,9 @@ bool Level::CollisionTest()
 
 	}
 	return false;
+}
+
+void Level::GameOver()
+{
+	m_GameOver = true;
 }

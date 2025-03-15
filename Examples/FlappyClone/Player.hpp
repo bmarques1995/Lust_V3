@@ -18,9 +18,13 @@ public:
 
 	float GetRotation();
 
+	void Reset();
+
+	uint32_t GetScore() const { return (uint32_t)(m_Position.x() + 10.0f) / 10.0f; }
+
 	Eigen::Vector2f GetPosition();
 private:
-	Eigen::Vector2f m_Position = Eigen::Vector2f(0.0f, 0.0f);
+	Eigen::Vector2f m_Position = Eigen::Vector2f(-10.0f, 0.0f);
 	Eigen::Vector2f m_Velocity = Eigen::Vector2f(0.0f, 0.0f);
 	Eigen::Vector2f m_Size = Eigen::Vector2f(1.3f, 1.3f);
 
