@@ -7,6 +7,7 @@
 
 #include <thread>
 #include "LustUtilsDLLMacro.hpp"
+#include <json/json.h>
 
 namespace Lust {
     struct LUST_UTILS_API ProfileResult
@@ -23,10 +24,7 @@ namespace Lust {
 
     class LUST_UTILS_API Instrumentator
     {
-    private:
-        InstrumentationSession* m_CurrentSession;
-        std::ofstream m_OutputStream;
-        int m_ProfileCount;
+    
     public:
         Instrumentator();
 
@@ -35,9 +33,14 @@ namespace Lust {
         void WriteProfile(const ProfileResult& result);
 
         void WriteHeader();
-        void WriteFooter();
 
         static Instrumentator* Get();
+
+    private:
+        InstrumentationSession* m_CurrentSession;
+        Json::Value m_Root;
+        std::string m_OutputFilename;
+        size_t m_ProfileCount;
     };
 
     class LUST_UTILS_API InstrumentationTimer

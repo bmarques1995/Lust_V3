@@ -7,51 +7,43 @@ Lust::Instrumentator::Instrumentator()
 
 void Lust::Instrumentator::BeginSession(const std::string& name, const std::string& filepath)
 {
-	m_OutputStream.open(filepath);
+	m_OutputFilename = filepath;
 	WriteHeader();
 	m_CurrentSession = new InstrumentationSession{ name };
 }
 
 void Lust::Instrumentator::EndSession()
 {
-	WriteFooter();
-	m_OutputStream.close();
-	delete m_CurrentSession;
+    Json::StreamWriterBuilder builder;
+    const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    std::ofstream file(m_OutputFilename);
+	writer->write(m_Root, &file);
+	file.close();
+    m_Root.clear();
+
+    delete m_CurrentSession;
 	m_CurrentSession = nullptr;
 	m_ProfileCount = 0;
 }
 
 void Lust::Instrumentator::WriteProfile(const ProfileResult& result)
 {
-    if (m_ProfileCount++ > 0)
-        m_OutputStream << ",";
-    
-    std::string name = result.Name;
-    std::replace(name.begin(), name.end(), '"', '\'');
+    Json::Value element;
 
-    m_OutputStream << "{";
-    m_OutputStream << "\"cat\":\"function\",";
-    m_OutputStream << "\"dur\":" << (result.End - result.Start) << ',';
-    m_OutputStream << "\"name\":\"" << name << "\",";
-    m_OutputStream << "\"ph\":\"X\",";
-    m_OutputStream << "\"pid\":0,";
-    m_OutputStream << "\"tid\":" << result.ThreadID << ",";
-    m_OutputStream << "\"ts\":" << result.Start;
-    m_OutputStream << "}";
+    element["cat"] = "function";
+	element["dur"] = result.End - result.Start;
+	element["name"] = result.Name;
+	element["ph"] = "X";
+	element["pid"] = 0;
+	element["tid"] = result.ThreadID;
+	element["ts"] = result.Start;
 
-    m_OutputStream.flush();
+    m_Root["traceEvents "].append(element);
 }
 
 void Lust::Instrumentator::WriteHeader()
 {
-    m_OutputStream << "{\"otherData\": {},\"traceEvents\":[";
-    m_OutputStream.flush();
-}
-
-void Lust::Instrumentator::WriteFooter()
-{
-    m_OutputStream << "]}";
-    m_OutputStream.flush();
+    m_Root["otherData"] = Json::objectValue;
 }
 
 [[nodiscard]]
