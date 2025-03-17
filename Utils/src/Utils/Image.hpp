@@ -1,8 +1,3 @@
-/**
- * @file Image.hpp
- * @brief Image class definition
- */
-
 #pragma once
 
 #include "LustUtilsDLLMacro.hpp"
@@ -38,6 +33,9 @@ namespace Lust
 		COMPENSED = 1
 	};
 
+	/**
+	* @brief Abstract class representing an image
+	*/
 	class LUST_UTILS_API Image
 	{
 	public:

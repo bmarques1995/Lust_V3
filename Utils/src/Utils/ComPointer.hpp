@@ -1,8 +1,3 @@
-/**
-* @file ComPointer.hpp
-* @brief ComPointer class definition, used for COM objects, replacing COM smart pointers or ComPtr
-*/
-
 #pragma once
 
 #include <type_traits>
@@ -10,6 +5,9 @@
 
 namespace Lust
 {
+	/**
+	* @brief A smart pointer class, used for COM objects, replacing COM smart pointers or ComPtr
+	*/
 	template<typename CT>
 	class ComPointer
 	{
