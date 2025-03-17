@@ -10,6 +10,7 @@ Lust is a game engine based on [Hazel](https://github.com/TheCherno/Hazel), Plan
   * Meson
 * NASM
 * Perl
+* Doxygen & Doxygen-Awesome: for documentation
 * Windows Only:
   * Windows SDK: downloaded with visual studio
   * [WDK](https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk)

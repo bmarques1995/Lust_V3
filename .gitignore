@@ -10,3 +10,5 @@ d3d12sdk_version.txt
 D3D12Core/
 dxil/
 *D3D12ContextExport.cpp
+docs/
+docs_style/
