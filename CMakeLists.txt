@@ -63,7 +63,17 @@ if(GEN_DOCS)
     # https://raw.githubusercontent.com/jothepro/doxygen-awesome-css/568f56cde6ac78b6dfcc14acd380b2e745c301ea/doxygen-awesome.css
     download_sources_from_git_repo(COMMIT_VALUE ${DOXY_AWESOME_COMMIT_HASH} SOURCE_BASE_URL ${DOXY_AWESOME_SOURCE_URL} SOURCE_INPUTS ${DOXY_AWESOME_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/docs_style)
 
-    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
-    set(DOXYGEN_OUT ${CMAKE_CURRENT_SOURCE_DIR}/docs)
+    set(DOXYGEN_IN ${PROJECT_SOURCE_DIR}/Doxyfile)
+    set(DOXYGEN_OUT ${PROJECT_SOURCE_DIR}/docs)
+
+    # Ensure the docs directory exists
+    file(MAKE_DIRECTORY ${DOXYGEN_OUT})
+
+    add_custom_target(doxygen ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_IN}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+    )
 
 endif()
