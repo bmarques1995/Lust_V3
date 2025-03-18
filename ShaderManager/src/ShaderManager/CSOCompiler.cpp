@@ -1,3 +1,5 @@
+#ifdef LUST_SHADER_MNG_USES_WINDOWS
+
 #include "CSOCompiler.hpp"
 #include "CompilerExceptions.hpp"
 #include <regex>
@@ -170,3 +172,5 @@ void Lust::CSOCompiler::CompileRootSignature(std::string source, std::string bas
 	else
 		FileHandler::WriteBinFile(outputPath, (std::byte*)blob->GetBufferPointer(), blob->GetBufferSize());
 }
+
+#endif

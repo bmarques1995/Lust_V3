@@ -10,7 +10,8 @@ const std::list<std::pair<uint32_t, uint32_t>> Lust::SPVCompiler::s_ValidVulkan 
 	{1, 0},
 	{1, 1},
 	{1, 2},
-	{1, 3}
+	{1, 3},
+	{1, 4}
 };
 
 Lust::SPVCompiler::SPVCompiler(std::string baseEntry, std::string hlslFeatureLevel, std::string vulkanFeatureLevel) :

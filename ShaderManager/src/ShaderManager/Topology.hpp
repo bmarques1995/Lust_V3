@@ -2,6 +2,9 @@
 
 namespace Lust
 {
+	/**
+	* @brief Enum for shader topology
+	*/
 	enum class Topology
 	{
 		LUST_TOPOLOGY_POINTLIST,

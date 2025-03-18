@@ -82,12 +82,6 @@ Lust::InputBufferLayout::InputBufferLayout(const std::initializer_list<InputBuff
 	CalculateOffsetsAndStride();
 }
 
-Lust::InputBufferLayout::InputBufferLayout(const std::vector<InputBufferElement>& elements) :
-	m_Elements(elements)
-{
-	CalculateOffsetsAndStride();
-}
-
 void Lust::InputBufferLayout::Clear()
 {
 	m_Elements.clear();
