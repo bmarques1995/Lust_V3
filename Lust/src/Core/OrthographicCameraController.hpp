@@ -8,19 +8,52 @@
 
 namespace Lust
 {
+	/**
+	* @brief %OrthographicCameraController class, the controller of the OrthographicCamera
+	* @details This class is used to control the OrthographicCamera, rotating, translating and scaling
+	*/
 	class LUST_API OrthographicCameraController
 	{
 	public:
-
+		/**
+		* @brief OrthographicCameraController constructor
+		* @param width width of the window
+		* @param height height of the window
+		* @param rotation if the camera should rotate
+		*/
 		OrthographicCameraController(float width, float height, bool rotation = false);
+		/**
+		* @brief OnUpdate
+		* @details updates the camera
+		*/
 		void OnUpdate(Timestep ts);
+		/**
+		* @brief OnEvent
+		* @details resolves events
+		*/
 		void OnEvent(Event& e);
 
+		/**
+		* @brief GetCamera
+		* @details retrieves the current OrthographicCamera
+		*/
 		const OrthographicCamera& GetCamera() const;
+		/**
+		* @brief ResetCamera
+		* @details resets the camera
+		*/
 		void ResetCamera();
 	private:
 
+		/**
+		* @brief OnMouseScroll
+		* @details resolves mouse scroll events
+		*/
 		bool OnMouseScroll(MouseScrolledEvent& e);
+		/**
+		* @brief OnWindowResize
+		* @details resolves window resize events
+		*/
 		bool OnWindowResize(WindowResizedEvent& e);
 
 		float m_Width;

@@ -53,7 +53,7 @@ namespace Lust
 	};
 
 	/**
-	* @brief shader compiler
+	* @brief %Shader compiler
 	* @details Compiles a set of grouped shaders
 	*/
 	class LUST_SHADER_MNG_API Compiler

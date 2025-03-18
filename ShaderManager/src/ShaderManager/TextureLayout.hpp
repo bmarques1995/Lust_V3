@@ -21,7 +21,7 @@ namespace Lust
 	};
 
 	/**
-	* @brief Texture element, represents a single texture handler
+	* @brief %Texture element, represents a single texture handler
 	*/
 	class LUST_SHADER_MNG_API TextureElement
 	{
@@ -70,7 +70,7 @@ namespace Lust
 	};
 
 	/**
-	* @brief Texture layout, represents a collection of single texture handlers
+	* @brief %Texture layout, represents a collection of single texture handlers
 	*/
 	class LUST_SHADER_MNG_API TextureLayout
 	{
@@ -112,7 +112,7 @@ namespace Lust
 	};
 
 	/**
-	* @brief Texture array element, represents an array of textures handler
+	* @brief %Texture array element, represents an array of textures handler
 	*/
 	class LUST_SHADER_MNG_API TextureArray
 	{
@@ -168,7 +168,7 @@ namespace Lust
 	};
 
 	/**
-	* @brief Texture array layout, represents a collection of texture arrays
+	* @brief %Texture array layout, represents a collection of texture arrays
 	*/
 	class LUST_SHADER_MNG_API TextureArrayLayout
 	{
@@ -211,7 +211,7 @@ namespace Lust
 	};
 
 	/**
-	* @brief Texture buffer
+	* @brief %Texture buffer
 	*/
 	class LUST_SHADER_MNG_API TextureBuffer
 	{

@@ -10,7 +10,8 @@
 namespace Lust
 {
 	/**
-	* @brief Structured Buffer element, to pass large amounts of data, structured, or 
+	* @brief Structured Buffer Element
+	* @details The structured Buffer passes large amounts of data, structured, or
 	* in vulkan naming, is the Storage Buffer
 	*/
 	class LUST_SHADER_MNG_API StructuredBufferElement

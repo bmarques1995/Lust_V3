@@ -128,7 +128,7 @@ namespace Lust
 	};
 
 	/**
-	* @brief Uniform element, a container for a uniform/constant buffer
+	* @brief Uniform element, a container for a uniform/constant buffer description
 	*/
 	class LUST_SHADER_MNG_API UniformElement
 	{
@@ -209,7 +209,9 @@ namespace Lust
 		uint32_t m_TableIndex;
 	};
 
-	/***/
+	/**
+	* @brief Uniform layout, represents a collection of uniform elements
+	*/
 	class LUST_SHADER_MNG_API UniformLayout
 	{
 	public:
