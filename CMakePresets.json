@@ -42,6 +42,18 @@
             }
         },
         {
+            "name": "x64-dist",
+            "displayName": "x64 Dist",
+            "inherits": "x64-release",
+            "installDir": "${sourceDir}/Windows/Dist",
+            "cacheVariables": {
+                "BUILD_AS_WINDOWED_APP": true,
+                "BUILD_EXAMPLES": false,
+                "GEN_DOCS": false,
+                "CMAKE_PREFIX_PATH": "${sourceDir}/Windows/Dist"
+            }
+        },
+        {
             "name": "linux-debug",
             "displayName": "Linux Debug",
             "generator": "Ninja",
