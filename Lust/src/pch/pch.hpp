@@ -6,6 +6,7 @@
 #include <memory>
 #include <any>
 #include <sstream>
+#include <chrono>
 #include <Eigen/Eigen>
 #include <vulkan/vulkan.h>
 #ifdef LUST_USES_WINDOWS
