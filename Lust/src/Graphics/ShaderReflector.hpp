@@ -11,21 +11,64 @@
 
 namespace Lust
 {
+	/**
+	* @brief %Shader reflector
+	* @details Contains the shader reflector, which is used to reflect the shader, in other words, to get the layout of the shader,
+	* of all the inputs, uniforms, textures, samplers, structured buffers, and the input assembly layout
+	*/
 	class LUST_API ShaderReflector
 	{
 	public:
+		/**
+		* @brief Constructor
+		* @param stages The number of stages
+		* @param numInstances The number of instances
+		*/
 		ShaderReflector(uint32_t stages, uint32_t numInstances);
+		/**
+		* @brief Destructor
+		*/
 		virtual ~ShaderReflector() = default;
 
+		/**
+		* @brief Gets the input layout
+		*/
 		const InputBufferLayout& GetInputLayout() const;
+		/**
+		* @brief Gets the small buffer layout
+		*/
 		const SmallBufferLayout& GetSmallBufferLayout() const;
+		/**
+		* @brief Gets the uniform layout
+		*/
 		const UniformLayout& GetUniformLayout() const;
+		/**
+		* @brief Gets the texture layout
+		*/
 		const TextureLayout& GetTextureLayout() const;
+		/**
+		* @brief Gets the sampler layout
+		*/
 		const SamplerLayout& GetSamplerLayout() const;
+		/**
+		* @brief Gets the texture array layout
+		*/
 		const TextureArrayLayout& GetTextureArrayLayout() const;
+		/**
+		* @brief Gets the sampler array layout
+		*/
 		const SamplerArrayLayout& GetSamplerArrayLayout() const;
+		/**
+		* @brief Gets the structured buffer layout
+		*/
 		const StructuredBufferLayout& GetStructuredBufferLayout() const;
 
+		/**
+		* @brief Instantiates a shader reflector
+		* @param jsonBasepath The json base path
+		* @param stages The number of stages
+		* @param numInstances The number of instances
+		*/
 		static ShaderReflector* Instantiate(std::string_view jsonBasepath, uint32_t stages, uint32_t numInstances = 1);
 	
 	protected:
@@ -43,6 +86,10 @@ namespace Lust
 
 		uint32_t m_NumberOfInstances;
 
+		/**
+		* @brief Initializes the json and paths
+		* @param jsonFilepath The json file path, with the extensions
+		*/
 		void InitJsonAndPaths(std::string_view jsonFilepath);
 
 		static const std::list<std::string> s_GraphicsPipelineStages;

@@ -103,6 +103,10 @@ namespace Lust
 		std::string m_Name;
 	};
 
+	/**
+	* @brief Structured Buffer Layout
+	* @details Represents a collection of structured buffer elements
+	*/
 	class LUST_SHADER_MNG_API StructuredBufferLayout
 	{
 	public:
