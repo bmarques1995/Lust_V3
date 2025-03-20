@@ -1,0 +1,1 @@
+OpenCppCoverage --sources Utils\* --sources ShaderManager\* --sources Lust\* -- .\Windows\Debug\bin\MathTests.exe --export_type=html:.\html_cov\coverage ^

@@ -8,7 +8,6 @@ namespace Lust
 {
 	TEST(Transformation, Translation)
 	{
-
 		glm::radians(45.0f);
 		glm::degrees(1.0f);
 	}

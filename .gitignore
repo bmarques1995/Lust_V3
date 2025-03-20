@@ -12,3 +12,5 @@ dxil/
 *D3D12ContextExport.cpp
 docs/
 docs_style/
+CoverageReport-*/
+*CoverageResults.log
