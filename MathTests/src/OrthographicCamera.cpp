@@ -15,7 +15,8 @@ namespace Lust
 
 	TEST(Projection, ValidateRadiansToDegrees)
 	{
-		float radians = Lust::Radians(45.0f);
+		float degreesForTest = 45.0f;
+		float radians = Lust::Radians(degreesForTest);
 		float degrees = Lust::Degrees(radians);
 		EXPECT_TRUE(degrees <= (45.0f + 0.000001f) && degrees >= (45.0f - 0.000001f));
 	}

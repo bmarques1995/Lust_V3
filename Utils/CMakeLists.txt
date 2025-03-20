@@ -52,3 +52,27 @@ target_installation_behaviour(
 	NAMESPACE "Lust"
 	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/Utils/
 	HEADER_OUTPUT ./include/Lust/Utils)
+
+set(TARGET_TEST_NAME ${TARGET_NAME}Test)
+
+
+
+if(BUILD_TESTS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+	
+	file(GLOB_RECURSE TESTS_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "tests/*.hpp")
+	file(GLOB_RECURSE TESTS_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "tests/*.cpp")
+
+	enable_testing()
+	if(WIN32)
+		trace_dependency(NAME GTest INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/gtest.ps1")
+	endif()
+	add_executable(${TARGET_TEST_NAME} ${TESTS_SRCS})
+	target_include_directories(${TARGET_TEST_NAME} PRIVATE "${CMAKE_PREFIX_PATH}/include" "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+	target_link_libraries(${TARGET_TEST_NAME} PRIVATE GTest::gtest_main GTest::gtest GTest::gmock_main GTest::gmock ${TARGET_NAME})
+	set_cxx_project_standards(${TARGET_TEST_NAME} 20 FALSE)
+	add_test(
+		${TARGET_TEST_NAME}
+		${TARGET_TEST_NAME}
+	)
+
+endif()

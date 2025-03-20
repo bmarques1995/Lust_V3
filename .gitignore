@@ -14,3 +14,6 @@ docs/
 docs_style/
 CoverageReport-*/
 *CoverageResults.log
+test*.txt
+*.cov
+final_coverage/

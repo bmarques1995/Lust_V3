@@ -9,6 +9,7 @@ option(BUILD_SHARED_LIBS "Build all libs as .dll/.so" OFF)
 option(BUILD_AS_WINDOWED_APP "Build the app as Win32 application" OFF)
 option(REGISTER_VULKAN_LAYERS "Set vulkan layers location on regedit" OFF)
 option(BUILD_EXAMPLES "Build example program" ON)
+option(BUILD_TESTS "Build tests" ON)
 option(GEN_DOCS "Generate documentation" ON)
 option(DISABLE_BUILDS "Disable builds" OFF)
 
