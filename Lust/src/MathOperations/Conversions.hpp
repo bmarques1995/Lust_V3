@@ -1,9 +1,18 @@
 #pragma once
 
+/**
+* @file Conversions.hpp
+* @brief Contains conversion functions, radians to degrees and degrees to radians
+*/
+
 #include <limits>
 
 namespace Lust
 {
+	/**
+	* Converts degrees to radians
+	* @param degrees Degrees to convert
+	*/
 	template<typename genType>
 	inline constexpr genType Radians(genType degrees)
 	{
@@ -12,6 +21,10 @@ namespace Lust
 		return degrees * static_cast<genType>(0.01745329251994329576923690768489);
 	}
 
+	/**
+	* Converts radians to degrees
+	* @param radians Radians to convert
+	*/
 	template<typename genType>
 	inline constexpr genType Degrees(genType radians)
 	{

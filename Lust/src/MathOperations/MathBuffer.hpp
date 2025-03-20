@@ -1,10 +1,21 @@
 #pragma once
 
+/**
+* @file MathBuffer.hpp
+* @brief Contains functions to copy matrices to a buffer
+*/
+
 #include <Eigen/Eigen>
 #include <cstring>
 
 namespace Lust
 {
+	/**
+	* Copies a matrix to a buffer
+	* @param matrix Matrix source to copy
+	* @param buffer Buffer to copy to
+	* @param start Start offset
+	*/
 	template<typename T>
 	void CopyMatrix4ToBuffer(Eigen::Matrix4<T> matrix, uint8_t** buffer, size_t start)
 	{

@@ -1,9 +1,23 @@
 #pragma once
 
+/**
+* @file Projection.hpp
+* @brief Contains projection functions, orthographic
+*/
+
 #include <Eigen/Eigen>
 
 namespace Lust
 {
+	/**
+	* Orthographic projection
+	* @param left Left bound
+	* @param right Right bound
+	* @param bottom Bottom bound
+	* @param top Top bound
+	* @param zNear Near bound
+	* @param zFar Far bound
+	*/
 	template<typename T>
 	Eigen::Matrix<T, 4, 4> Ortho(const T left, const T right, const T bottom, const T top, const T zNear, const T zFar)
 	{
