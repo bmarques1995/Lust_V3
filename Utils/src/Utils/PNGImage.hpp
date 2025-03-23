@@ -60,11 +60,6 @@ namespace Lust
 		static void EndPNGHandlers(png_structp* pngPtr2, png_infop* infoPtr2);
 		/**
 		* @brief Validates the PNG headers
-		* @param pngFile The PNG file
-		*/
-		void ValidatePNGHeaders(std::ifstream* pngFile);
-		/**
-		* @brief Validates the PNG headers
 		* @param buffer The buffer of the encoded PNG image
 		*/
 		void ValidatePNGHeaders(const std::byte* buffer);

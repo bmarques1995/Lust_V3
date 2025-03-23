@@ -91,12 +91,13 @@ Lust::ImageFormat Lust::Image::GetImageFormat(std::string_view path)
 	std::regex extensionRegex(".*\\.([a-zA-Z0-9]+)$");
 	std::smatch match;
 	std::string extension;
-	if (std::regex_search(filePath, match, extensionRegex)) {
+	if (std::regex_search(filePath, match, extensionRegex))
+	{
 		extension = match.str(1);
 	}
 	else
 	{
-		assert(false);
+		return ImageFormat::UNKNOWN;
 	}
 	std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) {
 		return std::tolower(c);
@@ -111,9 +112,24 @@ Lust::ImageFormat Lust::Image::GetImageFormat(std::string_view path)
 	return format;
 }
 
-void Lust::Image::CastBMPToPNG(const unsigned char* pixels, uint32_t width, uint32_t height, unsigned char** buffer, size_t* bufferSize, bool flipVertically)
+void Lust::Image::CastBMPToPNG(const unsigned char* pixels, uint32_t width, uint32_t height, unsigned char** buffer, size_t* bufferSize, bool flipVertically, uint32_t numChannels)
 {
+	static const std::unordered_map<uint32_t, int32_t> s_ChannelMode = 
+	{ 
+		{ 4, PNG_COLOR_TYPE_RGBA },
+		{ 3, PNG_COLOR_TYPE_RGB },
+		{ 1, PNG_COLOR_TYPE_GRAY },
+		{ 2, PNG_COLOR_TYPE_GRAY_ALPHA }
+	};
+
+	int32_t colorType = PNG_COLOR_TYPE_RGB;
+	auto modeIt = s_ChannelMode.find(numChannels);
+	if (modeIt != s_ChannelMode.end())
+	{
+		colorType = modeIt->second;
+	}
 	std::vector<unsigned char> out;
+
 	out.clear();
 	png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	assert(png);
@@ -121,7 +137,7 @@ void Lust::Image::CastBMPToPNG(const unsigned char* pixels, uint32_t width, uint
 	assert(info);
 	assert(0 == setjmp(png_jmpbuf(png)));
 	png_set_IHDR(png, info, width, height, 8,
-		PNG_COLOR_TYPE_RGBA,
+		colorType,
 		PNG_INTERLACE_NONE,
 		PNG_COMPRESSION_TYPE_DEFAULT,
 		PNG_FILTER_TYPE_DEFAULT);

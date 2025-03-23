@@ -112,7 +112,7 @@ namespace Lust
 		* @param bufferSize [Out] The size of the buffer in bytes
 		* @param flipVertically If true, the image will be flipped vertically
 		*/
-		static void CastBMPToPNG(const unsigned char* pixels, uint32_t width, uint32_t height, unsigned char** buffer, size_t* bufferSize, bool flipVertically = false);
+		static void CastBMPToPNG(const unsigned char* pixels, uint32_t width, uint32_t height, unsigned char** buffer, size_t* bufferSize, bool flipVertically = false, uint32_t numChannels = 4);
 		
 		/**
 		* @brief Casts a BMP image to a JPEG image

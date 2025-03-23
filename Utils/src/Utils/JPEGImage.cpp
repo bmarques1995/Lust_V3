@@ -31,7 +31,7 @@ Lust::JPEGImage::~JPEGImage()
 void Lust::JPEGImage::LoadJPEGFromFile(std::string_view path)
 {
 	FILE* file;
-#ifdef UTILS_USES_WINDOWS
+#ifdef LUST_UTILS_WINDOWS
 	fopen_s(&file, path.data(), "rb");
 #else
 	file = fopen(path.data(), "rb");

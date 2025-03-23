@@ -31,7 +31,7 @@ bool Lust::FileHandler::WriteTextFile(std::string_view path, std::string content
 {
 	bool stored = false;
 	std::ofstream fileStream;
-	fileStream.exceptions(std::ofstream::badbit);
+	fileStream.exceptions(std::ofstream::badbit | std::ofstream::failbit);
 	try
 	{
 		fileStream.open(path.data(), std::ios::out | std::ios::binary);
@@ -73,7 +73,7 @@ bool Lust::FileHandler::WriteBinFile(std::string_view path, std::byte* content, 
 {
 	bool stored = false;
 	std::ofstream fileStream;
-	fileStream.exceptions(std::ofstream::badbit);
+	fileStream.exceptions(std::ofstream::badbit | std::ofstream::failbit);
 	try
 	{
 		fileStream.open(path.data(), std::ios::out | std::ios::binary);

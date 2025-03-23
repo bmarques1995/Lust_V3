@@ -38,7 +38,7 @@ void Lust::Instrumentator::WriteProfile(const ProfileResult& result)
 	element["tid"] = result.ThreadID;
 	element["ts"] = result.Start;
 
-    m_Root["traceEvents "].append(element);
+    m_Root["traceEvents"].append(element);
 }
 
 void Lust::Instrumentator::WriteHeader()

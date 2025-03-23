@@ -78,13 +78,6 @@ void Lust::PNGImage::EndPNGHandlers(png_structp* pngPtr2, png_infop* infoPtr2)
 	png_destroy_read_struct(pngPtr2, infoPtr2, nullptr);
 }
 
-void Lust::PNGImage::ValidatePNGHeaders(std::ifstream* pngFile)
-{
-	png_byte header[8];
-	pngFile->read(reinterpret_cast<char*>(header), 8);
-	assert(!png_sig_cmp(header, 0, 8));
-}
-
 void Lust::PNGImage::ValidatePNGHeaders(const std::byte* buffer)
 {
 	png_byte header[8];
@@ -96,23 +89,19 @@ void Lust::PNGImage::ExpandPNGToRGBA(png_structp* pngPtr2, png_infop* infoPtr2, 
 {
 	switch (colorType)
 	{
-	case PNG_COLOR_TYPE_RGB:
-	{
-		png_set_add_alpha(*pngPtr2, 0xFF, PNG_FILLER_AFTER);
-		png_read_update_info(*pngPtr2, *infoPtr2);
-		return;
-	}
-	case PNG_COLOR_TYPE_GRAY:
-	{
-		png_set_gray_to_rgb(*pngPtr2);
-		png_set_add_alpha(*pngPtr2, 0xFF, PNG_FILLER_AFTER);
-		png_read_update_info(*pngPtr2, *infoPtr2);
-		return;
-	}
-	case PNG_COLOR_TYPE_RGBA:
-		return;
-	default:
-		assert(false);
+		case PNG_COLOR_TYPE_RGB:
+		{
+			png_set_add_alpha(*pngPtr2, 0xFF, PNG_FILLER_AFTER);
+			png_read_update_info(*pngPtr2, *infoPtr2);
+			break;
+		}
+		case PNG_COLOR_TYPE_GRAY:
+		{
+			png_set_gray_to_rgb(*pngPtr2);
+			png_set_add_alpha(*pngPtr2, 0xFF, PNG_FILLER_AFTER);
+			png_read_update_info(*pngPtr2, *infoPtr2);
+			break;
+		}
 	}
 }
 
