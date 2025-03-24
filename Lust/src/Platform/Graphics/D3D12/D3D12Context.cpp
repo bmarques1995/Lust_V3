@@ -149,7 +149,7 @@ void Lust::D3D12Context::DispatchCommands()
 
 void Lust::D3D12Context::Present()
 {
-	m_SwapChain->Present(m_IsVSyncEnabled ? 1 : 0, 0);
+	m_SwapChain->Present(m_IsVSyncEnabled ? 1 : 0, m_IsVSyncEnabled ? 0 : DXGI_PRESENT_ALLOW_TEARING);
 }
 
 void Lust::D3D12Context::StageViewportAndScissors()
@@ -306,15 +306,15 @@ void Lust::D3D12Context::CreateSwapChain(HWND windowHandle)
 	swapChainDesc.Stereo = FALSE;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
-	swapChainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
+	swapChainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = m_FramesInFlight;
 	swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
 	DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc{};
-	fullscreenDesc.RefreshRate.Denominator = 0;
+	fullscreenDesc.RefreshRate.Denominator = 90;
 	fullscreenDesc.RefreshRate.Numerator = 1;
 	fullscreenDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	fullscreenDesc.Scaling = DXGI_MODE_SCALING_STRETCHED;
