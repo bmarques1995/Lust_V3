@@ -85,6 +85,12 @@ namespace Lust
 		*/
 		void SetHLSLFeatureLevel(std::string version);
 
+		/**
+		* @brief Validates the name of the variable
+		* @param name name of the variable
+		*/
+		void ValidateNameOfFunctionOrVariable(std::string name);
+
 	protected:
 		/**
 		* @brief Constructor
@@ -159,6 +165,15 @@ namespace Lust
 		*/
 		bool ValidatePipeline(uint32_t stages, PipelineType pipelineType);
 		
+		/**
+		* @brief Pushes the present stages of a shader
+		* @param shaderPath filepath of the shader
+		* @param shader hlsl frontend of the shader
+		* @param m_Stages [Out] Stages of the shader
+		* @details This method is used to compile only the stages that are present
+		*/
+		void PushPresentStages(std::string shaderPath, std::string shader, std::vector<std::pair<std::string, Lust::PipelineStage>>* m_Stages);
+
 		static const std::unordered_map<std::string, bool> s_Keywords;
 		static const std::unordered_map<std::string, bool> s_SysValues;
 		static const std::list<std::string> s_BuiltinFunctions;
@@ -166,7 +181,7 @@ namespace Lust
 		static const std::unordered_map<std::string, PipelineStage> s_ShaderStages;
 
 		std::vector<std::pair<std::string, PipelineType>> m_ShaderFilepaths;
-		
+
 		std::vector<const wchar_t*> m_ArgList;
 
 		bool m_PackedShaders;

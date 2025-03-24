@@ -9,6 +9,6 @@ namespace Lust
 		Console::Init();
 		Console::CoreLog("Sample Log");
 		Console::End();
-		EXPECT_TRUE(true);
+		ASSERT_TRUE(true);
 	}
 }

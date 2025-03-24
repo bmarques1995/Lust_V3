@@ -13,7 +13,7 @@ namespace Lust
 		std::string readMsg;
 		FileHandler::ReadTextFile("test.txt", &readMsg);
 		std::remove("test.txt");
-		EXPECT_EQ(msg, readMsg);
+		ASSERT_EQ(msg, readMsg);
 	}
 
 	TEST(Utils, IsReadingWritingBin)
@@ -25,25 +25,25 @@ namespace Lust
 		FileHandler::ReadBinFile("test2.txt", (std::byte**)&readMsg, &size);
 		std::remove("test2.txt");
 		std::string strReadMsg = readMsg;
-		EXPECT_EQ(msg, strReadMsg);
+		ASSERT_EQ(msg, strReadMsg);
 	}
 
 	TEST(Utils, IsFileExists)
 	{
 		std::string msg = "Hello World bin!\nFor Tests\n\0";
 		FileHandler::WriteBinFile("test3.txt", (std::byte*)msg.c_str(), msg.size() + 1);
-		EXPECT_TRUE(FileHandler::FileExists("test3.txt"));
+		ASSERT_TRUE(FileHandler::FileExists("test3.txt"));
 		std::remove("test3.txt");
-		EXPECT_FALSE(FileHandler::FileExists("test3.txt"));
+		ASSERT_FALSE(FileHandler::FileExists("test3.txt"));
 	}
 
 	TEST(Utils, ReadFailure)
 	{
 		std::string readMsg;
-		EXPECT_FALSE(FileHandler::ReadTextFile("test.txt", &readMsg));
+		ASSERT_FALSE(FileHandler::ReadTextFile("test.txt", &readMsg));
 		char* msg;
 		size_t size;
-		EXPECT_FALSE(FileHandler::ReadBinFile("test2.txt", (std::byte**)&msg, &size));
+		ASSERT_FALSE(FileHandler::ReadBinFile("test2.txt", (std::byte**)&msg, &size));
 	}
 
 	TEST(Utils, WriteFailure)
@@ -57,11 +57,11 @@ namespace Lust
 #endif
 
 		std::string readMsg;
-		EXPECT_FALSE(FileHandler::WriteTextFile("test4.txt", msg));
+		ASSERT_FALSE(FileHandler::WriteTextFile("test4.txt", msg));
 		char binMsg[] = "Sample Message";
 		size_t size = sizeof(msg);
 		bool res = FileHandler::WriteBinFile("test4.txt", (std::byte*)binMsg, size);
 		std::remove("test4.txt");
-		EXPECT_FALSE(res);
+		ASSERT_FALSE(res);
 	}
 }

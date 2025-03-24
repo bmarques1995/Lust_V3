@@ -17,12 +17,12 @@ namespace Lust
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage("test.png"));
 		std::remove("test.png");
-		EXPECT_EQ(img->GetHeight(), 1);
-		EXPECT_EQ(img->GetWidth(), 1);
-		EXPECT_EQ(img->GetChannels(), 4);
-		EXPECT_EQ(img->GetMips(), 1);
-		EXPECT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_EQ(img->GetHeight(), 1);
+		ASSERT_EQ(img->GetWidth(), 1);
+		ASSERT_EQ(img->GetChannels(), 4);
+		ASSERT_EQ(img->GetMips(), 1);
+		ASSERT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, IsJPEGImageGenerated)
@@ -35,12 +35,12 @@ namespace Lust
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage("test.jpeg"));
 		std::remove("test.jpeg");
-		EXPECT_EQ(img->GetHeight(), 1);
-		EXPECT_EQ(img->GetWidth(), 1);
-		EXPECT_EQ(img->GetChannels(), 4);
-		EXPECT_EQ(img->GetMips(), 1);
-		EXPECT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_EQ(img->GetHeight(), 1);
+		ASSERT_EQ(img->GetWidth(), 1);
+		ASSERT_EQ(img->GetChannels(), 4);
+		ASSERT_EQ(img->GetMips(), 1);
+		ASSERT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, IsPNGImageGeneratedUsingMemory)
@@ -51,12 +51,12 @@ namespace Lust
 		Image::CastBMPToPNG((unsigned char*)&pixel, 1, 1, &buffer, &bufferSize, false);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, bufferSize, ImageFormat::PNG));
-		EXPECT_EQ(img->GetHeight(), 1);
-		EXPECT_EQ(img->GetWidth(), 1);
-		EXPECT_EQ(img->GetChannels(), 4);
-		EXPECT_EQ(img->GetMips(), 1);
-		EXPECT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_EQ(img->GetHeight(), 1);
+		ASSERT_EQ(img->GetWidth(), 1);
+		ASSERT_EQ(img->GetChannels(), 4);
+		ASSERT_EQ(img->GetMips(), 1);
+		ASSERT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, IsJPEGImageGeneratedUsingMemory)
@@ -67,12 +67,12 @@ namespace Lust
 		Image::CastBMPToJPEG((unsigned char*)&pixel, 1, 1, &buffer, &bufferSize, false);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, bufferSize, ImageFormat::JPEG));
-		EXPECT_EQ(img->GetHeight(), 1);
-		EXPECT_EQ(img->GetWidth(), 1);
-		EXPECT_EQ(img->GetChannels(), 4);
-		EXPECT_EQ(img->GetMips(), 1);
-		EXPECT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_EQ(img->GetHeight(), 1);
+		ASSERT_EQ(img->GetWidth(), 1);
+		ASSERT_EQ(img->GetChannels(), 4);
+		ASSERT_EQ(img->GetMips(), 1);
+		ASSERT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, IsPNGImageGeneratedUsingMemoryAndDimensions)
@@ -83,12 +83,12 @@ namespace Lust
 		Image::CastBMPToPNG((unsigned char*)&pixel, 1, 1, &buffer, &bufferSize, false);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, 1, 1, ImageFormat::PNG));
-		EXPECT_EQ(img->GetHeight(), 1);
-		EXPECT_EQ(img->GetWidth(), 1);
-		EXPECT_EQ(img->GetChannels(), 4);
-		EXPECT_EQ(img->GetMips(), 1);
-		EXPECT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_EQ(img->GetHeight(), 1);
+		ASSERT_EQ(img->GetWidth(), 1);
+		ASSERT_EQ(img->GetChannels(), 4);
+		ASSERT_EQ(img->GetMips(), 1);
+		ASSERT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, IsJPEGImageGeneratedUsingMemoryAndDimensions)
@@ -99,12 +99,12 @@ namespace Lust
 		Image::CastBMPToJPEG((unsigned char*)&pixel, 1, 1, &buffer, &bufferSize, false);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, 1, 1, ImageFormat::JPEG));
-		EXPECT_EQ(img->GetHeight(), 1);
-		EXPECT_EQ(img->GetWidth(), 1);
-		EXPECT_EQ(img->GetChannels(), 4);
-		EXPECT_EQ(img->GetMips(), 1);
-		EXPECT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_EQ(img->GetHeight(), 1);
+		ASSERT_EQ(img->GetWidth(), 1);
+		ASSERT_EQ(img->GetChannels(), 4);
+		ASSERT_EQ(img->GetMips(), 1);
+		ASSERT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, IsPNGMultiMips)
@@ -115,12 +115,12 @@ namespace Lust
 		Image::CastBMPToPNG((unsigned char*)&pixels[0], 2, 2, &buffer, &bufferSize, true, 3);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, bufferSize, ImageFormat::PNG));
-		EXPECT_EQ(img->GetHeight(), 2);
-		EXPECT_EQ(img->GetWidth(), 2);
-		EXPECT_EQ(img->GetChannels(), 4);
-		EXPECT_EQ(img->GetMips(), 2);
-		EXPECT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_EQ(img->GetHeight(), 2);
+		ASSERT_EQ(img->GetWidth(), 2);
+		ASSERT_EQ(img->GetChannels(), 4);
+		ASSERT_EQ(img->GetMips(), 2);
+		ASSERT_EQ(img->GetImageAlignment(), ImageAlignment::COMPENSED);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, PNGGrayIsReading)
@@ -131,7 +131,7 @@ namespace Lust
 		Image::CastBMPToPNG((unsigned char*)&pixels[0], 2, 2, &buffer, &bufferSize, true, 1);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, bufferSize, ImageFormat::PNG));
-		EXPECT_FALSE(img->GetRawPointer() == nullptr);
+		ASSERT_FALSE(img->GetRawPointer() == nullptr);
 	}
 
 	TEST(Utils, ImageExtensionError)
@@ -139,7 +139,7 @@ namespace Lust
 		uint32_t pixel = 0xFF0000FF;
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage("test"));
-		EXPECT_TRUE(img.get() == nullptr);
+		ASSERT_TRUE(img.get() == nullptr);
 	}
 
 	TEST(Utils, ImageExtensionNotSupported)
@@ -147,7 +147,7 @@ namespace Lust
 		uint32_t pixel = 0xFF0000FF;
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage("test.gif"));
-		EXPECT_TRUE(img.get() == nullptr);
+		ASSERT_TRUE(img.get() == nullptr);
 	}
 
 	TEST(Utils, ImageFormatNotSupported)
@@ -158,7 +158,7 @@ namespace Lust
 		Image::CastBMPToPNG((unsigned char*)&pixels[0], 2, 2, &buffer, &bufferSize, true, 1);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, bufferSize, ImageFormat::UNKNOWN));
-		EXPECT_TRUE(img.get() == nullptr);
+		ASSERT_TRUE(img.get() == nullptr);
 	}
 
 	TEST(Utils, ImageFormatNotSupportedWithWidthAndHeight)
@@ -169,6 +169,6 @@ namespace Lust
 		Image::CastBMPToPNG((unsigned char*)&pixels[0], 2, 2, &buffer, &bufferSize, true, 1);
 		std::shared_ptr<Image> img;
 		img.reset(Image::CreateImage((std::byte*)buffer, 2, 2, ImageFormat::UNKNOWN));
-		EXPECT_TRUE(img.get() == nullptr);
+		ASSERT_TRUE(img.get() == nullptr);
 	}
 }

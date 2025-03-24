@@ -375,6 +375,13 @@ void Lust::Compiler::SetHLSLFeatureLevel(std::string version)
 	m_HLSLFeatureLevel = version;
 }
 
+void Lust::Compiler::ValidateNameOfFunctionOrVariable(std::string name)
+{
+	ValidateNameOverKeywords(name);
+	ValidateNameOverBuiltinFunctions(name);
+	ValidateNameOverSysValues(name);
+}
+
 void Lust::Compiler::ValidateHLSLFeatureLevel(std::string version)
 {
 	std::regex pattern("^_(\\d+)_(\\d+)$");
@@ -472,7 +479,7 @@ std::list<std::pair<uint32_t, uint32_t>>::const_iterator Lust::Compiler::SearchH
 void Lust::Compiler::ValidateNameOverKeywords(std::string name)
 {
 	std::regex variablePattern("[a-zA-Z_][a-zA-Z0-9_]*$");
-	std::regex typeExtended("([1-4]|[1-4]x[1-4])$");
+	std::regex typeExtended("^(.*?)([1-4]|[1-4]x[1-4])$");
 	std::regex typeExtendedCapture("^(.*?)([1-4]|[1-4]x[1-4])$");
 	std::smatch matches;
 	std::string subType;
@@ -602,5 +609,15 @@ bool Lust::Compiler::ValidatePipeline(uint32_t stages, PipelineType pipelineType
 	}
 	default:
 		return false;
+	}
+}
+
+void Lust::Compiler::PushPresentStages(std::string shaderPath, std::string shader, std::vector<std::pair<std::string, Lust::PipelineStage>>* m_ShaderPresentStages)
+{
+	for (auto& stage : s_ShaderStages)
+	{
+		std::string stageEntry = stage.first + m_BaseEntry;
+		if (shader.find(stageEntry) != std::string::npos)
+			m_ShaderPresentStages->push_back(stage);
 	}
 }

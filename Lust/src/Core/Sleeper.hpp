@@ -27,9 +27,23 @@ namespace Lust
 		* @brief SetFrameTime sets the frame time, e.g. 1.0f / 60.0f for 60FPS.
 		* @param time frame time
 		*/
-		static void SetFrameTime(float time);
+		static void SetFrameTime(double time);
+		static void SetFrameTimeF(float time);
+
+		static double GetFrameTime(); // { return s_FrameTimeF; }
+		static float GetFrameTimeF(); // { return s_FrameTimeF; }
+		
+		static double GetDeltaTime();
+		static float GetDeltaTimeF();
+
+		static std::chrono::steady_clock::time_point GetCurrentFrameTime();
+
 	private:
-		static float s_FrameTime;
+		static float s_FrameTimeF;
+		static double s_FrameTime;
+
 		static std::chrono::steady_clock::time_point s_StartTime;
+		static std::chrono::steady_clock::time_point s_LastStartTime;
+		static std::chrono::steady_clock::time_point s_EndTime;
 	};
 }

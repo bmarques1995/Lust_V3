@@ -20,7 +20,8 @@ Lust::Application::Application()
 {
 	EnableSingleton(this);
 
-	Sleeper::SetFrameTime(1.0f / 60.0f);
+	Sleeper::SetFrameTime(1.0 / 60.0);
+	Sleeper::SetFrameTimeF(1.0f / 60.0f);
 
 	Console::Init();
 	Renderer::Init();
@@ -135,16 +136,14 @@ std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
 void Lust::Application::RenderAction()
 {
 	Sleeper::StartTracking();
-	Uint64 now = SDL_GetPerformanceCounter();
-	Uint64 frequency = SDL_GetPerformanceFrequency();
-	double time = (double)now / (double)frequency;
-	Timestep timestep = time - m_LastFrameTime;
-	m_LastFrameTime = time;
-	m_CommandEllapsed = time;
+	Timestep timestep = Sleeper::GetDeltaTime();
+	m_LastFrameTime = Sleeper::GetCurrentFrameTime();
+	m_CommandEllapsed = Sleeper::GetCurrentFrameTime();
+	double commandTimeEllapsed = (std::chrono::duration_cast<std::chrono::microseconds>(m_CommandEllapsed - m_LastCommand).count() / 1e6);
 
-	if (Input::IsKeyPressed(Key::LUST_KEYCODE_F11) && (m_CommandEllapsed - m_LastCommand) > .2f)
+	if (Input::IsKeyPressed(Key::LUST_KEYCODE_F11) && commandTimeEllapsed > .2f)
 	{
-		m_LastCommand = time;
+		m_LastCommand = Sleeper::GetCurrentFrameTime();
 		m_Window->SetFullScreen(!m_Window->IsFullscreen());
 		m_Starter->SetFullscreenMode(m_Window->IsFullscreen());
 		m_Context->WindowResize(m_Window->GetWidth(), m_Window->GetHeight());

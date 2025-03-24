@@ -159,9 +159,9 @@ namespace Lust
 		std::shared_ptr<CopyPipeline> m_CopyPipeline;
 
 		std::unique_ptr<LayerStack> m_LayerStack;
-		float m_LastFrameTime = 0.0f;
-		float m_LastCommand = .0f;
-		float m_CommandEllapsed = .0f;
+		std::chrono::steady_clock::time_point m_LastFrameTime = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::time_point m_LastCommand = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::time_point m_CommandEllapsed = std::chrono::steady_clock::now();
 		double m_GPUTime = 0.0f;
 
 		static Application* s_AppSingleton;

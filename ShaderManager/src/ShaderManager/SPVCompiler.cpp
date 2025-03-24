@@ -45,47 +45,42 @@ void Lust::SPVCompiler::CompilePackedShader()
 
 	for (auto& shaderPath : m_ShaderFilepaths)
 	{
+		std::vector<std::pair<std::string, Lust::PipelineStage>> objectPresentStages;
 		std::string basepath;
-		if (std::regex_match(shaderPath.first, matches, pattern))
+		std::regex_match(shaderPath.first, matches, pattern);
+		std::stringstream buffer;
+		buffer << matches[1].str();
+		buffer << matches[2].str();
+		basepath = buffer.str();
+		buffer.str("");
+		std::string shader;
+		ReadShaderSource(shaderPath.first, &shader);
+		PushPresentStages(shaderPath.first, shader, &objectPresentStages);
+		for (auto& stage : objectPresentStages)
 		{
-			std::stringstream buffer;
-			buffer << matches[1].str();
-			buffer << matches[2].str();
-			basepath = buffer.str();
-			buffer.str("");
-			std::string shader;
-			ReadShaderSource(shaderPath.first, &shader);
-			for (auto& stage : s_ShaderStages)
+			PushArgList(stage.first);
+			if (CompileStage(shader, stage.first, basepath))
 			{
-				if ((stage.first.compare("lib") == 0) && (shaderPath.second != PipelineType::RayTracing))
-					continue;
-				PushArgList(stage.first);
-				if (CompileStage(shader, stage.first, basepath))
-				{
-					presentStages |= (uint32_t)stage.second;
-					buffer << matches[2].str() << "." << stage.first << m_BackendExtension;
-					root["BinShaders"][stage.first]["filename"] = buffer.str();
-					root["BinShaders"][stage.first]["entrypoint"] = m_CurrentEntrypointCopy;
-					buffer.str("");
-				}
-				m_ArgList.clear();
+				presentStages |= (uint32_t)stage.second;
+				buffer << matches[2].str() << "." << stage.first << m_BackendExtension;
+				root["BinShaders"][stage.first]["filename"] = buffer.str();
+				root["BinShaders"][stage.first]["entrypoint"] = m_CurrentEntrypointCopy;
+				buffer.str("");
 			}
-			if (!ValidatePipeline(presentStages, shaderPath.second))
-				continue;
-			root["HLSLFeatureLevel"] = m_HLSLFeatureLevel;
-			root["VulkanFeatureLevel"] = m_VulkanFeatureLevel;
-			writer->write(root, &buffer);
-			std::string jsonResult = buffer.str();
-			buffer.str("");
-			buffer << basepath << m_GraphicsAPIExtension << ".json";
-			std::string jsonPath = buffer.str();
-			buffer.str("");
-			FileHandler::WriteTextFile(jsonPath, jsonResult);
+			m_ArgList.clear();
 		}
-		else
-		{
-			throw InvalidFilepathException("Invalid file extension, the only allowed is \".hlsl\"");
-		}
+		if (!ValidatePipeline(presentStages, shaderPath.second))
+			throw InvalidPipelineException("Invalid pipeline type");
+		root["HLSLFeatureLevel"] = m_HLSLFeatureLevel;
+		root["VulkanFeatureLevel"] = m_VulkanFeatureLevel;
+		writer->write(root, &buffer);
+		std::string jsonResult = buffer.str();
+		buffer.str("");
+		buffer << basepath << m_GraphicsAPIExtension << ".json";
+		std::string jsonPath = buffer.str();
+		buffer.str("");
+		FileHandler::WriteTextFile(jsonPath, jsonResult);
+		root.clear();
 	}
 }
 

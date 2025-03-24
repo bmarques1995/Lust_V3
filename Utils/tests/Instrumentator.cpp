@@ -24,13 +24,13 @@ namespace Lust
 		FileHandler::ReadTextFile("sample.json", &jsonResult);
 		reader.parse(jsonResult, root);
 		Json::Value element = root["traceEvents"][0];
-		EXPECT_EQ(element["cat"].asString(), "function");
-		EXPECT_EQ(element["dur"].asInt(), 56);
-		EXPECT_EQ(element["name"].asString(), "Tester");
-		EXPECT_EQ(element["ph"].asString(), "X");
-		EXPECT_EQ(element["pid"].asInt(), 0);
-		EXPECT_EQ(element["tid"].asInt(), 2);
-		EXPECT_EQ(element["ts"].asInt(), 8);
+		ASSERT_EQ(element["cat"].asString(), "function");
+		ASSERT_EQ(element["dur"].asInt(), 56);
+		ASSERT_EQ(element["name"].asString(), "Tester");
+		ASSERT_EQ(element["ph"].asString(), "X");
+		ASSERT_EQ(element["pid"].asInt(), 0);
+		ASSERT_EQ(element["tid"].asInt(), 2);
+		ASSERT_EQ(element["ts"].asInt(), 8);
 		std::remove("sample.json");
 	}
 
@@ -40,7 +40,7 @@ namespace Lust
 		instrumentator->BeginSession("test", "sample2.json");
 		expensiveOperation();
 		instrumentator->EndSession();
-		EXPECT_TRUE(FileHandler::FileExists("sample2.json"));
+		ASSERT_TRUE(FileHandler::FileExists("sample2.json"));
 		std::remove("sample2.json");
 	}
 }

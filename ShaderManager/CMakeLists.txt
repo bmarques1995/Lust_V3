@@ -51,3 +51,15 @@ target_installation_behaviour(
 	NAMESPACE "RenderV2" 
 	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/ShaderManager/
 	HEADER_OUTPUT ./include/Lust/ShaderManager)
+
+if(BUILD_TESTS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(TARGET_TEST_NAME ${TARGET_NAME}Test)
+	if(WIN32)
+		target_add_test(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+						SUB_DIR "tests" 
+						TARGET_NAME ${TARGET_TEST_NAME}
+						GTEST_INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/gtest.ps1"
+						EXTRA_LINKED_LIBS ${TARGET_NAME}
+						EXTRA_INCLUDE_DIRS "${CMAKE_PREFIX_PATH}/include" "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+	endif()
+endif()

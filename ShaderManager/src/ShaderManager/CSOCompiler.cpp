@@ -30,48 +30,46 @@ void Lust::CSOCompiler::CompilePackedShader()
 	for (auto& shaderPath : m_ShaderFilepaths)
 	{
 		std::string basepath;
-		if (std::regex_match(shaderPath.first, matches, pattern))
+		std::regex_match(shaderPath.first, matches, pattern);
+		std::vector<std::pair<std::string, Lust::PipelineStage>> objectPresentStages;
+		std::stringstream buffer;
+		buffer << matches[1].str();
+		buffer << matches[2].str();
+		basepath = buffer.str();
+		buffer.str("");
+		std::string shader;
+		ReadShaderSource(shaderPath.first, &shader);
+		PushRootSignatureArgs("rs_controller");
+		CompileRootSignature(shader, basepath);
+		buffer << matches[2].str() << ".rs" << m_BackendExtension;
+		root["BinShaders"]["rs"]["filename"] = buffer.str();
+		buffer.str("");
+		m_ArgList.clear();
+		PushPresentStages(shaderPath.first, shader, &objectPresentStages);
+		for (auto& stage : objectPresentStages)
 		{
-			std::stringstream buffer;
-			buffer << matches[1].str();
-			buffer << matches[2].str();
-			basepath = buffer.str();
-			buffer.str("");
-			std::string shader;
-			ReadShaderSource(shaderPath.first, &shader);
-			PushRootSignatureArgs("rs_controller");
-			CompileRootSignature(shader, basepath);
-			buffer << matches[2].str() << ".rs" << m_BackendExtension;
-			root["BinShaders"]["rs"]["filename"] = buffer.str();
-			buffer.str("");
-			m_ArgList.clear();
-			for (auto& stage : s_ShaderStages)
+			PushArgList(stage.first);
+			if (CompileStage(shader, stage.first, basepath))
 			{
-				if ((stage.first.compare("lib") == 0) && (shaderPath.second != PipelineType::RayTracing))
-					continue;
-				PushArgList(stage.first);
-				if (CompileStage(shader, stage.first, basepath))
-				{
-					presentStages |= (uint32_t)stage.second;
-					buffer << matches[2].str() << "." << stage.first << m_BackendExtension;
-					root["BinShaders"][stage.first]["filename"] = buffer.str();
-					buffer.str("");
-				}
-				m_ArgList.clear();
+				presentStages |= (uint32_t)stage.second;
+				buffer << matches[2].str() << "." << stage.first << m_BackendExtension;
+				root["BinShaders"][stage.first]["filename"] = buffer.str();
+				buffer.str("");
 			}
-			if (!ValidatePipeline(presentStages, shaderPath.second))
-				continue;
-			root["HLSLFeatureLevel"] = m_HLSLFeatureLevel;
-			writer->write(root, &buffer);
-			std::string jsonResult = buffer.str();
-			buffer.str("");
-			buffer << basepath << m_GraphicsAPIExtension << ".json";
-			std::string jsonPath = buffer.str();
-			buffer.str("");
-			FileHandler::WriteTextFile(jsonPath, jsonResult);
-			presentStages = 0;
-			root.clear();
+			m_ArgList.clear();
 		}
+		if (!ValidatePipeline(presentStages, shaderPath.second))
+			throw InvalidPipelineException("Invalid pipeline type");
+		root["HLSLFeatureLevel"] = m_HLSLFeatureLevel;
+		writer->write(root, &buffer);
+		std::string jsonResult = buffer.str();
+		buffer.str("");
+		buffer << basepath << m_GraphicsAPIExtension << ".json";
+		std::string jsonPath = buffer.str();
+		buffer.str("");
+		FileHandler::WriteTextFile(jsonPath, jsonResult);
+		presentStages = 0;
+		root.clear();
 	}
 }
 

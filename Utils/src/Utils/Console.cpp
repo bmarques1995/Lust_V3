@@ -16,6 +16,8 @@ std::shared_ptr<spdlog::logger> Lust::Console::s_ClientLogger;
 
 void Lust::Console::Init()
 {
+	if((s_ClientLogger.get() != nullptr ) && (s_CoreLogger.get() != nullptr))
+		return;
 	std::shared_ptr<spdlog::sinks::dup_filter_sink_mt> client_dup_filter = std::make_shared<spdlog::sinks::dup_filter_sink_mt>(std::chrono::seconds(5));
 	std::shared_ptr<spdlog::sinks::dup_filter_sink_mt> core_dup_filter = std::make_shared<spdlog::sinks::dup_filter_sink_mt>(std::chrono::seconds(5));
 
@@ -54,6 +56,7 @@ void Lust::Console::Init()
 
 void Lust::Console::End()
 {
+	spdlog::drop_all();
 	s_ClientLogger.reset();
 	s_CoreLogger.reset();
 }
