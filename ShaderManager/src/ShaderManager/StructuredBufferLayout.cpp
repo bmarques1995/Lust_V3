@@ -88,6 +88,11 @@ size_t Lust::StructuredBufferElement::GetBufferAlignment() const
 	return m_BufferAlignment;
 }
 
+size_t Lust::StructuredBufferElement::GetBufferCorrection() const
+{
+	return m_BufferCorrection;
+}
+
 void Lust::StructuredBufferElement::RecalculateBufferAlignment() const
 {
 	m_BufferCorrection = 0;
@@ -129,7 +134,7 @@ Lust::StructuredBufferElement* Lust::StructuredBufferLayout::GetElementPointer(s
 
 uint32_t Lust::StructuredBufferLayout::GetStages() const
 {
-	return 0;
+	return m_Stages;
 }
 
 void Lust::StructuredBufferLayout::Clear()

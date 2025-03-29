@@ -50,7 +50,6 @@ double Lust::Sleeper::GetDeltaTime()
 {
 	std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(s_EndTime - s_LastStartTime);
 	double timeS = time.count() / 1e6;
-	Console::CoreDebug("Delta time: {}", timeS);
 	return timeS;
 }
 
@@ -58,7 +57,6 @@ float Lust::Sleeper::GetDeltaTimeF()
 {
 	std::chrono::microseconds time = std::chrono::duration_cast<std::chrono::microseconds>(s_EndTime - s_LastStartTime);
 	float timeS = time.count() / 1e6;
-	Console::CoreDebug("Delta time: {}", timeS);
 	return timeS;
 }
 

@@ -7,7 +7,7 @@
 
 namespace Lust
 {
-	TEST(ShaderManager, IsSPVShaderCompilerWorkingForGraphicsPipeline)
+	TEST(SPVCompiler, IsSPVShaderCompilerWorkingForGraphicsPipeline)
 	{
 		Console::Init();
 		SPVCompiler compiler("main", "_6_8", "1.3");
@@ -25,7 +25,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, InvalidVulkanVersionNumber)
+	TEST(SPVCompiler, InvalidVulkanVersionNumber)
 	{
 		Console::Init();
 		std::shared_ptr<SPVCompiler> compiler;
@@ -33,7 +33,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, InvalidVulkanVersionFormat)
+	TEST(SPVCompiler, InvalidVulkanVersionFormat)
 	{
 		Console::Init();
 		std::shared_ptr<SPVCompiler> compiler;
@@ -42,7 +42,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, IsSPVShaderCompilerWorkingForGraphicsPipelineInRelease)
+	TEST(SPVCompiler, IsSPVShaderCompilerWorkingForGraphicsPipelineInRelease)
 	{
 		Console::Init();
 		SPVCompiler compiler("main", "_6_8", "1.3");

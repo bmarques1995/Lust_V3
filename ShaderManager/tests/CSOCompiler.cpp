@@ -9,7 +9,7 @@
 
 namespace Lust
 {
-	TEST(ShaderManager, IsCSOShaderCompilerWorkingForGraphicsPipeline)
+	TEST(CSOCompiler, IsCSOShaderCompilerWorkingForGraphicsPipeline)
 	{
 		Console::Init();
 		CSOCompiler compiler("main", "_6_8");
@@ -29,7 +29,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, IsCSOShaderCompilerDetectingInvalidPipeline)
+	TEST(CSOCompiler, IsCSOShaderCompilerDetectingInvalidPipeline)
 	{
 		Console::Init();
 		CSOCompiler compiler("main", "_6_8");
@@ -42,7 +42,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, IsCSOShaderCompilerDetectingCompilationError)
+	TEST(CSOCompiler, IsCSOShaderCompilerDetectingCompilationError)
 	{
 		Console::Init();
 		CSOCompiler compiler("main", "_6_8");
@@ -55,7 +55,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, IsCSOShaderCompilerDetectingInvalidRootSignature)
+	TEST(CSOCompiler, IsCSOShaderCompilerDetectingInvalidRootSignature)
 	{
 		Console::Init();
 		CSOCompiler compiler("main", "_6_8");

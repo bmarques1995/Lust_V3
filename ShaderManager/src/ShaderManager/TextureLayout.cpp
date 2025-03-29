@@ -196,9 +196,11 @@ Lust::TextureBuffer::TextureBuffer(std::shared_ptr<Image> img, TextureTensor ten
 	}
 	else
 	{
-		m_Width = 0;
-		m_Height = 0;
-		m_MipsLevel = 0;
+		uint32_t whitePixel = 0xffffffff;
+		m_Image.reset(Image::CreateImage((const std::byte*)&whitePixel, 1, 1, ImageFormat::PNG));
+		m_Width = 1;
+		m_Height = 1;
+		m_MipsLevel = 1;
 		m_Channels = 4;
 		m_ImageAlignment = ImageAlignment::COMPENSED;
 	}

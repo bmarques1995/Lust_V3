@@ -84,6 +84,10 @@ namespace Lust
 		* @brief Returns the alignment of the buffer. The buffer needs to match the Vulkan and D3D12 alignment, so is adjusted for this
 		*/
 		size_t GetBufferAlignment() const;
+		/**
+		* @brief Returns the correction of the buffer, a value that is added to the buffer size to match the alignment
+		*/
+		size_t GetBufferCorrection() const;
 
 	private:
 		/**

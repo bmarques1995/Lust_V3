@@ -4,18 +4,21 @@ uint32_t Lust::ShaderDataTypeSize(ShaderDataType type)
 {
 	switch (type)
 	{
-	case ShaderDataType::Float:    return 4;
-	case ShaderDataType::Float2:   return 4 * 2;
-	case ShaderDataType::Float3:   return 4 * 3;
-	case ShaderDataType::Float4:   return 4 * 4;
-	case ShaderDataType::Uint:      return 4;
-	case ShaderDataType::Uint2:     return 4 * 2;
-	case ShaderDataType::Uint3:     return 4 * 3;
-	case ShaderDataType::Uint4:     return 4 * 4;
+	case ShaderDataType::Uint:
+	case ShaderDataType::Float:
+		return 4;
+	case ShaderDataType::Uint2:
+	case ShaderDataType::Float2:
+		return 4 * 2;
+	case ShaderDataType::Uint3:
+	case ShaderDataType::Float3:
+		return 4 * 3;
+	case ShaderDataType::Uint4:
+	case ShaderDataType::Float4:
+		return 4 * 4;
 	}
 
 	Console::CoreError("Unknown ShaderDataType!");
-	assert(false);
 	return 0;
 }
 
@@ -37,17 +40,21 @@ uint32_t Lust::InputBufferElement::GetComponentCount() const
 {
 	switch (m_Type)
 	{
-	case ShaderDataType::Float:   return 1;
-	case ShaderDataType::Float2:  return 2;
-	case ShaderDataType::Float3:  return 3;
-	case ShaderDataType::Float4:  return 4;
-	case ShaderDataType::Uint:     return 1;
-	case ShaderDataType::Uint2:    return 2;
-	case ShaderDataType::Uint3:    return 3;
-	case ShaderDataType::Uint4:    return 4;
+	case ShaderDataType::Uint:
+	case ShaderDataType::Float:
+		return 1;
+	case ShaderDataType::Uint2:
+	case ShaderDataType::Float2:
+		return 2;
+	case ShaderDataType::Uint3:
+	case ShaderDataType::Float3:
+		return 3;
+	case ShaderDataType::Uint4:
+	case ShaderDataType::Float4:
+		return 4;
 	}
 
-	Console::CoreAssert(false, "Unknown ShaderDataType!");
+	Console::CoreError("Unknown ShaderDataType!");
 	return 0;
 }
 

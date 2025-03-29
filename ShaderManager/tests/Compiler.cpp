@@ -7,7 +7,7 @@
 
 namespace Lust
 {
-	TEST(ShaderManager, InvalidPathForShader)
+	TEST(Compiler, InvalidPathForShader)
 	{
 		Console::Init();
 		SPVCompiler compiler("_main", "_6_8", "1.3");
@@ -15,7 +15,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, InvalidVariablePattern)
+	TEST(Compiler, InvalidVariablePattern)
 	{
 		Console::Init();
 		SPVCompiler compiler("_main", "_6_8", "1.3");
@@ -27,7 +27,7 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, InvalidHLSLVersion)
+	TEST(Compiler, InvalidHLSLVersion)
 	{
 		Console::Init();
 		SPVCompiler compiler("_main", "_6_8", "1.3");
@@ -37,12 +37,18 @@ namespace Lust
 		Console::End();
 	}
 
-	TEST(ShaderManager, InvalidFile)
+	TEST(Compiler, InvalidFile)
 	{
 		Console::Init();
 		SPVCompiler compiler("_main", "_6_8", "1.3");
 		compiler.PushShaderPath("./SampleShaderRoot.hlsl", PipelineType::Graphics);
 		ASSERT_THROW(compiler.CompilePackedShader(), InvalidFilepathException);
 		Console::End();
+	}
+
+	TEST(Compiler, DefaultException)
+	{
+		InvalidNameException e("Whatever");
+		ASSERT_STREQ(e.what(), "Whatever");
 	}
 }

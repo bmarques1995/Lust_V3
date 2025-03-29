@@ -62,7 +62,7 @@ float Player::GetRotation()
 void Player::Reset()
 {
 	m_Position = { -10.0f, 0.0f };
-	m_Velocity = { 5.0f, 0.0f };
+	m_Velocity = { 7.0f, 0.0f };
 }
 
 Eigen::Vector2f Player::GetPosition()

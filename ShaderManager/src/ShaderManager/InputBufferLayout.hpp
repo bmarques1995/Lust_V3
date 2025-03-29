@@ -145,12 +145,12 @@ namespace Lust
 		* @brief Returns an iterator to the beginning of the elements
 		* @return iterator to the beginning of the elements
 		*/
-		std::vector<InputBufferElement>::const_iterator begin() const { return m_Elements.begin(); }
+		std::vector<InputBufferElement>::const_iterator const_begin() const { return m_Elements.begin(); }
 		/**
 		* @brief Returns an iterator to the end of the elements
 		* @return iterator to the end of the elements
 		*/
-		std::vector<InputBufferElement>::const_iterator end() const { return m_Elements.end(); }
+		std::vector<InputBufferElement>::const_iterator const_end() const { return m_Elements.end(); }
 	private:
 		/**
 		* @brief Calculates the offsets and stride of the elements
