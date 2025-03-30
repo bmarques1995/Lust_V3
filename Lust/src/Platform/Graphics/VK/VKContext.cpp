@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <utility>
 #include <array>
+#include "VKFunctions.hpp"
 
 #ifdef LUST_DEBUG_MODE
 const std::vector<const char*> Lust::VKContext::s_ValidationLayers =
@@ -18,10 +19,10 @@ const std::vector<const char*> Lust::VKContext::s_ValidationLayers =
 bool Lust::VKContext::CheckLayerSupport(uint32_t vkVersion, const std::vector<const char*>& layerList)
 {
     uint32_t layerCount;
-    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    VKFunctions::vkEnumerateInstanceLayerPropertiesFn(&layerCount, nullptr);
 
     std::vector<VkLayerProperties> availableLayers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    VKFunctions::vkEnumerateInstanceLayerPropertiesFn(&layerCount, availableLayers.data());
 
     for (const char* layerName : layerList) {
         bool layerFound = false;
@@ -51,6 +52,8 @@ const std::vector<const char*> Lust::VKContext::deviceExtensions =
 Lust::VKContext::VKContext(const Window* windowHandle, uint32_t framesInFlight) :
     m_FramesInFlight(framesInFlight), m_IsVSyncEnabled(true)
 {
+    if(!VKFunctions::IsLoaded())
+		VKFunctions::LoadVulkanFunctions();
     //#c0392b
     SetClearColor(0xc0 / 255.0f, 0x39 / 255.0f, 0x2b / 255.0f, 1.0f);
 
@@ -78,34 +81,37 @@ Lust::VKContext::VKContext(const Window* windowHandle, uint32_t framesInFlight) 
 
 Lust::VKContext::~VKContext()
 {
-    vkDeviceWaitIdle(m_Device);
+    VKFunctions::vkDeviceWaitIdleFn(m_Device);
     for (size_t i = 0; i < m_FramesInFlight; i++)
-        vkDestroyFence(m_Device, m_InFlightFences[i], nullptr);
+        VKFunctions::vkDestroyFenceFn(m_Device, m_InFlightFences[i], nullptr);
     delete[] m_InFlightFences;
 
     for (size_t i = 0; i < m_FramesInFlight; i++)
-        vkDestroySemaphore(m_Device, m_ImageAvailableSemaphores[i], nullptr);
+        VKFunctions::vkDestroySemaphoreFn(m_Device, m_ImageAvailableSemaphores[i], nullptr);
     delete[] m_ImageAvailableSemaphores;
 
     for (size_t i = 0; i < m_FramesInFlight; i++)
-        vkDestroySemaphore(m_Device, m_RenderFinishedSemaphores[i], nullptr);
+        VKFunctions::vkDestroySemaphoreFn(m_Device, m_RenderFinishedSemaphores[i], nullptr);
     delete[] m_RenderFinishedSemaphores;
 
     delete[] m_CommandBuffers;
 
-    vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
+    VKFunctions::vkDestroyCommandPoolFn(m_Device, m_CommandPool, nullptr);
     CleanupFramebuffers();
     CleanupDepthStencilView();
-    vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
+    VKFunctions::vkDestroyRenderPassFn(m_Device, m_RenderPass, nullptr);
     CleanupImageView();
     CleanupSwapChain();
-    vkDestroyDevice(m_Device, nullptr);
-    vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
+    VKFunctions::vkDestroyDeviceFn(m_Device, nullptr);
+    VKFunctions::vkDestroySurfaceKHRFn(m_Instance, m_Surface, nullptr);
 #ifdef LUST_DEBUG_MODE
     DestroyDebugUtilsMessengerEXT(m_Instance, m_DebugMessenger, nullptr);
 #endif
 
-    vkDestroyInstance(m_Instance, nullptr);
+    VKFunctions::vkDestroyInstanceFn(m_Instance, nullptr);
+
+    if (VKFunctions::IsLoaded())
+        VKFunctions::UnloadVulkanFunctions();
 }
 
 void Lust::VKContext::SetClearColor(float r, float g, float b, float a)
@@ -147,22 +153,22 @@ void Lust::VKContext::FillRenderPass()
     renderPassInfo.clearValueCount = clearValues.size();
     renderPassInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentBufferIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    VKFunctions::vkCmdBeginRenderPassFn(m_CommandBuffers[m_CurrentBufferIndex], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void Lust::VKContext::SubmitRenderPass()
 {
-    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentBufferIndex]);
+    VKFunctions::vkCmdEndRenderPassFn(m_CommandBuffers[m_CurrentBufferIndex]);
 }
 
 void Lust::VKContext::ReceiveCommands()
 {
-    vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentBufferIndex], VK_TRUE, UINT64_MAX);
+    VKFunctions::vkWaitForFencesFn(m_Device, 1, &m_InFlightFences[m_CurrentBufferIndex], VK_TRUE, UINT64_MAX);
 
-    VkResult result = vkAcquireNextImageKHR(m_Device, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentBufferIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
+    VkResult result = VKFunctions::vkAcquireNextImageKHRFn(m_Device, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentBufferIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
 
     if ((result == VK_ERROR_OUT_OF_DATE_KHR) && !(*m_IsWindowClosing)) {
-        vkDeviceWaitIdle(m_Device);
+        VKFunctions::vkDeviceWaitIdleFn(m_Device);
         RecreateSwapChain();
         return;
     }
@@ -170,13 +176,13 @@ void Lust::VKContext::ReceiveCommands()
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-    vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentBufferIndex]);
-    vkResetCommandBuffer(m_CommandBuffers[m_CurrentBufferIndex], 0);
+    VKFunctions::vkResetFencesFn(m_Device, 1, &m_InFlightFences[m_CurrentBufferIndex]);
+    VKFunctions::vkResetCommandBufferFn(m_CommandBuffers[m_CurrentBufferIndex], 0);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-    if (vkBeginCommandBuffer(m_CommandBuffers[m_CurrentBufferIndex], &beginInfo) != VK_SUCCESS) {
+    if (VKFunctions::vkBeginCommandBufferFn(m_CommandBuffers[m_CurrentBufferIndex], &beginInfo) != VK_SUCCESS) {
         throw std::runtime_error("failed to begin recording command buffer!");
     }
 
@@ -185,7 +191,7 @@ void Lust::VKContext::ReceiveCommands()
 
 void Lust::VKContext::DispatchCommands()
 {
-    if (vkEndCommandBuffer(m_CommandBuffers[m_CurrentBufferIndex]) != VK_SUCCESS) {
+    if (VKFunctions::vkEndCommandBufferFn(m_CommandBuffers[m_CurrentBufferIndex]) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
     }
 
@@ -205,7 +211,7 @@ void Lust::VKContext::DispatchCommands()
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentBufferIndex]) != VK_SUCCESS) {
+    if (VKFunctions::vkQueueSubmitFn(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentBufferIndex]) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 }
@@ -226,10 +232,10 @@ void Lust::VKContext::Present()
 
     presentInfo.pImageIndices = &m_CurrentImageIndex;
 
-    VkResult result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+    VkResult result = VKFunctions::vkQueuePresentKHRFn(m_PresentQueue, &presentInfo);
 
     if ((result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) && !(*m_IsWindowClosing)) {
-        vkDeviceWaitIdle(m_Device);
+        VKFunctions::vkDeviceWaitIdleFn(m_Device);
         RecreateSwapChain();
     }
     else if ((result != VK_SUCCESS) && !(*m_IsWindowClosing)) {
@@ -241,8 +247,8 @@ void Lust::VKContext::Present()
 
 void Lust::VKContext::StageViewportAndScissors()
 {
-    vkCmdSetViewport(m_CommandBuffers[m_CurrentBufferIndex], 0, 1, &m_Viewport);
-    vkCmdSetScissor(m_CommandBuffers[m_CurrentBufferIndex], 0, 1, &m_ScissorRect);
+    VKFunctions::vkCmdSetViewportFn(m_CommandBuffers[m_CurrentBufferIndex], 0, 1, &m_Viewport);
+    VKFunctions::vkCmdSetScissorFn(m_CommandBuffers[m_CurrentBufferIndex], 0, 1, &m_ScissorRect);
 }
 
 void Lust::VKContext::SetVSync(bool enableVSync)
@@ -262,14 +268,14 @@ bool Lust::VKContext::IsVSyncEnabled() const
 const std::string& Lust::VKContext::GetGPUName()
 {
     VkPhysicalDeviceProperties adapterProperties;
-    vkGetPhysicalDeviceProperties(m_Adapter, &adapterProperties);
+    VKFunctions::vkGetPhysicalDevicePropertiesFn(m_Adapter, &adapterProperties);
     m_GPUName = adapterProperties.deviceName;
     return m_GPUName;
 }
 
 void Lust::VKContext::WindowResize(uint32_t width, uint32_t height)
 {
-    vkDeviceWaitIdle(m_Device);
+    VKFunctions::vkDeviceWaitIdleFn(m_Device);
     CreateViewportAndScissor(width, height);
 
     RecreateSwapChain();
@@ -376,7 +382,7 @@ void Lust::VKContext::CreateInstance()
     createInfo.enabledLayerCount = static_cast<uint32_t>(m_Layers.size());
     createInfo.ppEnabledLayerNames = m_Layers.size() > 0 ? m_Layers.data() : nullptr;
 
-    vkr = vkCreateInstance(&createInfo, nullptr, &m_Instance);
+    vkr = VKFunctions::vkCreateInstanceFn(&createInfo, nullptr, &m_Instance);
     assert(vkr == VK_SUCCESS);
 }
 
@@ -392,7 +398,7 @@ void Lust::VKContext::CreateSurface(const Window* windowHandle)
     creationInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     creationInfo.flags = 0;
 
-    vkr = vkCreateWin32SurfaceKHR(m_Instance, &creationInfo, nullptr, &m_Surface);
+    vkr = VKFunctions::vkCreateWin32SurfaceKHRFn(m_Instance, &creationInfo, nullptr, &m_Surface);
 
 #endif // RENDER_USES_WINDOWS
 
@@ -403,11 +409,11 @@ void Lust::VKContext::SelectAdapter()
 {
     VkResult vkr;
     uint32_t deviceCount = 0;
-    vkr = vkEnumeratePhysicalDevices(m_Instance, &deviceCount, nullptr);
+    vkr = VKFunctions::vkEnumeratePhysicalDevicesFn(m_Instance, &deviceCount, nullptr);
     assert((vkr == VK_SUCCESS) && (deviceCount > 0));
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkr = vkEnumeratePhysicalDevices(m_Instance, &deviceCount, devices.data());
+    vkr = VKFunctions::vkEnumeratePhysicalDevicesFn(m_Instance, &deviceCount, devices.data());
     assert(vkr == VK_SUCCESS);
 
 #if 0
@@ -454,10 +460,10 @@ Lust::QueueFamilyIndices Lust::VKContext::FindQueueFamilies(VkPhysicalDevice ada
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilyCount, nullptr);
+    VKFunctions::vkGetPhysicalDeviceQueueFamilyPropertiesFn(adapter, &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilyCount, queueFamilies.data());
+    VKFunctions::vkGetPhysicalDeviceQueueFamilyPropertiesFn(adapter, &queueFamilyCount, queueFamilies.data());
 
     int i = 0;
     for (const auto& queueFamily : queueFamilies)
@@ -465,7 +471,7 @@ Lust::QueueFamilyIndices Lust::VKContext::FindQueueFamilies(VkPhysicalDevice ada
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             indices.graphicsFamily = i;
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(adapter, i, m_Surface, &presentSupport);
+        VKFunctions::vkGetPhysicalDeviceSurfaceSupportKHRFn(adapter, i, m_Surface, &presentSupport);
         if (presentSupport)
             indices.presentFamily = i;
 
@@ -480,10 +486,10 @@ Lust::QueueFamilyIndices Lust::VKContext::FindQueueFamilies(VkPhysicalDevice ada
 bool Lust::VKContext::CheckDeviceExtensionSupport(VkPhysicalDevice adapter)
 {
     uint32_t extensionCount;
-    vkEnumerateDeviceExtensionProperties(adapter, nullptr, &extensionCount, nullptr);
+    VKFunctions::vkEnumerateDeviceExtensionPropertiesFn(adapter, nullptr, &extensionCount, nullptr);
 
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(adapter, nullptr, &extensionCount, availableExtensions.data());
+    VKFunctions::vkEnumerateDeviceExtensionPropertiesFn(adapter, nullptr, &extensionCount, availableExtensions.data());
 
     std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
@@ -498,22 +504,22 @@ Lust::SwapChainSupportDetails Lust::VKContext::QuerySwapChainSupport(VkPhysicalD
 {
     SwapChainSupportDetails details;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(adapter, m_Surface, &details.capabilities);
+    VKFunctions::vkGetPhysicalDeviceSurfaceCapabilitiesKHRFn(adapter, m_Surface, &details.capabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, m_Surface, &formatCount, nullptr);
+    VKFunctions::vkGetPhysicalDeviceSurfaceFormatsKHRFn(adapter, m_Surface, &formatCount, nullptr);
 
     if (formatCount != 0) {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, m_Surface, &formatCount, details.formats.data());
+        VKFunctions::vkGetPhysicalDeviceSurfaceFormatsKHRFn(adapter, m_Surface, &formatCount, details.formats.data());
     }
 
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(adapter, m_Surface, &presentModeCount, nullptr);
+    VKFunctions::vkGetPhysicalDeviceSurfacePresentModesKHRFn(adapter, m_Surface, &presentModeCount, nullptr);
 
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(adapter, m_Surface, &presentModeCount, details.presentModes.data());
+        VKFunctions::vkGetPhysicalDeviceSurfacePresentModesKHRFn(adapter, m_Surface, &presentModeCount, details.presentModes.data());
     }
 
     return details;
@@ -522,7 +528,7 @@ Lust::SwapChainSupportDetails Lust::VKContext::QuerySwapChainSupport(VkPhysicalD
 void Lust::VKContext::BufferizeUniformAttachment()
 {
     VkPhysicalDeviceProperties deviceProperties;
-    vkGetPhysicalDeviceProperties(m_Adapter, &deviceProperties);
+    VKFunctions::vkGetPhysicalDevicePropertiesFn(m_Adapter, &deviceProperties);
     m_UniformAttachment = (uint32_t)deviceProperties.limits.minUniformBufferOffsetAlignment;
 }
 
@@ -567,11 +573,11 @@ void Lust::VKContext::CreateDevice()
 
     createInfo.pNext = &sync2Features;
 
-    vkr = vkCreateDevice(m_Adapter, &createInfo, nullptr, &m_Device);
+    vkr = VKFunctions::vkCreateDeviceFn(m_Adapter, &createInfo, nullptr, &m_Device);
     assert(vkr == VK_SUCCESS);
 
-    vkGetDeviceQueue(m_Device, m_QueueFamilyIndices.graphicsFamily.value(), 0, &m_GraphicsQueue);
-    vkGetDeviceQueue(m_Device, m_QueueFamilyIndices.presentFamily.value(), 0, &m_PresentQueue);
+    VKFunctions::vkGetDeviceQueueFn(m_Device, m_QueueFamilyIndices.graphicsFamily.value(), 0, &m_GraphicsQueue);
+    VKFunctions::vkGetDeviceQueueFn(m_Device, m_QueueFamilyIndices.presentFamily.value(), 0, &m_PresentQueue);
 }
 
 void Lust::VKContext::CreateViewportAndScissor(uint32_t width, uint32_t height)
@@ -631,13 +637,13 @@ void Lust::VKContext::CreateSwapChain()
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
 
-    vkr = vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_SwapChain);
+    vkr = VKFunctions::vkCreateSwapchainKHRFn(m_Device, &createInfo, nullptr, &m_SwapChain);
     assert(vkr == VK_SUCCESS);
 
-    vkGetSwapchainImagesKHR(m_Device, m_SwapChain, &imageCount, nullptr);
+    VKFunctions::vkGetSwapchainImagesKHRFn(m_Device, m_SwapChain, &imageCount, nullptr);
     m_SwapChainImageCount = imageCount;
     m_SwapChainImages = new VkImage[m_SwapChainImageCount];
-    vkGetSwapchainImagesKHR(m_Device, m_SwapChain, &m_SwapChainImageCount, m_SwapChainImages);
+    VKFunctions::vkGetSwapchainImagesKHRFn(m_Device, m_SwapChain, &m_SwapChainImageCount, m_SwapChainImages);
 
     m_SwapChainImageFormat = surfaceFormat.format;
     m_SwapChainExtent = extent;
@@ -686,7 +692,7 @@ VkExtent2D Lust::VKContext::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& cap
 void Lust::VKContext::CleanupSwapChain()
 {
     delete[] m_SwapChainImages;
-    vkDestroySwapchainKHR(m_Device, m_SwapChain, nullptr);
+    VKFunctions::vkDestroySwapchainKHRFn(m_Device, m_SwapChain, nullptr);
 }
 
 void Lust::VKContext::RecreateSwapChain()
@@ -723,7 +729,7 @@ void Lust::VKContext::CreateImageView()
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
-        vkr = vkCreateImageView(m_Device, &createInfo, nullptr, &m_SwapChainImageViews[i]);
+        vkr = VKFunctions::vkCreateImageViewFn(m_Device, &createInfo, nullptr, &m_SwapChainImageViews[i]);
         assert(vkr == VK_SUCCESS);
     }
 }
@@ -732,7 +738,7 @@ void Lust::VKContext::CleanupImageView()
 {
     for (size_t i = 0; i < m_SwapChainImageCount; i++)
     {
-        vkDestroyImageView(m_Device, m_SwapChainImageViews[i], nullptr);
+        VKFunctions::vkDestroyImageViewFn(m_Device, m_SwapChainImageViews[i], nullptr);
     }
     delete[] m_SwapChainImageViews;
 }
@@ -792,7 +798,7 @@ void Lust::VKContext::CreateRenderPass()
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    vkr = vkCreateRenderPass(m_Device, &renderPassInfo, nullptr, &m_RenderPass);
+    vkr = VKFunctions::vkCreateRenderPassFn(m_Device, &renderPassInfo, nullptr, &m_RenderPass);
     assert(vkr == VK_SUCCESS);
 }
 
@@ -816,7 +822,7 @@ void Lust::VKContext::CreateFramebuffers()
         framebufferInfo.height = (uint32_t)m_Viewport.height;
         framebufferInfo.layers = 1;
 
-        vkr = vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]);
+        vkr = VKFunctions::vkCreateFramebufferFn(m_Device, &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]);
         assert(vkr == VK_SUCCESS);
     }
 }
@@ -825,7 +831,7 @@ void Lust::VKContext::CleanupFramebuffers()
 {
     for (size_t i = 0; i < m_SwapChainImageCount; i++)
     {
-        vkDestroyFramebuffer(m_Device, m_SwapChainFramebuffers[i], nullptr);
+        VKFunctions::vkDestroyFramebufferFn(m_Device, m_SwapChainFramebuffers[i], nullptr);
     }
     delete[] m_SwapChainFramebuffers;
 }
@@ -851,11 +857,11 @@ void Lust::VKContext::CreateDepthStencilView()
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = vkCreateImage(m_Device, &imageInfo, nullptr, &m_DepthStencilBuffer);
+    vkr = VKFunctions::vkCreateImageFn(m_Device, &imageInfo, nullptr, &m_DepthStencilBuffer);
     (vkr == VK_SUCCESS);
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(m_Device, m_DepthStencilBuffer, &memRequirements);
+    VKFunctions::vkGetImageMemoryRequirementsFn(m_Device, m_DepthStencilBuffer, &memRequirements);
 
     VkPhysicalDeviceMemoryProperties memProperties;
     VkMemoryAllocateInfo allocInfo{};
@@ -863,7 +869,7 @@ void Lust::VKContext::CreateDepthStencilView()
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = 0xffffffffu;
 
-    vkGetPhysicalDeviceMemoryProperties(m_Adapter, &memProperties);
+    VKFunctions::vkGetPhysicalDeviceMemoryPropertiesFn(m_Adapter, &memProperties);
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((memRequirements.memoryTypeBits & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
@@ -872,10 +878,10 @@ void Lust::VKContext::CreateDepthStencilView()
     }
 
 
-    vkr = vkAllocateMemory(m_Device, &allocInfo, nullptr, &m_DepthStencilMemory);
+    vkr = VKFunctions::vkAllocateMemoryFn(m_Device, &allocInfo, nullptr, &m_DepthStencilMemory);
     assert(vkr == VK_SUCCESS);
 
-    vkBindImageMemory(m_Device, m_DepthStencilBuffer, m_DepthStencilMemory, 0);
+    VKFunctions::vkBindImageMemoryFn(m_Device, m_DepthStencilBuffer, m_DepthStencilMemory, 0);
 
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -888,15 +894,15 @@ void Lust::VKContext::CreateDepthStencilView()
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    vkr = vkCreateImageView(m_Device, &viewInfo, nullptr, &m_DepthStencilView);
+    vkr = VKFunctions::vkCreateImageViewFn(m_Device, &viewInfo, nullptr, &m_DepthStencilView);
     assert(vkr == VK_SUCCESS);
 }
 
 void Lust::VKContext::CleanupDepthStencilView()
 {
-    vkDestroyImageView(m_Device, m_DepthStencilView, nullptr);
-    vkDestroyImage(m_Device, m_DepthStencilBuffer, nullptr);
-    vkFreeMemory(m_Device, m_DepthStencilMemory, nullptr);
+    VKFunctions::vkDestroyImageViewFn(m_Device, m_DepthStencilView, nullptr);
+    VKFunctions::vkDestroyImageFn(m_Device, m_DepthStencilBuffer, nullptr);
+    VKFunctions::vkFreeMemoryFn(m_Device, m_DepthStencilMemory, nullptr);
 }
 
 void Lust::VKContext::CreateCommandPool()
@@ -909,7 +915,7 @@ void Lust::VKContext::CreateCommandPool()
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-    vkr = vkCreateCommandPool(m_Device, &poolInfo, nullptr, &m_CommandPool);
+    vkr = VKFunctions::vkCreateCommandPoolFn(m_Device, &poolInfo, nullptr, &m_CommandPool);
     assert(vkr == VK_SUCCESS);
 }
 
@@ -924,7 +930,7 @@ void Lust::VKContext::CreateCommandBuffers()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = m_FramesInFlight;
 
-    vkr = vkAllocateCommandBuffers(m_Device, &allocInfo, m_CommandBuffers);
+    vkr = VKFunctions::vkAllocateCommandBuffersFn(m_Device, &allocInfo, m_CommandBuffers);
     assert(vkr == VK_SUCCESS);
 }
 
@@ -943,11 +949,11 @@ void Lust::VKContext::CreateSyncObjects()
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < m_FramesInFlight; i++) {
-        vkr = vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]);
+        vkr = VKFunctions::vkCreateSemaphoreFn(m_Device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]);
         assert(vkr == VK_SUCCESS);
-        vkr = vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]);
+        vkr = VKFunctions::vkCreateSemaphoreFn(m_Device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]);
         assert(vkr == VK_SUCCESS);
-        vkr = vkCreateFence(m_Device, &fenceInfo, nullptr, &m_InFlightFences[i]);
+        vkr = VKFunctions::vkCreateFenceFn(m_Device, &fenceInfo, nullptr, &m_InFlightFences[i]);
         assert(vkr == VK_SUCCESS);
     }
 }
@@ -986,7 +992,7 @@ void Lust::VKContext::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCrea
 
 VkResult Lust::VKContext::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)VKFunctions::vkGetInstanceProcAddrFn(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
     }
@@ -997,7 +1003,7 @@ VkResult Lust::VKContext::CreateDebugUtilsMessengerEXT(VkInstance instance, cons
 
 void Lust::VKContext::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
 {
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)VKFunctions::vkGetInstanceProcAddrFn(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
         func(instance, debugMessenger, pAllocator);
     }

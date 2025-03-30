@@ -3,6 +3,7 @@
 #include "Application.hpp"
 #include <filesystem>
 #include <climits>
+#include "VKFunctions.hpp"
 
 namespace fs = std::filesystem;
 
@@ -126,7 +127,7 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     pipelineLayoutInfo.pushConstantRangeCount = pushConstantCount;
     pipelineLayoutInfo.pPushConstantRanges = pushConstantRange;
 
-    vkr = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
+    vkr = VKFunctions::vkCreatePipelineLayoutFn(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
     assert(vkr == VK_SUCCESS);
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -146,12 +147,12 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-    vkr = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline);
+    vkr = VKFunctions::vkCreateGraphicsPipelinesFn(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline);
     assert(vkr == VK_SUCCESS);
 
     for (auto it = m_Modules.begin(); it != m_Modules.end(); it++)
     {
-        vkDestroyShaderModule(device, it->second, nullptr);
+        VKFunctions::vkDestroyShaderModuleFn(device, it->second, nullptr);
         it->second = nullptr;
     }
 
@@ -162,18 +163,18 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
 Lust::VKShader::~VKShader()
 {
     auto device = m_Context->GetDevice();
-    vkDeviceWaitIdle(device);
+    VKFunctions::vkDeviceWaitIdleFn(device);
 
-    vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);
-    vkDestroyDescriptorSetLayout(device, m_RootSignature, nullptr);
-    vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
+    VKFunctions::vkDestroyDescriptorPoolFn(device, m_DescriptorPool, nullptr);
+    VKFunctions::vkDestroyDescriptorSetLayoutFn(device, m_RootSignature, nullptr);
+    VKFunctions::vkDestroyPipelineFn(device, m_GraphicsPipeline, nullptr);
+    VKFunctions::vkDestroyPipelineLayoutFn(device, m_PipelineLayout, nullptr);
 }
 
 void Lust::VKShader::Stage()
 {
     auto commandBuffer = m_Context->GetCurrentCommandBuffer();
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
+    VKFunctions::vkCmdBindPipelineFn(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
 }
 
 uint32_t Lust::VKShader::GetStride() const
@@ -227,7 +228,7 @@ void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, const SmallB
         if (stages & enumStage.first)
             bindingFlag |= enumStage.second;
     }
-    vkCmdPushConstants(
+    VKFunctions::vkCmdPushConstantsFn(
         m_Context->GetCurrentCommandBuffer(),
         m_PipelineLayout,
         bindingFlag,
@@ -240,7 +241,7 @@ void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, const SmallB
 void Lust::VKShader::BindDescriptors()
 {
     auto commandBuffer = m_Context->GetCurrentCommandBuffer();
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
+    VKFunctions::vkCmdBindDescriptorSetsFn(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, m_BindableDescriptorSets.size(), m_BindableDescriptorSets.data(), 0, nullptr);
 }
 
 void Lust::VKShader::UploadTexturePackedDescSet(const TextureArray& textureArray)
@@ -258,7 +259,7 @@ void Lust::VKShader::UploadTexturePackedDescSet(const TextureArray& textureArray
     descriptorWrite.descriptorCount = textureArray.GetNumberOfTextures();
     descriptorWrite.pImageInfo = m_TextureArrayDescriptors[textureArray.GetName()].data();
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    VKFunctions::vkUpdateDescriptorSetsFn(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::UploadSamplerPackedDescSet(const SamplerArray& samplerArray)
@@ -276,7 +277,7 @@ void Lust::VKShader::UploadSamplerPackedDescSet(const SamplerArray& samplerArray
     descriptorWrite.descriptorCount = samplerArray.GetNumberOfSamplers();
     descriptorWrite.pImageInfo = m_SamplerArrayDescriptors[samplerArray.GetName()].data();
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    VKFunctions::vkUpdateDescriptorSetsFn(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::PreallocatesDescSets()
@@ -299,7 +300,7 @@ void Lust::VKShader::PreallocatesDescSets()
     {
         if (m_DescriptorSets.find(uniformElement.second.GetSpaceSet()) == m_DescriptorSets.end())
         {
-            vkr = vkAllocateDescriptorSets(device, &allocInfo, &m_DescriptorSets[uniformElement.second.GetSpaceSet()]);
+            vkr = VKFunctions::vkAllocateDescriptorSetsFn(device, &allocInfo, &m_DescriptorSets[uniformElement.second.GetSpaceSet()]);
             assert(vkr == VK_SUCCESS);
         }
     }
@@ -308,7 +309,7 @@ void Lust::VKShader::PreallocatesDescSets()
     {
         if (m_DescriptorSets.find(textureElement.second.GetSpaceSet()) == m_DescriptorSets.end())
         {
-            vkr = vkAllocateDescriptorSets(device, &allocInfo, &m_DescriptorSets[textureElement.second.GetSpaceSet()]);
+            vkr = VKFunctions::vkAllocateDescriptorSetsFn(device, &allocInfo, &m_DescriptorSets[textureElement.second.GetSpaceSet()]);
             assert(vkr == VK_SUCCESS);
         }
     }
@@ -317,7 +318,7 @@ void Lust::VKShader::PreallocatesDescSets()
     {
         if (m_DescriptorSets.find(samplerElement.second.GetSpaceSet()) == m_DescriptorSets.end())
         {
-            vkr = vkAllocateDescriptorSets(device, &allocInfo, &m_DescriptorSets[samplerElement.second.GetSpaceSet()]);
+            vkr = VKFunctions::vkAllocateDescriptorSetsFn(device, &allocInfo, &m_DescriptorSets[samplerElement.second.GetSpaceSet()]);
             assert(vkr == VK_SUCCESS);
         }
     }
@@ -326,7 +327,7 @@ void Lust::VKShader::PreallocatesDescSets()
     {
         if (m_DescriptorSets.find(structuredBufferElement.second.GetSpaceSet()) == m_DescriptorSets.end())
         {
-            vkr = vkAllocateDescriptorSets(device, &allocInfo, &m_DescriptorSets[structuredBufferElement.second.GetSpaceSet()]);
+            vkr = VKFunctions::vkAllocateDescriptorSetsFn(device, &allocInfo, &m_DescriptorSets[structuredBufferElement.second.GetSpaceSet()]);
             assert(vkr == VK_SUCCESS);
         }
     }
@@ -462,7 +463,7 @@ void Lust::VKShader::CreateDescriptorSetLayout()
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     layoutInfo.pBindings = bindings.data();
 
-    vkr = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_RootSignature);
+    vkr = VKFunctions::vkCreateDescriptorSetLayoutFn(device, &layoutInfo, nullptr, &m_RootSignature);
     assert(vkr == VK_SUCCESS);
 }
 
@@ -532,7 +533,7 @@ void Lust::VKShader::CreateDescriptorPool()
     poolInfo.pPoolSizes = poolSize.data();
     poolInfo.maxSets = poolSize.size();
 
-    vkr = vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool);
+    vkr = VKFunctions::vkCreateDescriptorPoolFn(device, &poolInfo, nullptr, &m_DescriptorPool);
     assert(vkr == VK_SUCCESS);
 }
 
@@ -547,21 +548,21 @@ void Lust::VKShader::CreateBuffer(size_t bufferSize, VkBufferUsageFlags usage, V
     bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = vkCreateBuffer(device, &bufferInfo, nullptr, buffer);
+    vkr = VKFunctions::vkCreateBufferFn(device, &bufferInfo, nullptr, buffer);
     assert(vkr == VK_SUCCESS);
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, *buffer, &memRequirements);
+    VKFunctions::vkGetBufferMemoryRequirementsFn(device, *buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-    vkr = vkAllocateMemory(device, &allocInfo, nullptr, bufferMemory);
+    vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, bufferMemory);
     assert(vkr == VK_SUCCESS);
 
-    vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
+    VKFunctions::vkBindBufferMemoryFn(device, *buffer, *bufferMemory, 0);
 }
 
 void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureElement& textureElement)
@@ -584,7 +585,7 @@ void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    VKFunctions::vkUpdateDescriptorSetsFn(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::CreateSamplerDescriptorSet(const std::shared_ptr<VKSampler>* sampler, const SamplerElement& samplerElement)
@@ -607,7 +608,7 @@ void Lust::VKShader::CreateSamplerDescriptorSet(const std::shared_ptr<VKSampler>
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    VKFunctions::vkUpdateDescriptorSetsFn(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::CreateTextureDescriptorSet(const std::shared_ptr<VKTexture2D>* texture, const TextureArray& textureArray, uint32_t offset)
@@ -652,7 +653,7 @@ void Lust::VKShader::CreateUniformDescriptorSet(const std::shared_ptr<VKUniformB
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pBufferInfo = &bufferInfo;
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    VKFunctions::vkUpdateDescriptorSetsFn(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<VKStructuredBuffer>* buffer, const StructuredBufferElement& structuredBufferElement)
@@ -675,7 +676,7 @@ void Lust::VKShader::CreateStructuredBufferDescriptorSet(const std::shared_ptr<V
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pBufferInfo = &bufferInfo;
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    VKFunctions::vkUpdateDescriptorSetsFn(device, 1, &descriptorWrite, 0, nullptr);
 }
 
 bool Lust::VKShader::IsUniformValid(size_t size)
@@ -687,7 +688,7 @@ uint32_t Lust::VKShader::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
 {
     auto adapter = m_Context->GetAdapter();
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(adapter, &memProperties);
+    VKFunctions::vkGetPhysicalDeviceMemoryPropertiesFn(adapter, &memProperties);
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -731,7 +732,7 @@ void Lust::VKShader::PushShader(std::string_view stage, VkPipelineShaderStageCre
     createInfo.codeSize = blobSize;
     createInfo.pCode = reinterpret_cast<const uint32_t*>(blobData);
 
-    vkr = vkCreateShaderModule(device, &createInfo, nullptr, &m_Modules[stage.data()]);
+    vkr = Lust::VKFunctions::vkCreateShaderModuleFn(device, &createInfo, nullptr, &m_Modules[stage.data()]);
     assert(vkr == VK_SUCCESS);
 
     memset(graphicsDesc, 0, sizeof(VkPipelineShaderStageCreateInfo));

@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cassert>
 #include "UniformsLayout.hpp"
+#include "VKFunctions.hpp"
 
 VkBuffer Lust::VKBuffer::GetBuffer() const
 {
@@ -29,20 +30,20 @@ void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
+    vkr = VKFunctions::vkCreateBufferFn(device, &bufferInfo, nullptr, &buffer);
     assert(vkr == VK_SUCCESS);
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+    VKFunctions::vkGetBufferMemoryRequirementsFn(device, buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-    vkr = vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory);
+    vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, &bufferMemory);
     assert(vkr == VK_SUCCESS);
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+    VKFunctions::vkBindBufferMemoryFn(device, buffer, bufferMemory, 0);
 }
 
 void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -58,29 +59,29 @@ void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevice
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+    VKFunctions::vkAllocateCommandBuffersFn(device, &allocInfo, &commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    VKFunctions::vkBeginCommandBufferFn(commandBuffer, &beginInfo);
 
     VkBufferCopy copyRegion{};
     copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    VKFunctions::vkCmdCopyBufferFn(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    vkEndCommandBuffer(commandBuffer);
+    VKFunctions::vkEndCommandBufferFn(commandBuffer);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsQueue);
+    VKFunctions::vkQueueSubmitFn(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    VKFunctions::vkQueueWaitIdleFn(graphicsQueue);
 
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    VKFunctions::vkFreeCommandBuffersFn(device, commandPool, 1, &commandBuffer);
 }
 
 void Lust::VKBuffer::RemapBuffer(const void* data, size_t size, size_t offset)
@@ -88,17 +89,17 @@ void Lust::VKBuffer::RemapBuffer(const void* data, size_t size, size_t offset)
     VkResult vkr;
     auto device = m_Context->GetDevice();
     uint8_t* gpuData;
-    vkr = vkMapMemory(device, m_BufferMemory, 0, size, 0, (void**)&gpuData);
+    vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&gpuData);
     assert(vkr == VK_SUCCESS);
     memcpy(gpuData + offset, data, size);
-    vkUnmapMemory(device, m_BufferMemory);
+    VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
 }
 
 uint32_t Lust::VKBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     auto adapter = m_Context->GetAdapter();
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(adapter, &memProperties);
+    VKFunctions::vkGetPhysicalDeviceMemoryPropertiesFn(adapter, &memProperties);
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -118,9 +119,9 @@ bool Lust::VKBuffer::IsBufferConformed(size_t size)
 void Lust::VKBuffer::DestroyBuffer()
 {
     auto device = m_Context->GetDevice();
-    vkDeviceWaitIdle(device);
-    vkDestroyBuffer(device, m_Buffer, nullptr);
-    vkFreeMemory(device, m_BufferMemory, nullptr);
+    VKFunctions::vkDeviceWaitIdleFn(device);
+    VKFunctions::vkDestroyBufferFn(device, m_Buffer, nullptr);
+    VKFunctions::vkFreeMemoryFn(device, m_BufferMemory, nullptr);
 }
 
 Lust::VKVertexBuffer::VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride) :
@@ -140,7 +141,7 @@ void Lust::VKVertexBuffer::Stage() const
 {
     auto commandBuffer = m_Context->GetCurrentCommandBuffer();
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_Buffer, &offset);
+    VKFunctions::vkCmdBindVertexBuffersFn(commandBuffer, 0, 1, &m_Buffer, &offset);
 }
 
 Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, size_t count) :
@@ -160,7 +161,7 @@ Lust::VKIndexBuffer::~VKIndexBuffer()
 void Lust::VKIndexBuffer::Stage() const
 {
     auto commandBuffer = m_Context->GetCurrentCommandBuffer();
-    vkCmdBindIndexBuffer(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT32);
+    VKFunctions::vkCmdBindIndexBufferFn(commandBuffer, m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 uint32_t Lust::VKIndexBuffer::GetCount() const

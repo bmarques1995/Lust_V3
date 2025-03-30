@@ -2,6 +2,7 @@
 #include <cassert>
 #include "VKCopyPipeline.hpp"
 #include "Application.hpp"
+#include "VKFunctions.hpp"
 
 #include <vulkan/vulkan.hpp>
 #include <filesystem>
@@ -19,10 +20,10 @@ Lust::VKTexture2D::VKTexture2D(const VKContext* context, const TextureBuffer& sp
 Lust::VKTexture2D::~VKTexture2D()
 {
     auto device = m_Context->GetDevice();
-    vkDeviceWaitIdle(device);
-    vkDestroyImageView(device, m_ResourceView, nullptr);
-    vkFreeMemory(device, m_Memory, nullptr);
-    vkDestroyImage(device, m_Resource, nullptr);
+    VKFunctions::vkDeviceWaitIdleFn(device);
+    VKFunctions::vkDestroyImageViewFn(device, m_ResourceView, nullptr);
+    VKFunctions::vkFreeMemoryFn(device, m_Memory, nullptr);
+    VKFunctions::vkDestroyImageFn(device, m_Resource, nullptr);
 }
 
 const Lust::TextureBuffer& Lust::VKTexture2D::GetTextureDescription() const
@@ -83,21 +84,21 @@ void Lust::VKTexture2D::CreateResource()
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = vkCreateImage(device, &imageInfo, nullptr, &m_Resource);
+    vkr = VKFunctions::vkCreateImageFn(device, &imageInfo, nullptr, &m_Resource);
     assert(vkr == VK_SUCCESS);
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device, m_Resource, &memRequirements);
+    VKFunctions::vkGetImageMemoryRequirementsFn(device, m_Resource, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-    vkr = vkAllocateMemory(device, &allocInfo, nullptr, &m_Memory);
+    vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, &m_Memory);
     assert(vkr == VK_SUCCESS);
 
-    vkr = vkBindImageMemory(device, m_Resource, m_Memory, 0);
+    vkr = VKFunctions::vkBindImageMemoryFn(device, m_Resource, m_Memory, 0);
     assert(vkr == VK_SUCCESS);
 
     VkImageViewCreateInfo viewInfo{};
@@ -111,7 +112,7 @@ void Lust::VKTexture2D::CreateResource()
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    vkr = vkCreateImageView(device, &viewInfo, nullptr, &m_ResourceView);
+    vkr = VKFunctions::vkCreateImageViewFn(device, &viewInfo, nullptr, &m_ResourceView);
     assert(vkr == VK_SUCCESS);
 }
 
@@ -137,32 +138,32 @@ void Lust::VKTexture2D::CopyBuffer()
     bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = vkCreateBuffer(device, &bufferInfo, nullptr, &stagingBuffer);
+    vkr = VKFunctions::vkCreateBufferFn(device, &bufferInfo, nullptr, &stagingBuffer);
     assert(vkr == VK_SUCCESS);
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, stagingBuffer, &memRequirements);
+    VKFunctions::vkGetBufferMemoryRequirementsFn(device, stagingBuffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-    vkr = vkAllocateMemory(device, &allocInfo, nullptr, &stagingBufferMemory);
+    vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, &stagingBufferMemory);
     assert(vkr == VK_SUCCESS);
 
-    vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0);
+    VKFunctions::vkBindBufferMemoryFn(device, stagingBuffer, stagingBufferMemory, 0);
 
     void* GPUData = nullptr;
-    vkr = vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &GPUData);
+    vkr = VKFunctions::vkMapMemoryFn(device, stagingBufferMemory, 0, imageSize, 0, &GPUData);
     assert(vkr == VK_SUCCESS);
     memcpy(GPUData, m_Specification.GetTextureBuffer(), imageSize);
-    vkUnmapMemory(device, stagingBufferMemory);
+    VKFunctions::vkUnmapMemoryFn(device, stagingBufferMemory);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    vkBeginCommandBuffer(copyCommandBuffer, &beginInfo);
+    VKFunctions::vkBeginCommandBufferFn(copyCommandBuffer, &beginInfo);
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -182,7 +183,7 @@ void Lust::VKTexture2D::CopyBuffer()
     VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 
-    vkCmdPipelineBarrier(
+    VKFunctions::vkCmdPipelineBarrierFn(
         copyCommandBuffer,
         sourceStage, destinationStage,
         0,
@@ -206,7 +207,7 @@ void Lust::VKTexture2D::CopyBuffer()
         m_Specification.GetDepth()
     };
 
-    vkCmdCopyBufferToImage(copyCommandBuffer, stagingBuffer, m_Resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+    VKFunctions::vkCmdCopyBufferToImageFn(copyCommandBuffer, stagingBuffer, m_Resource, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
     barrier = {};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -226,7 +227,7 @@ void Lust::VKTexture2D::CopyBuffer()
     sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
-    vkCmdPipelineBarrier(
+    VKFunctions::vkCmdPipelineBarrierFn(
         copyCommandBuffer,
         sourceStage, destinationStage,
         0,
@@ -235,19 +236,19 @@ void Lust::VKTexture2D::CopyBuffer()
         1, &barrier
     );
 
-    vkEndCommandBuffer(copyCommandBuffer);
+    VKFunctions::vkEndCommandBufferFn(copyCommandBuffer);
 
     (*copyPipeline)->Wait();
 
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    VKFunctions::vkDestroyBufferFn(device, stagingBuffer, nullptr);
+    VKFunctions::vkFreeMemoryFn(device, stagingBufferMemory, nullptr);
 }
 
 uint32_t Lust::VKTexture2D::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     auto adapter = m_Context->GetAdapter();
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(adapter, &memProperties);
+    VKFunctions::vkGetPhysicalDeviceMemoryPropertiesFn(adapter, &memProperties);
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {

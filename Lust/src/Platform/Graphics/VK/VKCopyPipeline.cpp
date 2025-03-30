@@ -1,5 +1,6 @@
 #include "VKCopyPipeline.hpp"
 #include <cassert>
+#include "VKFunctions.hpp"
 
 Lust::VKCopyPipeline::VKCopyPipeline(const VKContext* context) :
     m_Context(context)
@@ -15,7 +16,7 @@ Lust::VKCopyPipeline::VKCopyPipeline(const VKContext* context) :
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-    vkr = vkCreateCommandPool(device, &poolInfo, nullptr, &m_CopyCommandPool);
+    vkr = VKFunctions::vkCreateCommandPoolFn(device, &poolInfo, nullptr, &m_CopyCommandPool);
     assert(vkr == VK_SUCCESS);
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -24,19 +25,19 @@ Lust::VKCopyPipeline::VKCopyPipeline(const VKContext* context) :
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    vkr = vkAllocateCommandBuffers(device, &allocInfo, &m_CopyCommandBuffer);
+    vkr = VKFunctions::vkAllocateCommandBuffersFn(device, &allocInfo, &m_CopyCommandBuffer);
     assert(vkr == VK_SUCCESS);
 
-    vkGetDeviceQueue(device, 0, 0, &m_CopyQueue);
+    VKFunctions::vkGetDeviceQueueFn(device, 0, 0, &m_CopyQueue);
 }
 
 Lust::VKCopyPipeline::~VKCopyPipeline()
 {
     auto device = m_Context->GetDevice();
-    vkDeviceWaitIdle(device);
+    VKFunctions::vkDeviceWaitIdleFn(device);
 
-    vkFreeCommandBuffers(device, m_CopyCommandPool, 1, &m_CopyCommandBuffer);
-    vkDestroyCommandPool(device, m_CopyCommandPool, nullptr);
+    VKFunctions::vkFreeCommandBuffersFn(device, m_CopyCommandPool, 1, &m_CopyCommandBuffer);
+    VKFunctions::vkDestroyCommandPoolFn(device, m_CopyCommandPool, nullptr);
 }
 
 void Lust::VKCopyPipeline::Wait()
@@ -46,8 +47,8 @@ void Lust::VKCopyPipeline::Wait()
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_CopyCommandBuffer;
 
-    vkQueueSubmit(m_CopyQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(m_CopyQueue);
+    VKFunctions::vkQueueSubmitFn(m_CopyQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    VKFunctions::vkQueueWaitIdleFn(m_CopyQueue);
 }
 
 VkQueue Lust::VKCopyPipeline::GetCopyQueue() const
@@ -71,10 +72,10 @@ Lust::QueueFamilyIndices Lust::VKCopyPipeline::FindQueueFamilies(VkPhysicalDevic
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilyCount, nullptr);
+    VKFunctions::vkGetPhysicalDeviceQueueFamilyPropertiesFn(adapter, &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(adapter, &queueFamilyCount, queueFamilies.data());
+    VKFunctions::vkGetPhysicalDeviceQueueFamilyPropertiesFn(adapter, &queueFamilyCount, queueFamilies.data());
 
     int i = 0;
     for (const auto& queueFamily : queueFamilies)
@@ -82,7 +83,7 @@ Lust::QueueFamilyIndices Lust::VKCopyPipeline::FindQueueFamilies(VkPhysicalDevic
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             indices.graphicsFamily = i;
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(adapter, i, surface, &presentSupport);
+        VKFunctions::vkGetPhysicalDeviceSurfaceSupportKHRFn(adapter, i, surface, &presentSupport);
         if (presentSupport)
             indices.presentFamily = i;
 

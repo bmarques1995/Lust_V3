@@ -1,5 +1,6 @@
 #include "VKSampler.hpp"
 #include <cassert>
+#include "VKFunctions.hpp"
 
 Lust::VKSampler::VKSampler(const VKContext* context, const SamplerInfo& info) :
     m_Context(context)
@@ -10,7 +11,7 @@ Lust::VKSampler::VKSampler(const VKContext* context, const SamplerInfo& info) :
     auto adapter = m_Context->GetAdapter();
 
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(adapter, &properties);
+    VKFunctions::vkGetPhysicalDevicePropertiesFn(adapter, &properties);
 
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -29,15 +30,15 @@ Lust::VKSampler::VKSampler(const VKContext* context, const SamplerInfo& info) :
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = FLT_MAX;
 
-    vkr = vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler);
+    vkr = VKFunctions::vkCreateSamplerFn(device, &samplerInfo, nullptr, &m_Sampler);
     assert(vkr == VK_SUCCESS);
 }
 
 Lust::VKSampler::~VKSampler()
 {
     auto device = m_Context->GetDevice();
-    vkDeviceWaitIdle(device);
-    vkDestroySampler(device, m_Sampler, nullptr);
+    VKFunctions::vkDeviceWaitIdleFn(device);
+    VKFunctions::vkDestroySamplerFn(device, m_Sampler, nullptr);
 }
 
 VkSampler Lust::VKSampler::GetSampler() const

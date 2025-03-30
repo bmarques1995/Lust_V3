@@ -1,5 +1,6 @@
 #include "VKImguiContext.hpp"
 #include "Application.hpp"
+#include "VKFunctions.hpp"
 
 #ifdef LUST_USES_WINDOWS
 // FIXME: This code would ideally be inside imgui_impl_win32.cpp, it would create a dependency on Vulkan headers in imgui_impl_win32.cpp
@@ -9,7 +10,7 @@ int Lust::VKImguiContext::ImGui_ImplWin32_CreateVkSurface(ImGuiViewport* viewpor
 	createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 	createInfo.hwnd = (HWND)viewport->PlatformHandleRaw;
 	createInfo.hinstance = ::GetModuleHandle(nullptr);
-	return (int)vkCreateWin32SurfaceKHR((VkInstance)vk_instance, &createInfo, (VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
+	return (int)Lust::VKFunctions::vkCreateWin32SurfaceKHRFn((VkInstance)vk_instance, &createInfo, (VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
 }
 #endif
 
