@@ -17,3 +17,5 @@ CoverageReport-*/
 test*.txt
 *.cov
 final_coverage/
+*.spv
+*.cso
