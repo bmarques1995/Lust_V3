@@ -102,6 +102,8 @@ PFN_vkCmdCopyBufferToImage Lust::VKFunctions::vkCmdCopyBufferToImageFn;
 
 void Lust::VKFunctions::LoadVulkanFunctions()
 {
+	if(s_IsLoaded)
+		return;
 #ifdef LUST_USES_WINDOWS
 	vkCreateWin32SurfaceKHRFn = vkCreateWin32SurfaceKHR;
 #endif
@@ -202,6 +204,8 @@ void Lust::VKFunctions::LoadVulkanFunctions()
 
 void Lust::VKFunctions::UnloadVulkanFunctions()
 {
+	if (!s_IsLoaded)
+		return;
 #ifdef LUST_USES_WINDOWS
 	vkCreateWin32SurfaceKHRFn = nullptr;
 #endif
@@ -302,6 +306,8 @@ void Lust::VKFunctions::UnloadVulkanFunctions()
 
 void Lust::VKFunctions::LoadMockVulkanFunctions()
 {
+	if (s_IsLoaded)
+		return;
 }
 
 bool Lust::VKFunctions::IsLoaded()

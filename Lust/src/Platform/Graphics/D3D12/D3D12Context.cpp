@@ -1,6 +1,7 @@
 #ifdef LUST_USES_WINDOWS
 
 #include "D3D12Context.hpp"
+#include "D3D12Functions.hpp"
 #include <cassert>
 
 const std::unordered_map<uint32_t, D3D_FEATURE_LEVEL> Lust::D3D12Context::s_AvaliableFeatureLevels =
@@ -15,6 +16,10 @@ const std::unordered_map<uint32_t, D3D_FEATURE_LEVEL> Lust::D3D12Context::s_Aval
 Lust::D3D12Context::D3D12Context(const Window* windowHandle, uint32_t framesInFlight) :
 	m_FramesInFlight(framesInFlight), m_IsVSyncEnabled(true)
 {
+	if(!D3D12Functions::IsLoaded())
+		D3D12Functions::LoadD3D12Functions();
+	if (!DXGIFunctions::IsLoaded())
+		DXGIFunctions::LoadDXGIFunctions();
 	//#27ae60
 	SetClearColor(0x27 / 255.0f, 0xae / 255.0f, 0x60 / 255.0f, 1.0f);
 
@@ -54,6 +59,11 @@ Lust::D3D12Context::~D3D12Context()
 #ifdef LUST_DEBUG_MODE
 	DisableDebug();
 #endif
+
+	if(D3D12Functions::IsLoaded())
+		D3D12Functions::UnloadD3D12Functions();
+	if (DXGIFunctions::IsLoaded())
+		DXGIFunctions::UnloadDXGIFunctions();
 }
 
 void Lust::D3D12Context::SetClearColor(float r, float g, float b, float a)
@@ -217,7 +227,7 @@ void Lust::D3D12Context::CreateFactory()
 #ifdef LUST_DEBUG_MODE
 	dxgiFactoryFlag = DXGI_CREATE_FACTORY_DEBUG;
 #endif
-	hr = CreateDXGIFactory2(dxgiFactoryFlag, IID_PPV_ARGS(m_DXGIFactory.GetAddressOf()));
+	hr = DXGIFunctions::CreateDXGIFactory2Fn(dxgiFactoryFlag, IID_PPV_ARGS(m_DXGIFactory.GetAddressOf()));
 	assert(hr == S_OK);
 }
 
@@ -260,7 +270,7 @@ void Lust::D3D12Context::CreateAdapter()
 			auto it = s_AvaliableFeatureLevels.find(index);
 			if (it != s_AvaliableFeatureLevels.end())
 			{
-				hr = D3D12CreateDevice(m_DXGIAdapter.Get(), it->second, _uuidof(ID3D12Device), nullptr);
+				hr = D3D12Functions::D3D12CreateDeviceFn(m_DXGIAdapter.Get(), it->second, _uuidof(ID3D12Device), nullptr);
 				if ((hr == S_OK) || (hr == S_FALSE))
 				{
 					m_FeatureLevel = it->second;
@@ -280,7 +290,7 @@ void Lust::D3D12Context::CreateAdapter()
 
 void Lust::D3D12Context::CreateDevice()
 {
-	D3D12CreateDevice(m_DXGIAdapter.Get(), m_FeatureLevel, IID_PPV_ARGS(m_Device.GetAddressOf()));
+	D3D12Functions::D3D12CreateDeviceFn(m_DXGIAdapter.Get(), m_FeatureLevel, IID_PPV_ARGS(m_Device.GetAddressOf()));
 }
 
 void Lust::D3D12Context::CreateCommandQueue()
@@ -489,8 +499,8 @@ void Lust::D3D12Context::WaitForFence(UINT64 fenceValue)
 
 void Lust::D3D12Context::EnableDebug()
 {
-	DXGIGetDebugInterface1(0, IID_PPV_ARGS(m_DXGIDebug.GetAddressOf()));
-	D3D12GetDebugInterface(IID_PPV_ARGS(m_D3D12Debug.GetAddressOf()));
+	DXGIFunctions::DXGIGetDebugInterface1Fn(0, IID_PPV_ARGS(m_DXGIDebug.GetAddressOf()));
+	D3D12Functions::D3D12GetDebugInterfaceFn(IID_PPV_ARGS(m_D3D12Debug.GetAddressOf()));
 
 	m_D3D12Debug->EnableDebugLayer();
 }
