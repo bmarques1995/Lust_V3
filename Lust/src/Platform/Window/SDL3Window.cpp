@@ -221,6 +221,20 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		m_ExecuteCallback(e);
 		break;
 	}
+	case SDL_EVENT_WINDOW_MINIMIZED:
+	{
+		m_Minimized = true;
+		break;
+	}
+	case SDL_EVENT_WINDOW_RESTORED:
+	{
+		m_Minimized = false;
+		break;
+	}
+	case SDL_EVENT_WINDOW_MAXIMIZED:
+	{
+		break;
+	}
 	case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
 	{
 		m_CursorDisplayed = true;
