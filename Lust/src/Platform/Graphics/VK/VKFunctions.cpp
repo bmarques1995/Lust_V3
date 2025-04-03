@@ -9,6 +9,7 @@ bool Lust::VKFunctions::s_IsLoaded = false;
 PFN_vkCreateWin32SurfaceKHR Lust::VKFunctions::vkCreateWin32SurfaceKHRFn;
 #endif
 
+PFN_vkGetPhysicalDeviceFeatures Lust::VKFunctions::vkGetPhysicalDeviceFeaturesFn;
 PFN_vkCmdDrawIndexed Lust::VKFunctions::vkCmdDrawIndexedFn;
 PFN_vkCmdDraw Lust::VKFunctions::vkCmdDrawFn;
 PFN_vkDestroySurfaceKHR Lust::VKFunctions::vkDestroySurfaceKHRFn;
@@ -105,6 +106,7 @@ void Lust::VKFunctions::LoadVulkanFunctions()
 	vkCreateWin32SurfaceKHRFn = vkCreateWin32SurfaceKHR;
 #endif
 	
+	vkGetPhysicalDeviceFeaturesFn = vkGetPhysicalDeviceFeatures;
 	vkCmdDrawIndexedFn = vkCmdDrawIndexed;
 	vkCmdDrawFn = vkCmdDraw;
 	vkDestroySurfaceKHRFn = vkDestroySurfaceKHR;
@@ -203,7 +205,8 @@ void Lust::VKFunctions::UnloadVulkanFunctions()
 #ifdef LUST_USES_WINDOWS
 	vkCreateWin32SurfaceKHRFn = nullptr;
 #endif
-
+	
+	vkGetPhysicalDeviceFeaturesFn = nullptr;
 	vkCmdDrawIndexedFn = nullptr;
 	vkCmdDrawFn = nullptr;
 	vkDestroySurfaceKHRFn = nullptr;

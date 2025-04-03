@@ -17,6 +17,7 @@ namespace Lust
 		static PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHRFn;
 #endif
 
+        static PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeaturesFn;
         static PFN_vkCmdDrawIndexed vkCmdDrawIndexedFn;
         static PFN_vkCmdDraw vkCmdDrawFn;
         static PFN_vkDestroySurfaceKHR vkDestroySurfaceKHRFn;

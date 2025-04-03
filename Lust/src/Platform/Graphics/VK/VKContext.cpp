@@ -550,7 +550,10 @@ void Lust::VKContext::CreateDevice()
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceFeatures deviceFeatures{};
+    VkPhysicalDeviceFeatures deviceFeatures;
+    VKFunctions::vkGetPhysicalDeviceFeaturesFn(m_Adapter, &deviceFeatures);
+
+    assert(deviceFeatures.samplerAnisotropy == VK_TRUE);
 
     VkPhysicalDeviceSynchronization2Features sync2Features{};
     sync2Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
