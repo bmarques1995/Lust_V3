@@ -10,8 +10,12 @@
 #include <imgui_impl_sdl3.h>
 #include <mutex>
 
+#include "SDL3Functions.hpp"
+
 Lust::SDL3Window::SDL3Window(WindowProps props) : m_Gamepads()
 {
+	SDL3Functions::LoadSDL3Functions();
+
 	m_Width = props.Width;
 	m_Height = props.Height;
 	m_Title = props.Title;
@@ -33,14 +37,17 @@ Lust::SDL3Window::SDL3Window(WindowProps props) : m_Gamepads()
 
 Lust::SDL3Window::~SDL3Window()
 {
-	SDL_StopTextInput(m_Window);
+	SDL3Functions::SDL_StopTextInputFn(m_Window);
 	
 	for (auto& gamepad : m_Gamepads)
 	{
-		SDL_CloseGamepad(gamepad.Gamepad);
+		SDL3Functions::SDL_CloseGamepadFn(gamepad.Gamepad);
 	}
 
-	SDL_DestroyWindow(m_Window);
+	SDL3Functions::SDL_DestroyWindowFn(m_Window);
+	SDL3Functions::SDL_QuitFn();
+
+	SDL3Functions::UnloadSDL3Functions();
 }
 
 uint32_t Lust::SDL3Window::GetWidth() const
@@ -65,7 +72,7 @@ const bool* Lust::SDL3Window::TrackWindowClosing() const
 
 void Lust::SDL3Window::DisplayWindow()
 {
-	SDL_ShowWindow(m_Window);
+	SDL3Functions::SDL_ShowWindowFn(m_Window);
 }
 
 bool Lust::SDL3Window::IsCursorDisplayed() const
@@ -83,14 +90,14 @@ void Lust::SDL3Window::DisplayCursor(bool display)
 		return;
 	m_CursorDisplayed = display;
 	if (m_CursorDisplayed)
-		SDL_WarpMouseInWindow(m_Window, m_Width / 2.0f, m_Height / 2.0f);	
-	SDL_SetWindowRelativeMouseMode(m_Window, !m_CursorDisplayed);
+		SDL3Functions::SDL_WarpMouseInWindowFn(m_Window, m_Width / 2.0f, m_Height / 2.0f);
+	SDL3Functions::SDL_SetWindowRelativeMouseModeFn(m_Window, !m_CursorDisplayed);
 }
 
 std::any Lust::SDL3Window::GetNativePointer() const
 {
 #ifdef LUST_USES_WINDOWS
-	return (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(m_Window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+	return (HWND)SDL3Functions::SDL_GetPointerPropertyFn(SDL_GetWindowProperties(m_Window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
 #else
 	return nullptr;
 #endif
@@ -99,7 +106,7 @@ std::any Lust::SDL3Window::GetNativePointer() const
 std::any Lust::SDL3Window::GetInstance() const
 {
 #ifdef LUST_USES_WINDOWS
-	return (HINSTANCE)SDL_GetPointerProperty(SDL_GetWindowProperties(m_Window), SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER, NULL);
+	return (HINSTANCE)SDL3Functions::SDL_GetPointerPropertyFn(SDL_GetWindowProperties(m_Window), SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER, NULL);
 #else
 	return nullptr;
 #endif;
@@ -130,9 +137,9 @@ void Lust::SDL3Window::SetFullScreen(bool fullScreen)
 	if(m_FullScreen == fullScreen)
 		return;
 	m_FullScreen = fullScreen;
-	SDL_SetWindowFullscreen(m_Window, m_FullScreen);
+	SDL3Functions::SDL_SetWindowFullscreenFn(m_Window, m_FullScreen);
 	int width, height;
-	SDL_GetWindowSize(m_Window, &width, &height);
+	SDL3Functions::SDL_GetWindowSizeFn(m_Window, &width, &height);
 	m_Height = height;
 	m_Width = width;
 	if(!m_FullScreen)
@@ -147,7 +154,7 @@ bool Lust::SDL3Window::IsFullscreen() const
 void Lust::SDL3Window::ResetTitle(std::string newTitle)
 {
 	m_Title = newTitle;
-	SDL_SetWindowTitle(m_Window, m_Title.c_str());
+	SDL3Functions::SDL_SetWindowTitleFn(m_Window, m_Title.c_str());
 }
 
 bool Lust::SDL3Window::IsMinimized() const
@@ -158,7 +165,7 @@ bool Lust::SDL3Window::IsMinimized() const
 void Lust::SDL3Window::OnUpdate()
 {
 	SDL_Event eventData;
-	while (SDL_PollEvent(&eventData))
+	while (SDL3Functions::SDL_PollEventFn(&eventData))
 	{
 		ImGui_ImplSDL3_ProcessEvent(&eventData);
 		ProcessEvents(&eventData);
@@ -182,23 +189,23 @@ std::vector<Lust::GamepadWrapper>::iterator Lust::SDL3Window::GetGamepad(uint32_
 void Lust::SDL3Window::StartGamepads()
 {
 	int gamepadNumber;
-	auto gamepadIDs = SDL_GetGamepads(&gamepadNumber);
+	auto gamepadIDs = SDL3Functions::SDL_GetGamepadsFn(&gamepadNumber);
 
 	for (size_t i = 0; i < gamepadNumber; i++)
 	{
 		GamepadWrapper gamepad;
-		gamepad.Gamepad = SDL_OpenGamepad(gamepadIDs[i]);
+		gamepad.Gamepad = SDL3Functions::SDL_OpenGamepadFn(gamepadIDs[i]);
 		assert(gamepad.Gamepad != nullptr);
 		//usb_ids.h l.42
-		gamepad.GamepadVendor = SDL_GetGamepadVendor(gamepad.Gamepad);
-		gamepad.GamepadProduct = SDL_GetGamepadProduct(gamepad.Gamepad);
+		gamepad.GamepadVendor = SDL3Functions::SDL_GetGamepadVendorFn(gamepad.Gamepad);
+		gamepad.GamepadProduct = SDL3Functions::SDL_GetGamepadProductFn(gamepad.Gamepad);
 		gamepad.NativeIndex = i;
 		m_Gamepads.push_back(gamepad);
 	}
 
 	Console::CoreDebug("Gamepads Avaliable: {}", gamepadNumber);
 
-	SDL_free(gamepadIDs);
+	SDL3Functions::SDL_freeFn(gamepadIDs);
 }
 
 void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
@@ -238,18 +245,18 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
 	{
 		m_CursorDisplayed = true;
-		SDL_WarpMouseInWindow(m_Window, m_Width / 2.0f, m_Height / 2.0f);
-		SDL_SetWindowRelativeMouseMode(m_Window, !m_CursorDisplayed);
+		SDL3Functions::SDL_WarpMouseInWindowFn(m_Window, m_Width / 2.0f, m_Height / 2.0f);
+		SDL3Functions::SDL_SetWindowRelativeMouseModeFn(m_Window, !m_CursorDisplayed);
 		break;
 	}
 	case SDL_EVENT_GAMEPAD_ADDED:
 	{
 		const SDL_JoystickID which = eventData->jdevice.which;
 		GamepadWrapper gamepad;
-		gamepad.Gamepad = SDL_OpenGamepad(which);
+		gamepad.Gamepad = SDL3Functions::SDL_OpenGamepadFn(which);
 		assert(gamepad.Gamepad != nullptr);
-		gamepad.GamepadVendor = SDL_GetGamepadVendor(gamepad.Gamepad);
-		gamepad.GamepadProduct = SDL_GetGamepadProduct(gamepad.Gamepad);
+		gamepad.GamepadVendor = SDL3Functions::SDL_GetGamepadVendorFn(gamepad.Gamepad);
+		gamepad.GamepadProduct = SDL3Functions::SDL_GetGamepadProductFn(gamepad.Gamepad);
 		gamepad.NativeIndex = which;
 		m_Gamepads.push_back(gamepad);
 		GamepadConnectedEvent e(which, gamepad.GamepadVendor, m_Gamepads.size());
@@ -265,7 +272,8 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 		uint32_t gamepadVendor = it->GamepadVendor;
 		if (it != m_Gamepads.end())
 		{
-			SDL_CloseGamepad(it->Gamepad);
+			SDL3Functions::SDL_CloseGamepadFn(it->Gamepad);
+			SDL3Functions::SDL_CloseGamepadFn(it->Gamepad);
 			m_Gamepads.erase(it);
 		}
 		Console::CoreDebug("Gamepad Removed");

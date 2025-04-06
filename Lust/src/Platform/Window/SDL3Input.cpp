@@ -1,6 +1,7 @@
 #include "SDL3Input.hpp"
 #include "Application.hpp"
 #include "pch.hpp"
+#include "SDL3Functions.hpp"
 
 const std::unordered_map<Lust::KeyCode, SDL_Scancode> Lust::SDL3Input::s_KeyMap =
 {
@@ -281,7 +282,7 @@ const std::unordered_map<Lust::GamepadAxisCode, SDL_GamepadAxis> Lust::SDL3Input
 bool Lust::SDL3Input::IsKeyPressedImpl(KeyCode keycode)
 {
 	auto window = std::any_cast<SDL_Window*>(Application::GetInstance()->GetWindow()->GetWindow());
-	auto state = SDL_GetKeyboardState(nullptr);
+	auto state = SDL3Functions::SDL_GetKeyboardStateFn(nullptr);
 	SDL_Scancode nativeKey;
 	auto it = s_KeyMap.find(keycode);
 	if(it == s_KeyMap.end())
@@ -293,7 +294,7 @@ bool Lust::SDL3Input::IsMouseButtonPressedImpl(MouseCode button)
 {
 	auto window = std::any_cast<SDL_Window*>(Application::GetInstance()->GetWindow()->GetWindow());
 	float mouseX, mouseY;
-	Uint32 mouseState = SDL_GetMouseState(&mouseX, &mouseY);
+	Uint32 mouseState = SDL3Functions::SDL_GetMouseStateFn(&mouseX, &mouseY);
 	auto it = s_MouseButtonMap.find(button);
 	if (it == s_MouseButtonMap.end())
 		return false;
@@ -304,7 +305,7 @@ std::pair<float, float> Lust::SDL3Input::GetMousePositionImpl()
 {
 	auto window = std::any_cast<SDL_Window*>(Application::GetInstance()->GetWindow()->GetWindow());
 	float mouseX, mouseY;
-	Uint32 mouseState = SDL_GetMouseState(&mouseX, &mouseY);
+	Uint32 mouseState = SDL3Functions::SDL_GetMouseStateFn(&mouseX, &mouseY);
 	return std::make_pair(mouseX, mouseY);
 }
 
@@ -318,7 +319,7 @@ bool Lust::SDL3Input::IsGamepadKeyPressedImpl(GamepadKeyCode keycode, uint32_t p
 	auto it = s_GamepadKeyMap.find(keycode);
 	if (it == s_GamepadKeyMap.end())
 		return false;
-	return SDL_GetGamepadButton(gamepad, it->second);
+	return SDL3Functions::SDL_GetGamepadButtonFn(gamepad, it->second);
 }
 
 Lust::GamepadAxisValue Lust::SDL3Input::GetGamepadAxisImpl(GamepadAxisCode axis, uint32_t player)
@@ -333,5 +334,5 @@ Lust::GamepadAxisValue Lust::SDL3Input::GetGamepadAxisImpl(GamepadAxisCode axis,
 	auto it = s_GamepadAxisMap.find(axis);
 	if (it == s_GamepadAxisMap.end())
 		return 0;
-	return SDL_GetGamepadAxis(gamepad, it->second);
+	return SDL3Functions::SDL_GetGamepadAxisFn(gamepad, it->second);
 }
