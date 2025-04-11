@@ -11,6 +11,7 @@ Lust::StructuredBufferElement::StructuredBufferElement()
 	m_ShaderRegister = 0;
 	m_BufferIndex = 0;
 	m_BufferAlignment = 0;
+	m_BufferCorrection = 0;
 	m_NumberOfElements = 1;
 	m_Name = "";
 }
@@ -80,7 +81,7 @@ size_t Lust::StructuredBufferElement::GetStride() const
 
 size_t Lust::StructuredBufferElement::GetSize() const
 {
-	return m_Stride * m_NumberOfElements;
+	return m_Stride * m_NumberOfElements + m_BufferCorrection;
 }
 
 size_t Lust::StructuredBufferElement::GetBufferAlignment() const

@@ -11,6 +11,7 @@
 #include "Sampler.hpp"
 #include "Buffer.hpp"
 #include "GraphicsContext.hpp"
+#include "ShaderReflector.hpp"
 #include <json/json.h>
 
 
@@ -83,7 +84,7 @@ namespace Lust
 		* @param inputInfo The shader input information
 		* @param filepath The shader filepath
 		*/
-		Shader(const InputInfo& inputInfo, const std::string& filepath);
+		Shader(const std::shared_ptr<ShaderReflector>& inputInfo, const std::string& filepath);
 
 		/**
 		* @brief Returns the InputBufferLayout
@@ -211,21 +212,14 @@ namespace Lust
 		* @param json_basepath The json base path is a path, without extensions, where the json file is located, is completed with the json extension based on the graphics API
 		* @param inputInfo The input info
 		*/
-		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo);
+		static Shader* Instantiate(const GraphicsContext* context, std::string json_basepath, const std::shared_ptr<ShaderReflector>& inputInfo, const Topology& topology = Topology::LUST_TOPOLOGY_TRIANGLELIST);
 
 	protected:
 		Json::Value m_PipelineInfo;
 		std::string m_ShaderDir;
 		std::string m_Name;
 
-		InputBufferLayout m_Layout;
-		SmallBufferLayout m_SmallBufferLayout;
-		UniformLayout m_UniformLayout;
-		TextureLayout m_TextureLayout;
-		SamplerLayout m_SamplerLayout;
-		TextureArrayLayout m_TextureArrayLayout;
-		SamplerArrayLayout m_SamplerArrayLayout;
-		StructuredBufferLayout m_StructuredBufferLayout;
+		const std::shared_ptr<ShaderReflector> m_ShaderReflector;
 
 		/**
 		* @brief Initializes the json and paths
@@ -266,14 +260,14 @@ namespace Lust
 		* @param json_basepath The json base path is a path, without extensions, where the json file is located, is completed with the json extension based on the graphics API
 		* @param inputInfo The input info
 		*/
-		std::shared_ptr<Shader> Load(const std::string& json_basepath, const InputInfo& inputInfo);
+		std::shared_ptr<Shader> Load(const std::string& json_basepath);
 		/**
 		* @brief Loads a shader
 		* @param name The name of the shader
 		* @param json_basepath The json base path is a path, without extensions, where the json file is located, is completed with the json extension based on the graphics API
 		* @param inputInfo The input info
 		*/
-		std::shared_ptr<Shader> Load(const std::string& name, const std::string& json_basepath, const InputInfo& inputInfo);
+		std::shared_ptr<Shader> Load(const std::string& name, const std::string& json_basepath);
 
 		/**
 		* @brief Gets a shader

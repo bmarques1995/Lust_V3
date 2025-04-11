@@ -30,7 +30,7 @@ const std::unordered_map<uint32_t, VkShaderStageFlagBits> Lust::VKShader::s_Enum
     {AllowedStages::AMPLIFICATION_STAGE, VK_SHADER_STAGE_TASK_BIT_EXT},
 };
 
-Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_path, InputInfo inputInfo) :
+Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_path, const std::shared_ptr<ShaderReflector>& inputInfo, const Topology& topology) :
     m_Context(context), Lust::Shader(inputInfo, json_controller_path)
 {
     VkResult vkr;
@@ -53,10 +53,10 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
 
     VkVertexInputBindingDescription bindingDescription{};
     bindingDescription.binding = 0;
-    bindingDescription.stride = m_Layout.GetStride();
+    bindingDescription.stride = m_ShaderReflector->GetInputLayout().GetStride();
     bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    auto nativeElements = m_Layout.GetElements();
+    auto nativeElements = m_ShaderReflector->GetInputLayout().GetElements();
     VkVertexInputAttributeDescription* ied = new VkVertexInputAttributeDescription[nativeElements.size()];
 
     for (size_t i = 0; i < nativeElements.size(); i++)
@@ -68,7 +68,7 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     }
 
     vertexInputInfo.vertexBindingDescriptionCount = 1;
-    vertexInputInfo.vertexAttributeDescriptionCount = m_Layout.GetElements().size();
+    vertexInputInfo.vertexAttributeDescriptionCount = m_ShaderReflector->GetInputLayout().GetElements().size();
     vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
     vertexInputInfo.pVertexAttributeDescriptions = ied;
 
@@ -80,7 +80,7 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
 
-    SetInputAssemblyViewportAndMultisampling(&inputAssembly, &viewportState, &multisampling, inputInfo.m_Topology);
+    SetInputAssemblyViewportAndMultisampling(&inputAssembly, &viewportState, &multisampling, topology);
     SetRasterizer(&rasterizer);
     SetBlend(&colorBlendAttachment, &colorBlending);
     SetDepthStencil(&depthStencil);
@@ -97,7 +97,7 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
-    auto smallBuffers = m_SmallBufferLayout.GetElements();
+    auto smallBuffers = m_ShaderReflector->GetSmallBufferLayout().GetElements();
 
     VkPushConstantRange* pushConstantRange;
     uint32_t pushConstantOffset = 0;
@@ -108,7 +108,7 @@ Lust::VKShader::VKShader(const VKContext* context, std::string json_controller_p
     VkShaderStageFlags stageFlag = 0x0;
 
     for (auto& i : s_EnumStageCaster)
-        if ((i.first & m_SmallBufferLayout.GetStages()) != 0)
+        if ((i.first & m_ShaderReflector->GetSmallBufferLayout().GetStages()) != 0)
             stageFlag |= i.second;
 
     size_t i = 0;
@@ -179,7 +179,7 @@ void Lust::VKShader::Stage()
 
 uint32_t Lust::VKShader::GetStride() const
 {
-    return m_Layout.GetStride();
+    return m_ShaderReflector->GetInputLayout().GetStride();
 }
 
 uint32_t Lust::VKShader::GetOffset() const
@@ -224,7 +224,7 @@ void Lust::VKShader::BindSmallBuffer(const void* data, size_t size, const SmallB
     VkShaderStageFlags bindingFlag = 0;
     for (auto& enumStage : s_EnumStageCaster)
     {
-        auto stages = m_SmallBufferLayout.GetStages();
+        auto stages = m_ShaderReflector->GetSmallBufferLayout().GetStages();
         if (stages & enumStage.first)
             bindingFlag |= enumStage.second;
     }
@@ -285,10 +285,10 @@ void Lust::VKShader::PreallocatesDescSets()
     auto device = m_Context->GetDevice();
 
     VkResult vkr;
-    auto uniforms = m_UniformLayout.GetElements();
-    auto textures = m_TextureLayout.GetElements();
-    auto samplers = m_SamplerLayout.GetElements();
-    auto structuredBuffers = m_StructuredBufferLayout.GetElements();
+    auto uniforms = m_ShaderReflector->GetUniformLayout().GetElements();
+    auto textures = m_ShaderReflector->GetTextureLayout().GetElements();
+    auto samplers = m_ShaderReflector->GetSamplerLayout().GetElements();
+    auto structuredBuffers = m_ShaderReflector->GetStructuredBufferLayout().GetElements();
 
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -345,7 +345,7 @@ void Lust::VKShader::CreateDescriptorSetLayout()
 
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 
-    auto uniformElements = m_UniformLayout.GetElements();
+    auto uniformElements = m_ShaderReflector->GetUniformLayout().GetElements();
 
     for (auto& i : uniformElements)
     {
@@ -359,7 +359,7 @@ void Lust::VKShader::CreateDescriptorSetLayout()
             VkShaderStageFlags stageFlag = 0x0;
 
             for (auto& i : s_EnumStageCaster)
-                if ((i.first & m_UniformLayout.GetStages()) != 0)
+                if ((i.first & m_ShaderReflector->GetUniformLayout().GetStages()) != 0)
                     stageFlag |= i.second;
 
             binding.stageFlags = stageFlag;
@@ -368,7 +368,7 @@ void Lust::VKShader::CreateDescriptorSetLayout()
 
     }
 
-    auto textureElements = m_TextureLayout.GetElements();
+    auto textureElements = m_ShaderReflector->GetTextureLayout().GetElements();
     for (auto& i : textureElements)
     {
         VkDescriptorSetLayoutBinding binding{};
@@ -379,14 +379,14 @@ void Lust::VKShader::CreateDescriptorSetLayout()
         VkShaderStageFlags stageFlag = 0x0;
 
         for (auto& i : s_EnumStageCaster)
-            if ((i.first & m_UniformLayout.GetStages()) != 0)
+            if ((i.first & m_ShaderReflector->GetUniformLayout().GetStages()) != 0)
                 stageFlag |= i.second;
 
         binding.stageFlags = stageFlag;
         bindings.push_back(binding);
     }
 
-    auto textureArrays = m_TextureArrayLayout.GetElements();
+    auto textureArrays = m_ShaderReflector->GetTextureArrayLayout().GetElements();
     for (auto& i : textureArrays)
     {
         VkDescriptorSetLayoutBinding binding{};
@@ -397,14 +397,14 @@ void Lust::VKShader::CreateDescriptorSetLayout()
         VkShaderStageFlags stageFlag = 0x0;
 
         for (auto& i : s_EnumStageCaster)
-            if ((i.first & m_UniformLayout.GetStages()) != 0)
+            if ((i.first & m_ShaderReflector->GetUniformLayout().GetStages()) != 0)
                 stageFlag |= i.second;
 
         binding.stageFlags = stageFlag;
         bindings.push_back(binding);
     }
 
-    auto samplerElements = m_SamplerLayout.GetElements();
+    auto samplerElements = m_ShaderReflector->GetSamplerLayout().GetElements();
     for (auto& i : samplerElements)
     {
         VkDescriptorSetLayoutBinding binding{};
@@ -415,14 +415,14 @@ void Lust::VKShader::CreateDescriptorSetLayout()
         VkShaderStageFlags stageFlag = 0x0;
 
         for (auto& i : s_EnumStageCaster)
-            if ((i.first & m_UniformLayout.GetStages()) != 0)
+            if ((i.first & m_ShaderReflector->GetUniformLayout().GetStages()) != 0)
                 stageFlag |= i.second;
 
         binding.stageFlags = stageFlag;
         bindings.push_back(binding);
     }
 
-    auto samplerArrays = m_SamplerArrayLayout.GetElements();
+    auto samplerArrays = m_ShaderReflector->GetSamplerArrayLayout().GetElements();
     for (auto& i : samplerArrays)
     {
         VkDescriptorSetLayoutBinding binding{};
@@ -433,14 +433,14 @@ void Lust::VKShader::CreateDescriptorSetLayout()
         VkShaderStageFlags stageFlag = 0x0;
 
         for (auto& i : s_EnumStageCaster)
-            if ((i.first & m_UniformLayout.GetStages()) != 0)
+            if ((i.first & m_ShaderReflector->GetUniformLayout().GetStages()) != 0)
                 stageFlag |= i.second;
 
         binding.stageFlags = stageFlag;
         bindings.push_back(binding);
     }
 
-    auto structuredBufferElements = m_StructuredBufferLayout.GetElements();
+    auto structuredBufferElements = m_ShaderReflector->GetStructuredBufferLayout().GetElements();
     for (auto& i : structuredBufferElements)
     {
         VkDescriptorSetLayoutBinding binding{};
@@ -451,7 +451,7 @@ void Lust::VKShader::CreateDescriptorSetLayout()
         VkShaderStageFlags stageFlag = 0x0;
 
         for (auto& i : s_EnumStageCaster)
-            if ((i.first & m_UniformLayout.GetStages()) != 0)
+            if ((i.first & m_ShaderReflector->GetUniformLayout().GetStages()) != 0)
                 stageFlag |= i.second;
 
         binding.stageFlags = stageFlag;
@@ -473,7 +473,7 @@ void Lust::VKShader::CreateDescriptorPool()
     auto device = m_Context->GetDevice();
 
     std::vector<VkDescriptorPoolSize> poolSize;
-    auto uniformElements = m_UniformLayout.GetElements();
+    auto uniformElements = m_ShaderReflector->GetUniformLayout().GetElements();
     for (auto& i : uniformElements)
     {
         for (size_t j = 0; j < i.second.GetNumberOfBuffers(); j++)
@@ -485,7 +485,7 @@ void Lust::VKShader::CreateDescriptorPool()
         }
     }
 
-    auto textureElements = m_TextureLayout.GetElements();
+    auto textureElements = m_ShaderReflector->GetTextureLayout().GetElements();
     for (auto& i : textureElements)
     {
         VkDescriptorPoolSize poolSizer;
@@ -494,7 +494,7 @@ void Lust::VKShader::CreateDescriptorPool()
         poolSize.push_back(poolSizer);
     }
 
-    auto textureArrays = m_TextureArrayLayout.GetElements();
+    auto textureArrays = m_ShaderReflector->GetTextureArrayLayout().GetElements();
     for (auto& i : textureArrays)
     {
         VkDescriptorPoolSize poolSizer;
@@ -506,7 +506,7 @@ void Lust::VKShader::CreateDescriptorPool()
         m_TextureArrayDescriptors[i.first].resize(poolSizer.descriptorCount);
     }
 
-    auto samplerElements = m_SamplerLayout.GetElements();
+    auto samplerElements = m_ShaderReflector->GetSamplerLayout().GetElements();
     for (auto& i : samplerElements)
     {
         VkDescriptorPoolSize poolSizer;
@@ -515,7 +515,7 @@ void Lust::VKShader::CreateDescriptorPool()
         poolSize.push_back(poolSizer);
     }
 
-    auto samplerArrays = m_SamplerArrayLayout.GetElements();
+    auto samplerArrays = m_ShaderReflector->GetSamplerArrayLayout().GetElements();
     for (auto& i : samplerArrays)
     {
         VkDescriptorPoolSize poolSizer;

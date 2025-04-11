@@ -44,7 +44,6 @@ private:
 	bool m_ShowCameraWindow = true;
 
 	std::shared_ptr<Lust::Shader> m_Shader;
-	std::shared_ptr<Lust::ShaderReflector> m_ShaderReflector;
 	std::shared_ptr<Lust::Texture2D> m_Texture1;
 	std::shared_ptr<Lust::Texture2D> m_Texture2;
 	std::shared_ptr<Lust::UniformBuffer> m_UniformBuffer;
@@ -57,7 +56,6 @@ private:
 	std::shared_ptr<Lust::Sampler> m_LinearSampler;
 	std::shared_ptr<Lust::Sampler> m_PointSampler;
 
-	std::shared_ptr<Lust::ShaderReflector> m_SquareShaderReflector;
 	std::shared_ptr<Lust::Shader> m_SquareShader;
 	std::shared_ptr<Lust::VertexBuffer> m_SquareVertexBuffer;
 	std::shared_ptr<Lust::IndexBuffer> m_SquareIndexBuffer;
@@ -65,8 +63,6 @@ private:
 	std::shared_ptr<Lust::StructuredBuffer> m_SquareStructuredBuffer;
 
 	std::shared_ptr<Lust::OrthographicCameraController> m_CameraController;
-
-	uint8_t* m_SSBO = nullptr;
 
 	bool OnWindowResize(Lust::WindowResizedEvent& e);
 

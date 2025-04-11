@@ -20,7 +20,7 @@ namespace Lust
 	class LUST_API VKShader : public Shader
 	{
 	public:
-		VKShader(const VKContext* context, std::string json_controller_path, InputInfo inputInfo);
+		VKShader(const VKContext* context, std::string json_controller_path, const std::shared_ptr<ShaderReflector>& inputInfo, const Topology& topology);
 		~VKShader();
 
 		void Stage() override;

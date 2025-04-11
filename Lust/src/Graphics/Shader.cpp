@@ -39,15 +39,8 @@ Lust::InputInfo::InputInfo(InputBufferLayout inputLayout, SmallBufferLayout smal
 {
 }
 
-Lust::Shader::Shader(const InputInfo& inputInfo, const std::string& filepath)
-	: m_Layout(inputInfo.m_InputLayout),
-	m_SmallBufferLayout(inputInfo.m_SmallBufferLayout),
-	m_UniformLayout(inputInfo.m_UniformLayout),
-	m_TextureLayout(inputInfo.m_TextureLayout),
-	m_SamplerLayout(inputInfo.m_SamplerLayout),
-	m_TextureArrayLayout(inputInfo.m_TextureArrayLayout),
-	m_SamplerArrayLayout(inputInfo.m_SamplerArrayLayout),
-	m_StructuredBufferLayout(inputInfo.m_StructuredBufferLayout)
+Lust::Shader::Shader(const std::shared_ptr<ShaderReflector>& inputInfo, const std::string& filepath)
+	: m_ShaderReflector(inputInfo)
 {
 	std::filesystem::path fpath = filepath;
 	SetName(fpath.stem().stem().string());
@@ -55,42 +48,42 @@ Lust::Shader::Shader(const InputInfo& inputInfo, const std::string& filepath)
 
 const Lust::InputBufferLayout& Lust::Shader::GetInputLayout() const
 {
-	return m_Layout;
+	return m_ShaderReflector->GetInputLayout();
 }
 
 const Lust::SmallBufferLayout& Lust::Shader::GetSmallBufferLayout() const
 {
-	return m_SmallBufferLayout;
+	return m_ShaderReflector->GetSmallBufferLayout();
 }
 
 const Lust::UniformLayout& Lust::Shader::GetUniformLayout() const
 {
-	return m_UniformLayout;
+	return m_ShaderReflector->GetUniformLayout();
 }
 
 const Lust::StructuredBufferLayout& Lust::Shader::GetStructuredBufferLayout() const
 {
-	return m_StructuredBufferLayout;
+	return m_ShaderReflector->GetStructuredBufferLayout();
 }
 
 const Lust::TextureLayout& Lust::Shader::GetTextureLayout() const
 {
-	return m_TextureLayout;
+	return m_ShaderReflector->GetTextureLayout();
 }
 
 const Lust::SamplerLayout& Lust::Shader::GetSamplerLayout() const
 {
-	return m_SamplerLayout;
+	return m_ShaderReflector->GetSamplerLayout();
 }
 
 const Lust::TextureArrayLayout& Lust::Shader::GetTextureArrayLayout() const
 {
-	return m_TextureArrayLayout;
+	return m_ShaderReflector->GetTextureArrayLayout();
 }
 
 const Lust::SamplerArrayLayout& Lust::Shader::GetSamplerArrayLayout() const
 {
-	return m_SamplerArrayLayout;
+	return m_ShaderReflector->GetSamplerArrayLayout();
 }
 
 const std::string& Lust::Shader::GetName() const
@@ -103,7 +96,7 @@ void Lust::Shader::SetName(const std::string& name)
 	m_Name = name;
 }
 
-Lust::Shader* Lust::Shader::Instantiate(const GraphicsContext* context, std::string json_basepath, const InputInfo& inputInfo)
+Lust::Shader* Lust::Shader::Instantiate(const GraphicsContext* context, std::string json_basepath, const std::shared_ptr<ShaderReflector>& inputInfo, const Topology& topology)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	std::stringstream controller_path;
@@ -115,14 +108,14 @@ Lust::Shader* Lust::Shader::Instantiate(const GraphicsContext* context, std::str
 	{
 		controller_path << ".d3d12.json";
 		std::string json_controller_path = controller_path.str();
-		return new D3D12Shader((const D3D12Context*)(context), json_controller_path, inputInfo);
+		return new D3D12Shader((const D3D12Context*)(context), json_controller_path, inputInfo, topology);
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
 		controller_path << ".vk.json";
 		std::string json_controller_path = controller_path.str();
-		return new VKShader((const VKContext*)(context), json_controller_path, inputInfo);
+		return new VKShader((const VKContext*)(context), json_controller_path, inputInfo, topology);
 	}
 	default:
 		break;
@@ -165,16 +158,20 @@ void Lust::ShaderLibrary::Add(const std::shared_ptr<Shader>& shader)
 	Add(name, shader);
 }
 
-std::shared_ptr<Lust::Shader> Lust::ShaderLibrary::Load(const std::string& json_basepath, const InputInfo& inputInfo)
+std::shared_ptr<Lust::Shader> Lust::ShaderLibrary::Load(const std::string& json_basepath)
 {
+	std::shared_ptr<ShaderReflector> inputInfo;
+	inputInfo.reset(Lust::ShaderReflector::Instantiate(json_basepath, Lust::AllowedStages::VERTEX_STAGE | Lust::AllowedStages::PIXEL_STAGE));
 	std::shared_ptr<Shader> shader;
 	shader.reset(Shader::Instantiate(m_Context, json_basepath, inputInfo));
 	Add(shader);
 	return shader;
 }
 
-std::shared_ptr<Lust::Shader> Lust::ShaderLibrary::Load(const std::string& name, const std::string& json_basepath, const InputInfo& inputInfo)
+std::shared_ptr<Lust::Shader> Lust::ShaderLibrary::Load(const std::string& name, const std::string& json_basepath)
 {
+	std::shared_ptr<ShaderReflector> inputInfo;
+	inputInfo.reset(Lust::ShaderReflector::Instantiate(json_basepath, Lust::AllowedStages::VERTEX_STAGE | Lust::AllowedStages::PIXEL_STAGE));
 	std::shared_ptr<Shader> shader;
 	shader.reset(Shader::Instantiate(m_Context, json_basepath, inputInfo));
 	Add(name, shader);

@@ -27,11 +27,6 @@ void Lust::Renderer2D::Instantiate()
 
 	s_Renderer2DStorage->m_ShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/Renderer2D", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
 
-	InputInfo renderer2DInputInfoController2(s_Renderer2DStorage->m_ShaderReflector->GetInputLayout(), s_Renderer2DStorage->m_ShaderReflector->GetSmallBufferLayout(), 
-		s_Renderer2DStorage->m_ShaderReflector->GetUniformLayout(), s_Renderer2DStorage->m_ShaderReflector->GetTextureLayout(),
-		s_Renderer2DStorage->m_ShaderReflector->GetSamplerLayout(), s_Renderer2DStorage->m_ShaderReflector->GetTextureArrayLayout(),
-		s_Renderer2DStorage->m_ShaderReflector->GetSamplerArrayLayout(), s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout());
-
 	*s_SceneData = {
 		Eigen::Matrix4f::Identity(),
 		Eigen::Matrix4f::Identity(),
@@ -42,7 +37,7 @@ void Lust::Renderer2D::Instantiate()
 	s_Renderer2DStorage->m_RawSmallBufferSize = s_Renderer2DStorage->m_ShaderReflector->GetSmallBufferLayout().GetElement("m_SmallMVP").GetSize();
 	s_Renderer2DStorage->m_RawSmallBuffer = new uint8_t[s_Renderer2DStorage->m_RawSmallBufferSize];
 
-	s_Renderer2DStorage->m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/Renderer2D", renderer2DInputInfoController2));
+	s_Renderer2DStorage->m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/Renderer2D", s_Renderer2DStorage->m_ShaderReflector));
 	s_Renderer2DStorage->m_VertexBuffer.reset(VertexBuffer::Instantiate(context, squareVertices, sizeof(squareVertices), s_Renderer2DStorage->m_Shader->GetInputLayout().GetStride()));
 	s_Renderer2DStorage->m_IndexBuffer.reset(IndexBuffer::Instantiate(context, squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 	s_Renderer2DStorage->m_UniformBuffer.reset(UniformBuffer::Instantiate(context, (void*)s_SceneData.get(), sizeof(SceneData)));

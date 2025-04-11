@@ -21,7 +21,7 @@ namespace Lust
 	class LUST_API D3D12Shader : public Shader
 	{
 	public:
-		D3D12Shader(const D3D12Context* context, std::string json_controller_path, InputInfo inputInfo);
+		D3D12Shader(const D3D12Context* context, std::string json_controller_path, const std::shared_ptr<ShaderReflector>& inputInfo, const Topology& topology);
 		~D3D12Shader();
 
 		void Stage() override;

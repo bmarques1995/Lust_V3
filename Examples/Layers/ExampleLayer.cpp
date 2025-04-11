@@ -44,13 +44,7 @@ void ExampleLayer::OnAttach()
 
 	m_SmallMVP.model = model_transform.matrix();
 
-	m_ShaderReflector.reset(Lust::ShaderReflector::Instantiate("./Examples/Layers/assets/shaders/HelloTriangle", Lust::AllowedStages::VERTEX_STAGE | Lust::AllowedStages::PIXEL_STAGE));
-	Lust::InputInfo inputInfoController(m_ShaderReflector->GetInputLayout(), m_ShaderReflector->GetSmallBufferLayout(),
-		m_ShaderReflector->GetUniformLayout(),	m_ShaderReflector->GetTextureLayout(),
-		m_ShaderReflector->GetSamplerLayout(), m_ShaderReflector->GetTextureArrayLayout(),
-		m_ShaderReflector->GetSamplerArrayLayout(), m_ShaderReflector->GetStructuredBufferLayout());
-
-	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/HelloTriangle", inputInfoController);
+	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/HelloTriangle");
 	m_Shader = m_ShaderLibrary->Get("HelloTriangle");
 	
 	//m_Shader->UploadSampler(&m_LinearSampler, m_Shader->GetSamplerLayout().GetElement("dynamicSampler"));
@@ -83,10 +77,15 @@ void ExampleLayer::OnAttach()
 	m_VertexBuffer.reset(Lust::VertexBuffer::Instantiate(context, (const void*)&m_VBuffer[0], sizeof(m_VBuffer), m_Shader->GetInputLayout().GetStride()));
 	m_IndexBuffer.reset(Lust::IndexBuffer::Instantiate(context, (const void*)&m_IBuffer[0], sizeof(m_IBuffer) / sizeof(uint32_t)));
 
-	uint32_t rows = 20, cols = 20;
-	m_SquareShaderReflector.reset(Lust::ShaderReflector::Instantiate("./Examples/Layers//assets/shaders/FlatColor", Lust::AllowedStages::VERTEX_STAGE | Lust::AllowedStages::PIXEL_STAGE, rows * cols));
 
-	m_SSBO = new uint8_t[m_SquareShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP").GetSize()];
+	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/FlatColor");
+	m_SquareShader = m_ShaderLibrary->Get("FlatColor");
+
+	uint32_t rows = 20, cols = 20;
+
+	m_SquareShader->GetStructuredBufferLayout().GetElement("u_InstancedMVP").SetNumberOfElements(rows * cols);
+
+	uint8_t* m_SSBO = new uint8_t[m_SquareShader->GetStructuredBufferLayout().GetElement("u_InstancedMVP").GetSize()];
 
 	Eigen::Matrix4f squareSmallBufferMatrix;
 	Eigen::AlignedScaling3f baseScale = Eigen::Scaling(50.0f, 50.0f, 1.0f);
@@ -106,19 +105,11 @@ void ExampleLayer::OnAttach()
 
 	delete[] m_SSBO;
 
-	Lust::InputInfo squareInputInfoController(m_SquareShaderReflector->GetInputLayout(), m_SquareShaderReflector->GetSmallBufferLayout(),
-		m_SquareShaderReflector->GetUniformLayout(), m_SquareShaderReflector->GetTextureLayout(),
-		m_SquareShaderReflector->GetSamplerLayout(), m_SquareShaderReflector->GetTextureArrayLayout(),
-		m_SquareShaderReflector->GetSamplerArrayLayout(), m_SquareShaderReflector->GetStructuredBufferLayout());
-
-	m_ShaderLibrary->Load("./Examples/Layers/assets/shaders/FlatColor", squareInputInfoController);
-	m_SquareShader = m_ShaderLibrary->Get("FlatColor");
-
 	m_SquareUniformBuffer.reset(Lust::UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
-	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, m_SquareShaderReflector->GetUniformLayout().GetElement("m_CompleteMVP"));
-	m_SquareShader->UploadStructuredBuffer(&m_SquareStructuredBuffer, m_SquareShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP"));
-	m_SquareVertexBuffer.reset(Lust::VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), m_SquareShaderReflector->GetInputLayout().GetStride()));
+	m_SquareShader->UploadConstantBuffer(&m_SquareUniformBuffer, m_SquareShader->GetUniformLayout().GetElement("m_CompleteMVP"));
+	m_SquareShader->UploadStructuredBuffer(&m_SquareStructuredBuffer, m_SquareShader->GetStructuredBufferLayout().GetElement("u_InstancedMVP"));
+	m_SquareVertexBuffer.reset(Lust::VertexBuffer::Instantiate(context, (const void*)squareVertices, sizeof(squareVertices), m_SquareShader->GetInputLayout().GetStride()));
 	m_SquareIndexBuffer.reset(Lust::IndexBuffer::Instantiate(context, (const void*)squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 }
 

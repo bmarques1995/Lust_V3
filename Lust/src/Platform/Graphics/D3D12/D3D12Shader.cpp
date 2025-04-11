@@ -40,7 +40,7 @@ const std::list<std::string> Lust::D3D12Shader::s_GraphicsPipelineStages =
 	"hs",
 };
 
-Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_controller_path, InputInfo inputInfo) :
+Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_controller_path, const std::shared_ptr<ShaderReflector>& inputInfo, const Topology& topology) :
 	m_Context(context), Lust::Shader(inputInfo, json_controller_path)
 {
 	HRESULT hr;
@@ -48,13 +48,13 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 
 	InitJsonAndPaths(json_controller_path, &(this->m_PipelineInfo), &(this->m_ShaderDir));
 	StartDXC();
-	m_RenderTopology = GetNativeTopology(inputInfo.m_Topology);
+	m_RenderTopology = GetNativeTopology(topology);
 
-	auto smallBuffers = m_SmallBufferLayout.GetElements();
-	auto uniforms = m_UniformLayout.GetElements();
-	auto structuredBuffers = m_StructuredBufferLayout.GetElements();
+	auto smallBuffers = m_ShaderReflector->GetSmallBufferLayout().GetElements();
+	auto uniforms = m_ShaderReflector->GetUniformLayout().GetElements();
+	auto structuredBuffers = m_ShaderReflector->GetStructuredBufferLayout().GetElements();
 
-	auto nativeElements = m_Layout.GetElements();
+	auto nativeElements = m_ShaderReflector->GetInputLayout().GetElements();
 	D3D12_INPUT_ELEMENT_DESC* ied = new D3D12_INPUT_ELEMENT_DESC[nativeElements.size()];
 
 	for (size_t i = 0; i < nativeElements.size(); i++)
@@ -82,7 +82,7 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 	graphicsDesc.NumRenderTargets = 1;
 	graphicsDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	graphicsDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	graphicsDesc.PrimitiveTopologyType = GetNativeTopologyType(inputInfo.m_Topology);
+	graphicsDesc.PrimitiveTopologyType = GetNativeTopologyType(topology);
 	graphicsDesc.SampleDesc.Count = 1;
 	graphicsDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
@@ -111,19 +111,19 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 	uint32_t samplersNumber = 0;
 	uint32_t samplersRootSigIndex = 0xffffffff;
 
-	if(m_SamplerLayout.GetElements().begin() != m_SamplerLayout.GetElements().end())
-		samplersRootSigIndex = m_SamplerLayout.GetElements().begin()->second.GetShaderRegister();
+	if(m_ShaderReflector->GetSamplerLayout().GetElements().begin() != m_ShaderReflector->GetSamplerLayout().GetElements().end())
+		samplersRootSigIndex = m_ShaderReflector->GetSamplerLayout().GetElements().begin()->second.GetShaderRegister();
 	else
 	{
-		if (m_SamplerArrayLayout.GetElements().begin() != m_SamplerArrayLayout.GetElements().end())
+		if (m_ShaderReflector->GetSamplerArrayLayout().GetElements().begin() != m_ShaderReflector->GetSamplerArrayLayout().GetElements().end())
 		{
-			samplersRootSigIndex = m_SamplerArrayLayout.GetElements().begin()->second.GetShaderRegister();
+			samplersRootSigIndex = m_ShaderReflector->GetSamplerArrayLayout().GetElements().begin()->second.GetShaderRegister();
 		}
 	}
 
-	samplersNumber+= m_SamplerLayout.GetElements().size();
+	samplersNumber+= m_ShaderReflector->GetSamplerLayout().GetElements().size();
 	
-	for (auto samplerArray : m_SamplerArrayLayout.GetElements())
+	for (auto samplerArray : m_ShaderReflector->GetSamplerArrayLayout().GetElements())
 	{
 		samplersNumber += samplerArray.second.GetNumberOfSamplers();
 	}
@@ -131,19 +131,19 @@ Lust::D3D12Shader::D3D12Shader(const D3D12Context* context, std::string json_con
 	uint32_t texturesNumber = 0;
 	uint32_t texturesRootSigIndex = 0xffffffff;
 
-	if (m_TextureLayout.GetElements().begin() != m_TextureLayout.GetElements().end())
-		texturesRootSigIndex = m_TextureLayout.GetElements().begin()->second.GetShaderRegister();
+	if (m_ShaderReflector->GetTextureLayout().GetElements().begin() != m_ShaderReflector->GetTextureLayout().GetElements().end())
+		texturesRootSigIndex = m_ShaderReflector->GetTextureLayout().GetElements().begin()->second.GetShaderRegister();
 	else
 	{
-		if (m_TextureArrayLayout.GetElements().begin() != m_TextureArrayLayout.GetElements().end())
+		if (m_ShaderReflector->GetTextureArrayLayout().GetElements().begin() != m_ShaderReflector->GetTextureArrayLayout().GetElements().end())
 		{
-			texturesRootSigIndex = m_TextureArrayLayout.GetElements().begin()->second.GetShaderRegister();
+			texturesRootSigIndex = m_ShaderReflector->GetTextureArrayLayout().GetElements().begin()->second.GetShaderRegister();
 		}
 	}
 
-	texturesNumber += m_TextureLayout.GetElements().size();
+	texturesNumber += m_ShaderReflector->GetTextureLayout().GetElements().size();
 
-	for (auto textureArray : m_TextureArrayLayout.GetElements())
+	for (auto textureArray : m_ShaderReflector->GetTextureArrayLayout().GetElements())
 	{
 		texturesNumber += textureArray.second.GetNumberOfTextures();
 	}
@@ -191,7 +191,7 @@ void Lust::D3D12Shader::Stage()
 
 uint32_t Lust::D3D12Shader::GetStride() const
 {
-	return m_Layout.GetStride();
+	return m_ShaderReflector->GetInputLayout().GetStride();
 }
 
 uint32_t Lust::D3D12Shader::GetOffset() const
