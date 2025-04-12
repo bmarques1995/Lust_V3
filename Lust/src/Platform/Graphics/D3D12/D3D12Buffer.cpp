@@ -47,23 +47,23 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size)
 		nullptr,
 		IID_PPV_ARGS(m_Buffer.GetAddressOf()));
 	assert(hr == S_OK);
+
+	D3D12_RANGE readRange = { 0 };
+	hr = m_Buffer->Map(0, &readRange, (void**)&m_GPUData);
+	assert(hr == S_OK);
+
 	RemapBuffer(data, size, 0);
 }
 
 void Lust::D3D12Buffer::DestroyBuffer()
 {
+	m_Buffer->Unmap(0, NULL);
 	m_Buffer.Release();
 }
 
 void Lust::D3D12Buffer::RemapBuffer(const void* data, size_t size, size_t offset)
 {
-	HRESULT hr;
-	D3D12_RANGE readRange = { 0 };
-	uint8_t* gpuData = nullptr;
-	hr = m_Buffer->Map(0, &readRange, (void**)&gpuData);
-	assert(hr == S_OK);
-	memcpy(gpuData + offset, data, size);
-	m_Buffer->Unmap(0, NULL);
+	memcpy(m_GPUData + offset, data, size);
 }
 
 bool Lust::D3D12Buffer::IsBufferConformed(size_t size)
@@ -94,7 +94,12 @@ void Lust::D3D12VertexBuffer::Stage() const
 	cmdList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
 }
 
-Lust::D3D12IndexBuffer::D3D12IndexBuffer(const D3D12Context* context, const void* data, size_t count) :
+void Lust::D3D12VertexBuffer::Remap(const void* data, size_t size)
+{
+	RemapBuffer(data, size, 0);
+}
+
+Lust::D3D12IndexBuffer::D3D12IndexBuffer(const D3D12Context* context, const void* data, uint32_t count) :
 	D3D12Buffer(context)
 {
 	CreateBuffer(data, count * sizeof(uint32_t));
@@ -119,6 +124,11 @@ void Lust::D3D12IndexBuffer::Stage() const
 uint32_t Lust::D3D12IndexBuffer::GetCount() const
 {
 	return m_Count;
+}
+
+void Lust::D3D12IndexBuffer::Remap(const void* data, uint32_t count)
+{
+	RemapBuffer(data, count * sizeof(uint32_t), 0);
 }
 
 Lust::D3D12UniformBuffer::D3D12UniformBuffer(const D3D12Context* context, const void* data, size_t size) :

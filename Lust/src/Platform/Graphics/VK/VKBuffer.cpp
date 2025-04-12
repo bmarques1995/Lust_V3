@@ -44,6 +44,9 @@ void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, &bufferMemory);
     assert(vkr == VK_SUCCESS);
     VKFunctions::vkBindBufferMemoryFn(device, buffer, bufferMemory, 0);
+
+    vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&m_GPUData);
+    assert(vkr == VK_SUCCESS);
 }
 
 void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -86,13 +89,7 @@ void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevice
 
 void Lust::VKBuffer::RemapBuffer(const void* data, size_t size, size_t offset)
 {
-    VkResult vkr;
-    auto device = m_Context->GetDevice();
-    uint8_t* gpuData;
-    vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&gpuData);
-    assert(vkr == VK_SUCCESS);
-    memcpy(gpuData + offset, data, size);
-    VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
+    memcpy(m_GPUData + offset, data, size);
 }
 
 uint32_t Lust::VKBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
@@ -119,6 +116,7 @@ bool Lust::VKBuffer::IsBufferConformed(size_t size)
 void Lust::VKBuffer::DestroyBuffer()
 {
     auto device = m_Context->GetDevice();
+    VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
     VKFunctions::vkDeviceWaitIdleFn(device);
     VKFunctions::vkDestroyBufferFn(device, m_Buffer, nullptr);
     VKFunctions::vkFreeMemoryFn(device, m_BufferMemory, nullptr);
@@ -144,7 +142,12 @@ void Lust::VKVertexBuffer::Stage() const
     VKFunctions::vkCmdBindVertexBuffersFn(commandBuffer, 0, 1, &m_Buffer, &offset);
 }
 
-Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, size_t count) :
+void Lust::VKVertexBuffer::Remap(const void* data, size_t size)
+{
+	RemapBuffer(data, size, 0);
+}
+
+Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, uint32_t count) :
     VKBuffer(context)
 {
     m_Count = (uint32_t)count;
@@ -167,6 +170,11 @@ void Lust::VKIndexBuffer::Stage() const
 uint32_t Lust::VKIndexBuffer::GetCount() const
 {
 	return m_Count;
+}
+
+void Lust::VKIndexBuffer::Remap(const void* data, uint32_t count)
+{
+	RemapBuffer(data, sizeof(uint32_t) * count, 0);
 }
 
 Lust::VKUniformBuffer::VKUniformBuffer(const VKContext* context, const void* data, size_t size) :

@@ -26,7 +26,7 @@ Lust::VertexBuffer* Lust::VertexBuffer::Instantiate(const GraphicsContext* conte
 	return nullptr;
 }
 
-Lust::IndexBuffer* Lust::IndexBuffer::Instantiate(const GraphicsContext* context, const void* data, size_t count)
+Lust::IndexBuffer* Lust::IndexBuffer::Instantiate(const GraphicsContext* context, const void* data, uint32_t count)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	switch (api)

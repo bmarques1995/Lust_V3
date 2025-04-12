@@ -24,6 +24,7 @@ namespace Lust
 		const VKContext* m_Context;
 		VkBuffer m_Buffer;
 		VkDeviceMemory m_BufferMemory;
+		uint8_t* m_GPUData;
 	};
 
 	class LUST_API VKVertexBuffer : public VertexBuffer, public VKBuffer
@@ -32,7 +33,9 @@ namespace Lust
 		VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride);
 		~VKVertexBuffer();
 
-		virtual void Stage() const override;
+		void Stage() const override;
+
+		void Remap(const void* data, size_t size) override;
 
 	private:
 
@@ -41,11 +44,13 @@ namespace Lust
 	class LUST_API VKIndexBuffer : public IndexBuffer, public VKBuffer
 	{
 	public:
-		VKIndexBuffer(const VKContext* context, const void* data, size_t count);
+		VKIndexBuffer(const VKContext* context, const void* data, uint32_t count);
 		~VKIndexBuffer();
 
 		virtual void Stage() const override;
 		virtual uint32_t GetCount() const override;
+
+		void Remap(const void* data, uint32_t count) override;
 
 	private:
 

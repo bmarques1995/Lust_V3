@@ -22,6 +22,14 @@ namespace Lust
 		* @brief Stage vertex buffer
 		*/
 		virtual void Stage() const = 0;
+
+		/**
+		* @brief Remap vertex buffer, upload data
+		* @param data Vertex data
+		* @param size Vertex data size
+		*/
+		virtual void Remap(const void* data, size_t size) = 0;
+
 		/**
 		* @brief Vertex buffer factory
 		* @param context Graphics context interface
@@ -53,6 +61,13 @@ namespace Lust
 		* @brief Get index count
 		*/
 		virtual uint32_t GetCount() const = 0;
+
+		/**
+		* @brief Remap index buffer, upload data
+		* @param data Index data
+		* @param count Index data count
+		*/
+		virtual void Remap(const void* data, uint32_t count) = 0;
 		
 		/**
 		* @brief Index buffer factory
@@ -60,7 +75,7 @@ namespace Lust
 		* @param data Index data
 		* @param count Index data count
 		*/
-		static IndexBuffer* Instantiate(const GraphicsContext* context, const void* data, size_t count);
+		static IndexBuffer* Instantiate(const GraphicsContext* context, const void* data, uint32_t count);
 
 	protected:
 		uint32_t m_Count;
