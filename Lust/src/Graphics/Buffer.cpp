@@ -5,7 +5,7 @@
 #endif
 #include "VKBuffer.hpp"
 
-Lust::VertexBuffer* Lust::VertexBuffer::Instantiate(const GraphicsContext* context, const void* data, size_t size, uint32_t stride)
+Lust::VertexBuffer* Lust::VertexBuffer::Instantiate(const GraphicsContext* context, const void* data, size_t size, uint32_t stride, bool dynamicBuffer)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	switch (api)
@@ -13,12 +13,12 @@ Lust::VertexBuffer* Lust::VertexBuffer::Instantiate(const GraphicsContext* conte
 #ifdef LUST_USES_WINDOWS
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
 	{
-		return new D3D12VertexBuffer((const D3D12Context*)(context), data, size, stride);
+		return new D3D12VertexBuffer((const D3D12Context*)(context), data, size, stride, dynamicBuffer);
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
-		return new VKVertexBuffer((const VKContext*)(context), data, size, stride);
+		return new VKVertexBuffer((const VKContext*)(context), data, size, stride, dynamicBuffer);
 	}
 	default:
 		break;
@@ -26,7 +26,7 @@ Lust::VertexBuffer* Lust::VertexBuffer::Instantiate(const GraphicsContext* conte
 	return nullptr;
 }
 
-Lust::IndexBuffer* Lust::IndexBuffer::Instantiate(const GraphicsContext* context, const void* data, uint32_t count)
+Lust::IndexBuffer* Lust::IndexBuffer::Instantiate(const GraphicsContext* context, const void* data, uint32_t count, bool dynamicBuffer)
 {
 	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
 	switch (api)
@@ -34,12 +34,12 @@ Lust::IndexBuffer* Lust::IndexBuffer::Instantiate(const GraphicsContext* context
 #ifdef LUST_USES_WINDOWS
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
 	{
-		return new D3D12IndexBuffer((const D3D12Context*)(context), data, count);
+		return new D3D12IndexBuffer((const D3D12Context*)(context), data, count, dynamicBuffer);
 	}
 #endif
 	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
 	{
-		return new VKIndexBuffer((const VKContext*)(context), data, count);
+		return new VKIndexBuffer((const VKContext*)(context), data, count, dynamicBuffer);
 	}
 	default:
 		break;

@@ -15,12 +15,13 @@ VkDeviceMemory Lust::VKBuffer::GetMemory() const
 }
 
 Lust::VKBuffer::VKBuffer(const VKContext* context) :
-    m_Context(context)
+    m_Context(context), m_GPUData(nullptr)
 {
 }
 
-void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, bool dynamicbuffer)
 {
+    m_IsDynamic = dynamicbuffer;
     VkResult vkr;
     auto device = m_Context->GetDevice();
     
@@ -45,8 +46,11 @@ void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     assert(vkr == VK_SUCCESS);
     VKFunctions::vkBindBufferMemoryFn(device, buffer, bufferMemory, 0);
 
-    vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&m_GPUData);
-    assert(vkr == VK_SUCCESS);
+    if (m_IsDynamic)
+    {
+        vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&m_GPUData);
+        assert(vkr == VK_SUCCESS);
+    }
 }
 
 void Lust::VKBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -92,6 +96,24 @@ void Lust::VKBuffer::RemapBuffer(const void* data, size_t size, size_t offset)
     memcpy(m_GPUData + offset, data, size);
 }
 
+void Lust::VKBuffer::RemapBufferStaticly(const void* data, size_t size, size_t offset)
+{
+    VkResult vkr;
+    auto device = m_Context->GetDevice();
+    vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&m_GPUData);
+    assert(vkr == VK_SUCCESS);
+    memcpy(m_GPUData + offset, data, size);
+    VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
+}
+
+void Lust::VKBuffer::RemapCall(const void* data, size_t size, size_t offset)
+{
+    if (m_IsDynamic)
+        RemapBuffer(data, size, offset);
+    else
+        RemapBufferStaticly(data, size, offset);
+}
+
 uint32_t Lust::VKBuffer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     auto adapter = m_Context->GetAdapter();
@@ -116,18 +138,21 @@ bool Lust::VKBuffer::IsBufferConformed(size_t size)
 void Lust::VKBuffer::DestroyBuffer()
 {
     auto device = m_Context->GetDevice();
-    VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
+    if(m_IsDynamic)
+        VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
     VKFunctions::vkDeviceWaitIdleFn(device);
     VKFunctions::vkDestroyBufferFn(device, m_Buffer, nullptr);
     VKFunctions::vkFreeMemoryFn(device, m_BufferMemory, nullptr);
 }
 
-Lust::VKVertexBuffer::VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride) :
+Lust::VKVertexBuffer::VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride, bool dynamicBuffer) :
     VKBuffer(context)
 {
     m_Stride = stride;
-    CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_BufferMemory);
-    RemapBuffer(data, size, 0);
+    CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        m_Buffer, m_BufferMemory, dynamicBuffer);
+    RemapCall(data, size, 0);
 }
 
 Lust::VKVertexBuffer::~VKVertexBuffer()
@@ -144,16 +169,18 @@ void Lust::VKVertexBuffer::Stage() const
 
 void Lust::VKVertexBuffer::Remap(const void* data, size_t size)
 {
-	RemapBuffer(data, size, 0);
+	RemapCall(data, size, 0);
 }
 
-Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, uint32_t count) :
+Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, uint32_t count, bool dynamicBuffer) :
     VKBuffer(context)
 {
     m_Count = (uint32_t)count;
     VkDeviceSize bufferSize = sizeof(uint32_t) * m_Count;
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_BufferMemory);
-	RemapBuffer(data, bufferSize, 0);
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        m_Buffer, m_BufferMemory, dynamicBuffer);
+	RemapCall(data, bufferSize, 0);
 }
 
 Lust::VKIndexBuffer::~VKIndexBuffer()
@@ -174,7 +201,7 @@ uint32_t Lust::VKIndexBuffer::GetCount() const
 
 void Lust::VKIndexBuffer::Remap(const void* data, uint32_t count)
 {
-	RemapBuffer(data, sizeof(uint32_t) * count, 0);
+	RemapCall(data, sizeof(uint32_t) * count, 0);
 }
 
 Lust::VKUniformBuffer::VKUniformBuffer(const VKContext* context, const void* data, size_t size) :
@@ -194,7 +221,7 @@ Lust::VKUniformBuffer::~VKUniformBuffer()
 
 void Lust::VKUniformBuffer::Remap(const void* data, size_t size)
 {
-    RemapBuffer(data, size, 0);
+    RemapCall(data, size, 0);
 }
 
 size_t Lust::VKUniformBuffer::GetSize() const
@@ -223,7 +250,7 @@ Lust::VKStructuredBuffer::~VKStructuredBuffer()
 
 void Lust::VKStructuredBuffer::Remap(const void* data, size_t size, size_t offset)
 {
-    RemapBuffer(data, size, offset);
+    RemapCall(data, size, offset);
 }
 
 size_t Lust::VKStructuredBuffer::GetSize() const

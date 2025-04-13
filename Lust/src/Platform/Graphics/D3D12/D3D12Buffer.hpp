@@ -14,21 +14,25 @@ namespace Lust
 		ID3D12Resource2* GetResource() const;
 	protected:
 		D3D12Buffer(const D3D12Context* context);
-		void CreateBuffer(const void* data, size_t size);
+		void CreateBuffer(const void* data, size_t size, bool dynamicBuffer = false);
 		void DestroyBuffer();
-		void RemapBuffer(const void* data, size_t size, size_t offset);
+		void RemapCall(const void* data, size_t size, size_t offset);
 
 		bool IsBufferConformed(size_t size);
 
 		ComPointer<ID3D12Resource2> m_Buffer;
 		const D3D12Context* m_Context;
 		uint8_t* m_GPUData;
+		bool m_IsDynamic;
+	private:
+		void RemapBuffer(const void* data, size_t size, size_t offset);
+		void RemapBufferStaticly(const void* data, size_t size, size_t offset);
 	};
 
 	class LUST_API D3D12VertexBuffer: public VertexBuffer, public D3D12Buffer
 	{
 	public:
-		D3D12VertexBuffer(const D3D12Context* context, const void* data, size_t size, uint32_t stride);
+		D3D12VertexBuffer(const D3D12Context* context, const void* data, size_t size, uint32_t stride, bool dynamicBuffer);
 		~D3D12VertexBuffer();
 
 		void Stage() const override;
@@ -42,7 +46,7 @@ namespace Lust
 	class LUST_API D3D12IndexBuffer : public IndexBuffer, public D3D12Buffer
 	{
 	public:
-		D3D12IndexBuffer(const D3D12Context* context, const void* data, uint32_t count);
+		D3D12IndexBuffer(const D3D12Context* context, const void* data, uint32_t count, bool dynamicBuffer);
 		~D3D12IndexBuffer();
 
 		virtual void Stage() const override;

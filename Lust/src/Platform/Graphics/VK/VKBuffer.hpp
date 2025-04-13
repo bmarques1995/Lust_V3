@@ -13,9 +13,9 @@ namespace Lust
 		VkDeviceMemory GetMemory() const;
 	protected:
 		VKBuffer(const VKContext* context);
-		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, bool dynamicbuffer = false);
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-		void RemapBuffer(const void* data, size_t size, size_t offset);
+		void RemapCall(const void* data, size_t size, size_t offset);
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		bool IsBufferConformed(size_t size);
@@ -25,12 +25,16 @@ namespace Lust
 		VkBuffer m_Buffer;
 		VkDeviceMemory m_BufferMemory;
 		uint8_t* m_GPUData;
+		bool m_IsDynamic;
+	private:
+		void RemapBuffer(const void* data, size_t size, size_t offset);
+		void RemapBufferStaticly(const void* data, size_t size, size_t offset);
 	};
 
 	class LUST_API VKVertexBuffer : public VertexBuffer, public VKBuffer
 	{
 	public:
-		VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride);
+		VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride, bool dynamicBuffer);
 		~VKVertexBuffer();
 
 		void Stage() const override;
@@ -44,7 +48,7 @@ namespace Lust
 	class LUST_API VKIndexBuffer : public IndexBuffer, public VKBuffer
 	{
 	public:
-		VKIndexBuffer(const VKContext* context, const void* data, uint32_t count);
+		VKIndexBuffer(const VKContext* context, const void* data, uint32_t count, bool dynamicBuffer);
 		~VKIndexBuffer();
 
 		virtual void Stage() const override;

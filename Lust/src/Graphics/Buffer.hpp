@@ -36,8 +36,9 @@ namespace Lust
 		* @param data Vertex data
 		* @param size Vertex data size
 		* @param stride Vertex stride
+		* @param dynamicBuffer Dynamic vertex buffer
 		*/
-		static VertexBuffer* Instantiate(const GraphicsContext* context, const void* data, size_t size, uint32_t stride);
+		static VertexBuffer* Instantiate(const GraphicsContext* context, const void* data, size_t size, uint32_t stride, bool dynamicBuffer = false);
 	protected:
 		uint32_t m_Stride;
 	};
@@ -74,8 +75,9 @@ namespace Lust
 		* @param context Graphics context interface
 		* @param data Index data
 		* @param count Index data count
+		* @param dynamicBuffer Dynamic index buffer
 		*/
-		static IndexBuffer* Instantiate(const GraphicsContext* context, const void* data, uint32_t count);
+		static IndexBuffer* Instantiate(const GraphicsContext* context, const void* data, uint32_t count, bool dynamicBuffer = false);
 
 	protected:
 		uint32_t m_Count;

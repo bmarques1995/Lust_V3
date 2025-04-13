@@ -10,13 +10,14 @@ ID3D12Resource2* Lust::D3D12Buffer::GetResource() const
 }
 
 Lust::D3D12Buffer::D3D12Buffer(const D3D12Context* context) :
-	m_Context(context)
+	m_Context(context), m_GPUData(nullptr)
 {
 }
 
-void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size)
+void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size, bool dynamicBuffer)
 {
 	HRESULT hr;
+	m_IsDynamic = dynamicBuffer;
 
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -48,16 +49,21 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size)
 		IID_PPV_ARGS(m_Buffer.GetAddressOf()));
 	assert(hr == S_OK);
 
-	D3D12_RANGE readRange = { 0 };
-	hr = m_Buffer->Map(0, &readRange, (void**)&m_GPUData);
-	assert(hr == S_OK);
-
-	RemapBuffer(data, size, 0);
+	if (m_IsDynamic)
+	{
+		D3D12_RANGE readRange = { 0 };
+		hr = m_Buffer->Map(0, &readRange, (void**)&m_GPUData);
+		assert(hr == S_OK);
+	}
+	RemapCall(data, size, 0);
 }
 
 void Lust::D3D12Buffer::DestroyBuffer()
 {
-	m_Buffer->Unmap(0, NULL);
+	if (m_IsDynamic)
+	{
+		m_Buffer->Unmap(0, NULL);
+	}
 	m_Buffer.Release();
 }
 
@@ -66,16 +72,34 @@ void Lust::D3D12Buffer::RemapBuffer(const void* data, size_t size, size_t offset
 	memcpy(m_GPUData + offset, data, size);
 }
 
+void Lust::D3D12Buffer::RemapBufferStaticly(const void* data, size_t size, size_t offset)
+{
+	HRESULT hr;
+	D3D12_RANGE readRange = { 0 };
+	hr = m_Buffer->Map(0, &readRange, (void**)&m_GPUData);
+	assert(hr == S_OK);
+	memcpy(m_GPUData + offset, data, size);
+	m_Buffer->Unmap(0, NULL);
+}
+
+void Lust::D3D12Buffer::RemapCall(const void* data, size_t size, size_t offset)
+{
+	if (m_IsDynamic)
+		RemapBuffer(data, size, offset);
+	else
+		RemapBufferStaticly(data, size, offset);
+}
+
 bool Lust::D3D12Buffer::IsBufferConformed(size_t size)
 {
 	return ((size % m_Context->GetUniformAttachment()) == 0);
 }
 
-Lust::D3D12VertexBuffer::D3D12VertexBuffer(const D3D12Context* context, const void* data, size_t size, uint32_t stride) :
+Lust::D3D12VertexBuffer::D3D12VertexBuffer(const D3D12Context* context, const void* data, size_t size, uint32_t stride, bool dynamicBuffer) :
 	D3D12Buffer(context)
 {
 	m_Stride = stride;
-	CreateBuffer(data, size);
+	CreateBuffer(data, size, dynamicBuffer);
 
 	memset(&m_VertexBufferView, 0, sizeof(D3D12_VERTEX_BUFFER_VIEW));
 	m_VertexBufferView.BufferLocation = m_Buffer->GetGPUVirtualAddress();
@@ -96,13 +120,13 @@ void Lust::D3D12VertexBuffer::Stage() const
 
 void Lust::D3D12VertexBuffer::Remap(const void* data, size_t size)
 {
-	RemapBuffer(data, size, 0);
+	RemapCall(data, size, 0);
 }
 
-Lust::D3D12IndexBuffer::D3D12IndexBuffer(const D3D12Context* context, const void* data, uint32_t count) :
+Lust::D3D12IndexBuffer::D3D12IndexBuffer(const D3D12Context* context, const void* data, uint32_t count, bool dynamicBuffer) :
 	D3D12Buffer(context)
 {
-	CreateBuffer(data, count * sizeof(uint32_t));
+	CreateBuffer(data, count * sizeof(uint32_t), dynamicBuffer);
 	m_Count = (uint32_t)count;
 
 	m_IndexBufferView.BufferLocation = m_Buffer->GetGPUVirtualAddress();
@@ -128,7 +152,7 @@ uint32_t Lust::D3D12IndexBuffer::GetCount() const
 
 void Lust::D3D12IndexBuffer::Remap(const void* data, uint32_t count)
 {
-	RemapBuffer(data, count * sizeof(uint32_t), 0);
+	RemapCall(data, count * sizeof(uint32_t), 0);
 }
 
 Lust::D3D12UniformBuffer::D3D12UniformBuffer(const D3D12Context* context, const void* data, size_t size) :
@@ -148,7 +172,7 @@ Lust::D3D12UniformBuffer::~D3D12UniformBuffer()
 
 void Lust::D3D12UniformBuffer::Remap(const void* data, size_t size)
 {
-	RemapBuffer(data, size, 0);
+	RemapCall(data, size, 0);
 }
 
 size_t Lust::D3D12UniformBuffer::GetSize() const
@@ -177,7 +201,7 @@ Lust::D3D12StructuredBuffer::~D3D12StructuredBuffer()
 
 void Lust::D3D12StructuredBuffer::Remap(const void* data, size_t size, size_t offset)
 {
-	RemapBuffer(data, size, offset);
+	RemapCall(data, size, offset);
 }
 
 size_t Lust::D3D12StructuredBuffer::GetSize() const
