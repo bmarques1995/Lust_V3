@@ -190,7 +190,7 @@ Lust::D3D12StructuredBuffer::D3D12StructuredBuffer(const D3D12Context* context, 
 		bufferCorrection += (m_Context->GetUniformAttachment() - (bufferCorrection % m_Context->GetUniformAttachment()));
 		m_BufferSize += bufferCorrection;
 	}
-	CreateBuffer(data, size);
+	CreateBuffer(data, size, true);
 	Remap(data, size, 0);
 }
 

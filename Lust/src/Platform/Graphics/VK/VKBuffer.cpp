@@ -239,7 +239,7 @@ Lust::VKStructuredBuffer::VKStructuredBuffer(const VKContext* context, const voi
         bufferCorrection += (m_Context->GetUniformAttachment() - (bufferCorrection % m_Context->GetUniformAttachment()));
         m_BufferSize += bufferCorrection;
     }
-    CreateBuffer(m_BufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferMemory);
+    CreateBuffer(m_BufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferMemory, true);
 	Remap(data, size, 0);
 }
 

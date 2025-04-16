@@ -23,8 +23,8 @@ namespace Lust
 	* @param m_Sampler The sampler
 	* @param m_WhiteTexture The white texture
 	* @param m_WhiteSampler The white sampler
-	* @param m_RawSmallBuffer The raw small buffer
-	* @param m_RawSmallBufferSize The raw small buffer size
+	* @param m_SSBOInstanceBuffer The raw small buffer
+	* @param m_SSBOInstanceBufferSize The raw small buffer size
 	*/
 	struct Renderer2DStorage
 	{
@@ -33,12 +33,15 @@ namespace Lust
 		std::shared_ptr<VertexBuffer> m_VertexBuffer;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
 		std::shared_ptr<UniformBuffer> m_UniformBuffer;
+		std::shared_ptr<StructuredBuffer> m_StructuredBuffer;
 		std::shared_ptr<Texture2D> m_Texture;
 		std::shared_ptr<Sampler> m_Sampler;
 		std::shared_ptr<Texture2D> m_WhiteTexture;
 		std::shared_ptr<Sampler> m_WhiteSampler;
-		uint8_t *m_RawSmallBuffer;
-		size_t m_RawSmallBufferSize;
+		uint8_t *m_SSBOInstanceBuffer;
+		size_t m_SSBOInstanceBufferSize;
+		const uint32_t c_MaxInstanceCount = 10000;
+		size_t m_InstanceCount;
 	};
 
 	/**
@@ -191,7 +194,12 @@ namespace Lust
 		* @param element_names The element names of the small buffer
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		*/
-		static void RenderAction(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_names, const Eigen::Vector4<uint32_t>& controllerInfo);
+		static void RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_names, const Eigen::Vector4<uint32_t>& controllerInfo);
+
+		/**
+		* @brief Dispatches the draws
+		*/
+		static void DispatchDraws();
 
 		/**
 		* @brief Returns the complete MVP

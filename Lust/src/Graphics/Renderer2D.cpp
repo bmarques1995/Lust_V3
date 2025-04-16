@@ -34,14 +34,23 @@ void Lust::Renderer2D::Instantiate()
 		Eigen::Matrix4f::Identity()
 	};
 
-	s_Renderer2DStorage->m_RawSmallBufferSize = s_Renderer2DStorage->m_ShaderReflector->GetSmallBufferLayout().GetElement("m_SmallMVP").GetSize();
-	s_Renderer2DStorage->m_RawSmallBuffer = new uint8_t[s_Renderer2DStorage->m_RawSmallBufferSize];
+	s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP").SetNumberOfElements(s_Renderer2DStorage->c_MaxInstanceCount);
+
+	size_t ssboSize = s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP").GetSize();
+	uint8_t* voidSSBO = new uint8_t[ssboSize];
+
+	s_Renderer2DStorage->m_StructuredBuffer.reset(StructuredBuffer::Instantiate(context, voidSSBO, ssboSize));
+	s_Renderer2DStorage->m_SSBOInstanceBufferSize = s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP").GetStride();
+	s_Renderer2DStorage->m_SSBOInstanceBuffer = new uint8_t[s_Renderer2DStorage->m_SSBOInstanceBufferSize];
+
+	delete[] voidSSBO;
 
 	s_Renderer2DStorage->m_Shader.reset(Shader::Instantiate(context, "./assets/shaders/Renderer2D", s_Renderer2DStorage->m_ShaderReflector));
 	s_Renderer2DStorage->m_VertexBuffer.reset(VertexBuffer::Instantiate(context, squareVertices, sizeof(squareVertices), s_Renderer2DStorage->m_Shader->GetInputLayout().GetStride()));
 	s_Renderer2DStorage->m_IndexBuffer.reset(IndexBuffer::Instantiate(context, squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
 	s_Renderer2DStorage->m_UniformBuffer.reset(UniformBuffer::Instantiate(context, (void*)s_SceneData.get(), sizeof(SceneData)));
 	s_Renderer2DStorage->m_Shader->UploadConstantBuffer(&s_Renderer2DStorage->m_UniformBuffer, s_Renderer2DStorage->m_Shader->GetUniformLayout().GetElement("m_CompleteMVP"));
+	s_Renderer2DStorage->m_Shader->UploadStructuredBuffer(&s_Renderer2DStorage->m_StructuredBuffer, s_Renderer2DStorage->m_Shader->GetStructuredBufferLayout().GetElement("u_InstancedMVP"));
 
 	Lust::SamplerInfo dynamicSamplerInfo2(Lust::SamplerFilter::NEAREST, Lust::AnisotropicFactor::FACTOR_4, Lust::AddressMode::REPEAT, Lust::ComparisonPassMode::ALWAYS);
 	s_Renderer2DStorage->m_WhiteSampler.reset(Sampler::Instantiate(context, dynamicSamplerInfo2));
@@ -63,10 +72,10 @@ void Lust::Renderer2D::Instantiate()
 
 void Lust::Renderer2D::Destroy()
 {
-	delete[] s_Renderer2DStorage->m_RawSmallBuffer;
+	delete[] s_Renderer2DStorage->m_SSBOInstanceBuffer;
 	s_Renderer2DStorage->m_WhiteSampler.reset();
 	s_Renderer2DStorage->m_WhiteTexture.reset();
-	s_Renderer2DStorage->m_RawSmallBufferSize = 0;
+	s_Renderer2DStorage->m_SSBOInstanceBufferSize = 0;
 	s_Renderer2DStorage->m_UniformBuffer.reset();
 	s_Renderer2DStorage->m_IndexBuffer.reset();
 	s_Renderer2DStorage->m_VertexBuffer.reset();
@@ -79,6 +88,7 @@ void Lust::Renderer2D::BeginScene(const OrthographicCamera& camera)
 {
 	s_SceneData->view = camera.GetViewMatrix();
 	s_SceneData->projection = camera.GetProjectionMatrix();
+	s_Renderer2DStorage->m_InstanceCount = 0;
 }
 
 void Lust::Renderer2D::BeginScene(const OrthographicCamera* camera)
@@ -88,6 +98,7 @@ void Lust::Renderer2D::BeginScene(const OrthographicCamera* camera)
 
 void Lust::Renderer2D::EndScene()
 {
+	DispatchDraws();
 }
 
 void Lust::Renderer2D::UploadTexture2D(const std::shared_ptr<Texture2D>& texture, uint32_t textureSlot)
@@ -140,7 +151,7 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) * q;
 	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
 
-	RenderAction(squareSmallBufferMatrix, color, element_name, controllerInfo);
+	RenderPush(squareSmallBufferMatrix, color, element_name, controllerInfo);
 }
 
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, const Eigen::Vector4<uint32_t>& controllerInfo, std::string_view element_name)
@@ -167,17 +178,22 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	DrawQuad(position, size, color, rotation, controllerInfo, element_name);
 }
 
-void Lust::Renderer2D::RenderAction(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_name, const Eigen::Vector4<uint32_t>& controllerInfo)
+void Lust::Renderer2D::RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_name, const Eigen::Vector4<uint32_t>& controllerInfo)
+{
+	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &s_Renderer2DStorage->m_SSBOInstanceBuffer, 0);
+	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[sizeof(squareSmallBufferMatrix)], color.data(), sizeof(color));
+	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[sizeof(squareSmallBufferMatrix) + sizeof(color)], controllerInfo.data(), sizeof(controllerInfo));
+	s_Renderer2DStorage->m_StructuredBuffer->Remap(s_Renderer2DStorage->m_SSBOInstanceBuffer, s_Renderer2DStorage->m_SSBOInstanceBufferSize,
+		s_Renderer2DStorage->m_SSBOInstanceBufferSize * s_Renderer2DStorage->m_InstanceCount);
+	s_Renderer2DStorage->m_InstanceCount++;
+}
+
+void Lust::Renderer2D::DispatchDraws()
 {
 	s_Renderer2DStorage->m_UniformBuffer->Remap((void*)s_SceneData.get(), sizeof(SceneData));
 	s_Renderer2DStorage->m_Shader->Stage();
 	s_Renderer2DStorage->m_Shader->BindDescriptors();
 	s_Renderer2DStorage->m_VertexBuffer->Stage();
 	s_Renderer2DStorage->m_IndexBuffer->Stage();
-	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &s_Renderer2DStorage->m_RawSmallBuffer, 0);
-	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[sizeof(squareSmallBufferMatrix)], color.data(), sizeof(color));
-	memcpy(&s_Renderer2DStorage->m_RawSmallBuffer[sizeof(squareSmallBufferMatrix) + sizeof(color)], controllerInfo.data(), sizeof(controllerInfo));
-	s_Renderer2DStorage->m_Shader->BindSmallBuffer((void*)&s_Renderer2DStorage->m_RawSmallBuffer[0], s_Renderer2DStorage->m_RawSmallBufferSize,
-		s_Renderer2DStorage->m_Shader->GetSmallBufferLayout().GetElement(element_name.data()), 0);
-	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), 1);
+	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), s_Renderer2DStorage->m_InstanceCount);
 }
