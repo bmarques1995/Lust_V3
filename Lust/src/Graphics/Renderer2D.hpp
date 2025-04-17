@@ -98,7 +98,7 @@ namespace Lust
 		* @param color The color of the quad
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		/**
 		* @brief Draws a quad
 		* @param position The position of the quad
@@ -107,7 +107,7 @@ namespace Lust
 		* @param rotation The rotation of the quad
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		
 		/**
 		* @brief Draws a quad
@@ -116,7 +116,7 @@ namespace Lust
 		* @param color The color of the quad
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		/**
 		* @brief Draws a quad
 		* @param position The position of the quad
@@ -125,7 +125,7 @@ namespace Lust
 		* @param rotation The rotation of the quad
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		
 		/**
 		* @brief Draws a quad
@@ -135,7 +135,7 @@ namespace Lust
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, const Eigen::Vector4<uint32_t>& controllerInfo, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		/**
 		* @brief Draws a quad
 		* @param position The position of the quad
@@ -145,7 +145,7 @@ namespace Lust
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 
 		/**
 		* @brief Draws a quad
@@ -155,7 +155,7 @@ namespace Lust
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, const Eigen::Vector4<uint32_t>& controllerInfo, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		/**
 		* @brief Draws a quad
 		* @param position The position of the quad
@@ -165,7 +165,7 @@ namespace Lust
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		
 		/**
 		* @brief Draws a quad
@@ -175,7 +175,7 @@ namespace Lust
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, const Eigen::Vector4<uint32_t>& controllerInfo, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 		/**
 		* @brief Draws a quad
 		* @param position The position of the quad
@@ -185,7 +185,7 @@ namespace Lust
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		* @param element_name The element name of the small buffer
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, std::string_view element_name);
+		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name);
 	private:
 		/**
 		* @brief Renders a quad
@@ -194,7 +194,7 @@ namespace Lust
 		* @param element_names The element names of the small buffer
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		*/
-		static void RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_names, const Eigen::Vector4<uint32_t>& controllerInfo);
+		static void RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_names, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges);
 
 		/**
 		* @brief Dispatches the draws

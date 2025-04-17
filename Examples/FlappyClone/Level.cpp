@@ -65,13 +65,15 @@ void Level::OnRender()
 	Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>(2, 2, 0, 0);
 	auto playerPos = m_Player.GetPosition();
 
-	Lust::Renderer2D::DrawQuad(Eigen::Vector2f{ playerPos.x(), -floorDistance }, Eigen::Vector2f{ 50.0f, 50.0f }, Eigen::Vector3f{ 1.0f, 1.0f, 1.0f }, "m_SmallMVP");
-	Lust::Renderer2D::DrawQuad(Eigen::Vector2f{ playerPos.x(), floorDistance }, Eigen::Vector2f{ 50.0f, 50.0f }, Eigen::Vector3f{ 1.0f, 1.0f, 1.0f }, "m_SmallMVP");
+	Eigen::Vector4f texCoordsEdges = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
+
+	Lust::Renderer2D::DrawQuad(Eigen::Vector2f{ playerPos.x(), -floorDistance }, Eigen::Vector2f{ 50.0f, 50.0f }, Eigen::Vector3f{ 1.0f, 1.0f, 1.0f }, texCoordsEdges, "m_SmallMVP");
+	Lust::Renderer2D::DrawQuad(Eigen::Vector2f{ playerPos.x(), floorDistance }, Eigen::Vector2f{ 50.0f, 50.0f }, Eigen::Vector3f{ 1.0f, 1.0f, 1.0f }, texCoordsEdges, "m_SmallMVP");
 
 	for(auto& pillar : m_Pillars)
 	{
-		Lust::Renderer2D::DrawQuad(pillar.TopPosition, pillar.TopScale, 1.0f, Lust::Radians(180.0f), controllerInfo, "m_SmallMVP");
-		Lust::Renderer2D::DrawQuad(pillar.BottomPosition, pillar.BottomScale, 1.0f, 0.0f, controllerInfo, "m_SmallMVP");
+		Lust::Renderer2D::DrawQuad(pillar.TopPosition, pillar.TopScale, 1.0f, Lust::Radians(180.0f), controllerInfo, texCoordsEdges, "m_SmallMVP");
+		Lust::Renderer2D::DrawQuad(pillar.BottomPosition, pillar.BottomScale, 1.0f, 0.0f, controllerInfo, texCoordsEdges, "m_SmallMVP");
 	}
 
 	m_Player.OnRender();

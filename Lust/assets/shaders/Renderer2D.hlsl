@@ -12,8 +12,8 @@ DescriptorTable(Sampler(s1, numDescriptors = 16)), \
 struct VSInput
 {
     [[vk::location(0)]]float3 pos : POSITION;
-    [[vk::location(1)]]float2 txc : TEXCOORD;
     uint instanceID : SV_INSTANCEID;
+    uint vertexID : SV_VERTEXID;
 };
 
 struct CompleteMVP
@@ -33,6 +33,7 @@ struct SSBO
     Controllers.z = mip level, Controllers.w = mip bias
     */
     uint4 Controllers;
+    float4 TexCoordsEdges;
 };
 
 [[vk::binding(1, 0)]] ConstantBuffer<CompleteMVP> m_CompleteMVP : register(b1);
@@ -47,6 +48,30 @@ struct PSInput
     uint instanceID : INSTANCEID;
 };
 
+float2 GenerateTexCoords(uint vertexID, float4 texCoordsEdges)
+{
+    float2 texCoord;
+    switch(vertexID %4)
+    {
+        case 0:
+            texCoord = float2(texCoordsEdges.x, texCoordsEdges.w);
+            break;
+        case 1:
+            texCoord = float2(texCoordsEdges.x, texCoordsEdges.y);
+            break;
+        case 2:
+            texCoord = float2(texCoordsEdges.z, texCoordsEdges.w);
+            break;
+        case 3:
+            texCoord = float2(texCoordsEdges.z, texCoordsEdges.y);
+            break;
+        default:
+            texCoord = float2(0.0f, 0.0f);
+            break;
+    }
+    return texCoord;
+}
+
 PSInput vs_main(VSInput vsinput)
 {
     PSInput vsoutput;
@@ -54,7 +79,7 @@ PSInput vs_main(VSInput vsinput)
     vsoutput.pos = mul(u_InstancedMVP[vsinput.instanceID].Model, vsoutput.pos);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
-    vsoutput.txc = vsinput.txc;
+    vsoutput.txc = GenerateTexCoords(vsinput.vertexID, u_InstancedMVP[vsinput.instanceID].TexCoordsEdges);
     vsoutput.instanceID = vsinput.instanceID;
     return vsoutput;
 }

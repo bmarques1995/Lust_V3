@@ -24,10 +24,11 @@ void Player::LoadAssets()
 
 void Player::OnRender()
 {
-	Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>( 1, 0, 0, 0 );
+	static Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>( 1, 0, 0, 0 );
+	static Eigen::Vector4f texCoordsEdges = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
 	float rotation = (m_Velocity.y() * m_AngleGain) - 90.0f;
 	auto context = Lust::Application::GetInstance()->GetContext();
-	Lust::Renderer2D::DrawQuad(m_Position, m_Size, 1.0f, Lust::Radians(rotation), controllerInfo, "m_SmallMVP");
+	Lust::Renderer2D::DrawQuad(m_Position, m_Size, 1.0f, Lust::Radians(rotation), controllerInfo, texCoordsEdges, "m_SmallMVP");
 } 
 
 void Player::OnUpdate(Lust::Timestep ts)
