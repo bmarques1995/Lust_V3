@@ -27,13 +27,13 @@ struct CompleteMVP
 struct SSBO
 {
     float4x4 Model;
-    float4 Color;
     /*
     Controllers.x = texture index, Controllers.y = sampler index
     Controllers.z = mip level, Controllers.w = mip bias
     */
     uint4 Controllers;
     float4 TexCoordsEdges;
+    uint4 EdgeColors;
 };
 
 [[vk::binding(1, 0)]] ConstantBuffer<CompleteMVP> m_CompleteMVP : register(b1);
@@ -45,8 +45,22 @@ struct PSInput
 {
     float4 pos : SV_POSITION;
     float2 txc : TEXCOORD;
+    float4 col : COLOR;
     uint instanceID : INSTANCEID;
 };
+
+float4 GenerateColor(uint edgeColor)
+{
+    float4 color;
+    color.w = ((edgeColor % 256) * 1.0f) / 255.0f;
+    edgeColor /= 256;
+    color.z = ((edgeColor % 256) * 1.0f) / 255.0f;
+    edgeColor /= 256;
+    color.y = ((edgeColor % 256) * 1.0f) / 255.0f;
+    edgeColor /= 256;
+    color.x = ((edgeColor % 256) * 1.0f) / 255.0f;
+    return color;
+}
 
 float2 GenerateTexCoords(uint vertexID, float4 texCoordsEdges)
 {
@@ -80,17 +94,14 @@ PSInput vs_main(VSInput vsinput)
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
     vsoutput.txc = GenerateTexCoords(vsinput.vertexID, u_InstancedMVP[vsinput.instanceID].TexCoordsEdges);
+    vsoutput.col = GenerateColor(u_InstancedMVP[vsinput.instanceID].EdgeColors[vsinput.vertexID]);
     vsoutput.instanceID = vsinput.instanceID;
     return vsoutput;
 }
 
 float4 ps_main(PSInput psinput) : SV_TARGET0
 {
-    float4 final_color = float4(u_InstancedMVP[psinput.instanceID].Color.xyz, 1.0f);
-    if (u_InstancedMVP[psinput.instanceID].Color.w == 0.0f)
-        return renderTexture[0].SampleLevel(dynamicSampler[0], psinput.txc, 0.0f) * final_color;
-    else
-        return renderTexture[u_InstancedMVP[psinput.instanceID].Controllers.x].SampleLevel
-(dynamicSampler[u_InstancedMVP[psinput.instanceID].Controllers.y], psinput.txc * u_InstancedMVP[psinput.instanceID].Color.w, 0.0f) * final_color;
-    return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    uint textureIndex = u_InstancedMVP[psinput.instanceID].Controllers.x;
+    uint samplerIndex = u_InstancedMVP[psinput.instanceID].Controllers.y;
+    return renderTexture[textureIndex].SampleLevel(dynamicSampler[samplerIndex], psinput.txc, 0.0f) * psinput.col;
 }

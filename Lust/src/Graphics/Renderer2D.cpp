@@ -115,81 +115,41 @@ void Lust::Renderer2D::UploadSampler(const std::shared_ptr<Sampler>& sampler, ui
 	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData)
 {
-	
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color, texCoordsEdges, element_name);
+	DrawQuad(position, size, 0.0f, ssboInstanceData);
+}
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float rotation, const SSBOInstanceData& ssboInstanceData)
+{
+	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, rotation, ssboInstanceData);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData)
 {
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, color, rotation, texCoordsEdges, element_name);
+	DrawQuad(position, size, 0.0f, ssboInstanceData);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
-{
-	Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>(0, 0, 0, 0);
-	Eigen::Vector4f finalColor = Eigen::Vector4f(color(0), color(1), color(2), 0.0f);
-	DrawQuad(position, size, finalColor, 0.0f, controllerInfo, texCoordsEdges, element_name);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector3f& color, float rotation, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
-{
-	Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>(0, 0, 0, 0);
-	Eigen::Vector4f finalColor = Eigen::Vector4f(color(0), color(1), color(2), 0.0f);
-	DrawQuad(position, size, finalColor, rotation, controllerInfo, texCoordsEdges, element_name);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
-{
-	DrawQuad(position, size, color, 0.0f, controllerInfo, texCoordsEdges, element_name);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const Eigen::Vector4f& color, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
+void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float rotation, const SSBOInstanceData& ssboInstanceData)
 {
 	Eigen::Quaternionf q(Eigen::AngleAxisf(rotation, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
 	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) * q;
 	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
 
-	RenderPush(squareSmallBufferMatrix, color, element_name, controllerInfo, texCoordsEdges);
+	RenderPush(squareSmallBufferMatrix, ssboInstanceData);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
-{
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, tilingFactor, controllerInfo, texCoordsEdges, element_name);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
-{
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, tilingFactor, rotation, controllerInfo, texCoordsEdges, element_name);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
-{
-	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, tilingFactor);
-
-	DrawQuad(position, size, color, 0.0f, controllerInfo, texCoordsEdges, element_name);
-}
-
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float tilingFactor, float rotation, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges, std::string_view element_name)
-{
-	Eigen::Vector4f color = Eigen::Vector4f(1.0f, 1.0f, 1.0f, tilingFactor);
-
-	DrawQuad(position, size, color, rotation, controllerInfo, texCoordsEdges, element_name);
-}
-
-void Lust::Renderer2D::RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_name, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges)
+void Lust::Renderer2D::RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const SSBOInstanceData& ssboInstanceData)
 {
 	if (s_Renderer2DStorage->m_InstanceCount >= s_Renderer2DStorage->c_MaxInstanceCount)
 		return;
 	size_t bufferOffset = 0;
 	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &s_Renderer2DStorage->m_SSBOInstanceBuffer, 0);
 	bufferOffset += sizeof(squareSmallBufferMatrix);
-	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[bufferOffset], color.data(), sizeof(color));
-	bufferOffset += sizeof(color);
-	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[bufferOffset], controllerInfo.data(), sizeof(controllerInfo));
-	bufferOffset += sizeof(controllerInfo);
-	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[bufferOffset], texCoordsEdges.data(), sizeof(texCoordsEdges));
+	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[bufferOffset], ssboInstanceData.controllerInfo.data(), sizeof(ssboInstanceData.controllerInfo));
+	bufferOffset += sizeof(ssboInstanceData.controllerInfo);
+	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[bufferOffset], ssboInstanceData.texCoordsEdges.data(), sizeof(ssboInstanceData.texCoordsEdges));
+	bufferOffset += sizeof(ssboInstanceData.texCoordsEdges);
+	memcpy(&s_Renderer2DStorage->m_SSBOInstanceBuffer[bufferOffset], ssboInstanceData.edgeColors.data(), sizeof(ssboInstanceData.edgeColors));
 	s_Renderer2DStorage->m_StructuredBuffer->Remap(s_Renderer2DStorage->m_SSBOInstanceBuffer, s_Renderer2DStorage->m_SSBOInstanceBufferSize,
 		s_Renderer2DStorage->m_SSBOInstanceBufferSize * s_Renderer2DStorage->m_InstanceCount);
 	s_Renderer2DStorage->m_InstanceCount++;

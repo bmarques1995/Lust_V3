@@ -54,10 +54,11 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 		Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>(1, 1, 0, 0);
 		Eigen::Vector4f texCoordsEdges = Eigen::Vector4f( 0.0f, 0.0f, 1.0f, 1.0f);
 		Renderer2D::BeginScene(m_CameraController->GetCamera());
-		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), m_Renderer2DColor, texCoordsEdges, "m_SmallMVP");
-		Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), Eigen::Vector3f(.8f, .2f, .3f), texCoordsEdges, "m_SmallMVP");
+		//Eigen::Vector3f m_Renderer2DColor = { .2f, 0.3f, 0.8f };
+		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), { Eigen::Vector4<uint32_t>(0, 0, 0, 0), texCoordsEdges, m_Renderer2DColor });
+		Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), { Eigen::Vector4<uint32_t>(0, 0, 0, 0), texCoordsEdges, m_Renderer2DColor2 });
 		//Modify system, update texture and sampler once and only rebind if the texture or sampler changes
-		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, 12.0f, controllerInfo, texCoordsEdges, "m_SmallMVP");
+		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, { controllerInfo, texCoordsEdges * 12.0f, Eigen::Vector4<uint32_t>(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) });
 		Renderer2D::EndScene();
 	}
 }
@@ -65,7 +66,8 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 void Lust::SandCoffin2D::OnImGuiRender()
 {
 	ImGui::Begin("Color Editor");
-	ImGui::ColorEdit3("Square Color", &m_Renderer2DColor(0));
+	ImGui::ColorEdit3("Square Color", &m_Renderer2DColorFloat(0));
+	m_Renderer2DColor = CastFloatColor(m_Renderer2DColorFloat);
 	if (ImGui::Button("Reset camera"))
 	{
 		m_CameraController->ResetCamera();
@@ -86,6 +88,15 @@ void Lust::SandCoffin2D::OnEvent(Event& event)
 	m_CameraController->OnEvent(event);
 	EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<WindowResizedEvent>(std::bind(&SandCoffin2D::OnWindowResize, this, std::placeholders::_1), true);
+}
+
+Eigen::Vector4<uint32_t> Lust::SandCoffin2D::CastFloatColor(Eigen::Vector3f color)
+{
+	uint8_t r = (uint8_t)(color(0) * 255.0f);
+	uint8_t g = (uint8_t)(color(1) * 255.0f);
+	uint8_t b = (uint8_t)(color(2) * 255.0f);
+	uint32_t pixel = (r << 24) | (g << 16) | (b << 8) | 0xff;
+	return Eigen::Vector4<uint32_t>(pixel, pixel, pixel, pixel);
 }
 
 bool Lust::SandCoffin2D::OnWindowResize(WindowResizedEvent& e)
