@@ -180,6 +180,8 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 
 void Lust::Renderer2D::RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const Eigen::Vector4f& color, std::string_view element_name, const Eigen::Vector4<uint32_t>& controllerInfo, const Eigen::Vector4f& texCoordsEdges)
 {
+	if (s_Renderer2DStorage->m_InstanceCount >= s_Renderer2DStorage->c_MaxInstanceCount)
+		return;
 	size_t bufferOffset = 0;
 	CopyMatrix4ToBuffer<float>(squareSmallBufferMatrix, &s_Renderer2DStorage->m_SSBOInstanceBuffer, 0);
 	bufferOffset += sizeof(squareSmallBufferMatrix);
