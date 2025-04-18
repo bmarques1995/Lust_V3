@@ -11,6 +11,7 @@ file(GLOB_RECURSE SHADER_MNG_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cp
 if(WIN32)
 	trace_library(NAME "dxcompiler" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/dxc.ps1" LIMIT_SEARCH_PATHS)
 	trace_dependency(NAME jsoncpp INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/jsoncpp.ps1")
+	trace_dependency(NAME flatbuffers INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/flatbuffers.ps1")
 endif()
 
 add_library(${TARGET_NAME} ${LIB_TYPE} ${SHADER_MNG_HDRS} ${SHADER_MNG_SRCS})
@@ -25,7 +26,7 @@ if(WIN32)
 elseif(LINUX)
 	target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_PREFIX_PATH}/lib/dxcompiler.so)
 endif()
-target_link_libraries(${TARGET_NAME} PUBLIC LustUtils jsoncpp_lib)
+target_link_libraries(${TARGET_NAME} PUBLIC LustUtils jsoncpp_lib flatbuffers::flatbuffers)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	target_compile_definitions(${TARGET_NAME} PUBLIC SHADER_MNG_DEBUG_MODE)

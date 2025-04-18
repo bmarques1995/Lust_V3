@@ -4,14 +4,18 @@
 - [Spdlog_v1.15.1](https://github.com/gabime/spdlog.git): License MIT
 - [JsonCpp_v1.96](https://github.com/open-source-parsers/jsoncpp.git): License MIT
 - [D3D12Core_v1.615.0](https://devblogs.microsoft.com/directx/gettingstarted-dx12agility/): Binary format, only downloaded
+- [DXC_v1.8.2502](https://github.com/microsoft/DirectXShaderCompiler.git): Binary format, only downloaded
 - [Vulkan-Headers_v1.4.304](https://github.com/KhronosGroup/Vulkan-Headers.git): Licenses Apache 2.0 or MIT
 - [Vulkan-Loader_v1.4.304](https://github.com/KhronosGroup/Vulkan-Loader.git): Licenses Apache 2.0 or MIT
 - [SPIRV-Headers_v1.4.304](https://github.com/KhronosGroup/SPIRV-Headers.git): Licenses Apache 2.0 or MIT
 - [SPIRV-Tools_v1.4.304](https://github.com/KhronosGroup/SPIRV-Tools.git): Licenses Apache 2.0 or MIT
+- [SPIRV-Reflect_v1.4.304](https://github.com/KhronosGroup/SPIRV-Reflect.git): Licenses Apache 2.0 or MIT
 - [Vulkan-Extensions_v1.4.304](https://github.com/KhronosGroup/Vulkan-ExtensionLayer.git): Licenses Apache 2.0 or MIT
 - [Vulkan-Validation_v1.4.304](https://github.com/KhronosGroup/Vulkan-ValidationLayers.git): Licenses Apache 2.0 or MIT
 - [ImGUI_v1.91.8-docking](https://github.com/ocornut/imgui.git): License MIT
 - [Eigen](https://gitlab.com/libeigen/eigen.git): License MPL 2.0
+- [EnTT](https://github.com/skypjack/entt.git): License MIT
+- [FlatBuffers](https://github.com/google/flatbuffers.git): License Apache 2.0
 - [Glm](https://github.com/g-truc/glm.git): License MIT
 - [Gtest](https://github.com/google/googletest.git): License BSD-3-Clause
 - [Zlib_v.1.3.1.1](https://github.com/madler/zlib.git): License, [see on Github](https://github.com/madler/zlib/blob/develop/LICENSE)
