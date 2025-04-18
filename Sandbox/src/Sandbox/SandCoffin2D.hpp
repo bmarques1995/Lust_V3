@@ -11,6 +11,7 @@
 #include <ShaderReflector.hpp>
 #include <Buffer.hpp>
 #include "CommonDefs.hpp"
+#include <SpriteSheet.hpp>
 
 namespace Lust
 {
@@ -42,6 +43,8 @@ namespace Lust
 		std::vector<ProfileResult> m_ProfileResults;
 
 		std::shared_ptr<Texture2D> m_Renderer2DTexture;
+		std::shared_ptr<Texture2D> m_SpriteSheetTexture;
+		std::shared_ptr<Sprite2DSheet> m_SpriteSheet;
 		std::shared_ptr<Sampler> m_Renderer2DSampler;
 
 		Eigen::Vector3f m_Renderer2DColorFloat = { .2f, .3f, .8f };

@@ -29,13 +29,17 @@ void Lust::SandCoffin2D::OnAttach()
 	SamplerInfo samplerInfoController(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
 	m_Renderer2DSampler.reset(Sampler::Instantiate(context, samplerInfoController));
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
+	m_SpriteSheetTexture.reset(Texture2D::Instantiate(context, "./assets/textures/rpg_pack.png"));
+	m_SpriteSheet.reset(new Sprite2DSheet(m_SpriteSheetTexture, 128, 128));
 
 	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
+	Renderer2D::UploadTexture2D(m_SpriteSheetTexture, 2);
 	Renderer2D::UploadSampler(m_Renderer2DSampler);
 }
 
 void Lust::SandCoffin2D::OnDetach()
 {
+	m_SpriteSheetTexture.reset();
 	m_Renderer2DTexture.reset();
 	m_CameraController.reset();
 }
@@ -51,14 +55,20 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 		texSize = Eigen::Vector2f((float)m_Renderer2DTexture->GetWidth() * 25, (float)m_Renderer2DTexture->GetHeight() * 25);
 	}
 	{
+		Eigen::Vector2<uint32_t> atlasIndex = Eigen::Vector2<uint32_t>(7, 6);
+		Eigen::Vector2f textureSize = Eigen::Vector2f((float)m_SpriteSheetTexture->GetWidth(), (float)m_SpriteSheetTexture->GetHeight());
+		Eigen::Vector2f spriteSize = Eigen::Vector2f(128.0f, 128.0f);
 		Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>(1, 1, 0, 0);
-		Eigen::Vector4f texCoordsEdges = Eigen::Vector4f( 0.0f, 0.0f, 1.0f, 1.0f);
+		Eigen::Vector4<uint32_t> controllerInfo2 = Eigen::Vector4<uint32_t>(2, 0, 0, 0);
+		Eigen::Vector4f texCoordsEdges = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
 		Renderer2D::BeginScene(m_CameraController->GetCamera());
 		//Eigen::Vector3f m_Renderer2DColor = { .2f, 0.3f, 0.8f };
 		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.0f), Eigen::Vector2f(150.0f, 150.0f), { Eigen::Vector4<uint32_t>(0, 0, 0, 0), texCoordsEdges, m_Renderer2DColor });
 		Renderer2D::DrawQuad(Eigen::Vector3f(450.0f, 200.0f, 0.0f), Eigen::Vector2f(100.0f, 130.0f), { Eigen::Vector4<uint32_t>(0, 0, 0, 0), texCoordsEdges, m_Renderer2DColor2 });
 		//Modify system, update texture and sampler once and only rebind if the texture or sampler changes
 		Renderer2D::DrawQuad(Eigen::Vector3f(0.0f, 0.0f, 0.2f), texSize, { controllerInfo, texCoordsEdges * 12.0f, Eigen::Vector4<uint32_t>(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) });
+		Renderer2D::DrawQuad(Eigen::Vector3f(150.0f, 140.0f, 0.0f), Eigen::Vector2f(static_cast<float>(m_SpriteSheet->GetSpriteWidth()), static_cast<float>(m_SpriteSheet->GetSpriteHeight() * 2)),
+			{ controllerInfo2, m_SpriteSheet->GetSpriteUV(4, 10, 1, 2), Eigen::Vector4<uint32_t>(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff)});
 		Renderer2D::EndScene();
 	}
 }
