@@ -80,6 +80,7 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Core>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Events>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Window>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Sockets>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/MathOperations>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public>
@@ -105,8 +106,11 @@ target_compile_definitions(${TARGET_NAME} PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV
 if(WIN32)
 	target_include_directories(${TARGET_NAME} PRIVATE
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Graphics/D3D12>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Sockets/Win32>
 	)
-	target_include_directories(${TARGET_NAME} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Platform/Graphics/D3D12>)
+	target_include_directories(${TARGET_NAME}
+		PRIVATE 
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Platform/Graphics/D3D12>)
 	add_custom_target(copy_d3d12 ALL
 			COMMAND ${CMAKE_COMMAND} -E copy
 			"${PROJECT_SOURCE_DIR}/D3D12Core/build/native/bin/x64/D3D12Core.dll"
@@ -128,7 +132,7 @@ if(WIN32)
 	find_library(DXGI_FOUND NAMES dxgi REQUIRED)
 	find_library(DXGUID_FOUND NAMES dxguid REQUIRED)
 
-	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid)
+	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid ws2_32)
 endif()
 target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager Eigen3::Eigen EnTT::EnTT)
 if(WIN32)

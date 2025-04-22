@@ -31,6 +31,8 @@ void Lust::SandCoffin2D::OnAttach()
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
 	m_SpriteSheetTexture.reset(Texture2D::Instantiate(context, "./assets/textures/rpg_pack.png"));
 	m_SpriteSheet.reset(new Sprite2DSheet(m_SpriteSheetTexture, 128, 128));
+	m_SampleSocket.reset(Sockets::Instantiate());
+	m_SampleSocket->OpenConnection("127.0.0.1", 8300, SocketType::TCP, false);
 
 	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
 	Renderer2D::UploadTexture2D(m_SpriteSheetTexture, 2);
@@ -42,6 +44,7 @@ void Lust::SandCoffin2D::OnDetach()
 	m_SpriteSheetTexture.reset();
 	m_Renderer2DTexture.reset();
 	m_CameraController.reset();
+	m_SampleSocket->CloseConnection();
 }
 
 void Lust::SandCoffin2D::OnUpdate(Timestep ts)
@@ -50,7 +53,10 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 	{
 		m_CameraController->OnUpdate(ts);
 	}
-
+	{
+		m_SampleSocket->SendData("Hello from Lust Engine\n");
+		m_SampleSocket->Update();
+	}
 	{
 		texSize = Eigen::Vector2f((float)m_Renderer2DTexture->GetWidth() * 25, (float)m_Renderer2DTexture->GetHeight() * 25);
 	}

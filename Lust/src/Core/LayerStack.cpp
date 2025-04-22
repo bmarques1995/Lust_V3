@@ -32,7 +32,7 @@ void Lust::LayerStack::PopLayer(Layer* layer)
 	auto it = std::find(m_Layers.begin(), m_Layers.end(), layer);
 	if (it != m_Layers.end())
 	{
-		(*it)->OnDetach();
+		layer->OnDetach();
 		m_Layers.erase(it);
 		m_LayerInsert--;
 	}
@@ -43,7 +43,7 @@ void Lust::LayerStack::PopOverlay(Layer* overlay)
 	auto it = std::find(m_Layers.begin(), m_Layers.end(), overlay);
 	if (it != m_Layers.end())
 	{
-		(*it)->OnDetach();
+		overlay->OnDetach();
 		m_Layers.erase(it);
 		m_LayerInsert--;
 	}

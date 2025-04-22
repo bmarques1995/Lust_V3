@@ -46,6 +46,11 @@ namespace Lust
 		void PopOverlay(Layer* overlay);
 
 		/**
+		* @brief Get the size of the stack
+		*/
+		size_t GetStackSize() const { return m_Layers.size(); }
+
+		/**
 		* @brief Get the iterator to the beginning of the list
 		* @return std::list<Layer*>::iterator
 		*/

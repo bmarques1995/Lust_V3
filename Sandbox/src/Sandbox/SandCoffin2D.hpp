@@ -12,6 +12,7 @@
 #include <Buffer.hpp>
 #include "CommonDefs.hpp"
 #include <SpriteSheet.hpp>
+#include <Sockets.hpp>
 
 namespace Lust
 {
@@ -46,6 +47,7 @@ namespace Lust
 		std::shared_ptr<Texture2D> m_SpriteSheetTexture;
 		std::shared_ptr<Sprite2DSheet> m_SpriteSheet;
 		std::shared_ptr<Sampler> m_Renderer2DSampler;
+		std::shared_ptr<Sockets> m_SampleSocket;
 
 		Eigen::Vector3f m_Renderer2DColorFloat = { .2f, .3f, .8f };
 		Eigen::Vector4<uint32_t> m_Renderer2DColor = { 0x334cccff, 0x334cccff, 0x334cccff, 0x334cccff };

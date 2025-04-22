@@ -19,6 +19,10 @@ namespace Lust
 	* @param WindowFocused tracks when the window is focused
 	* @param WindowLostFocus tracks when the window is lost focus
 	* @param WindowMoved tracks when the window is moved
+	* @param SocketConnected tracks when a socket is connected
+	* @param SocketDisconnected tracks when a socket is disconnected
+	* @param SocketDataReceived tracks when data is received from a socket
+	* @param SocketDataSent tracks when data is sent to a socket
 	* @param AppTicked tracks when the application is ticked
 	* @param AppUpdated tracks when the application is updated
 	* @param AppRendered tracks when the application is rendered
@@ -49,6 +53,11 @@ namespace Lust
 		WindowLostFocus,
 		WindowMoved,
 	
+		SocketConnected,
+		SocketDisconnected,
+		SocketDataReceived,
+		SocketDataSent,
+
 		AppTicked,
 		AppUpdated,
 		AppRendered,
@@ -91,6 +100,7 @@ namespace Lust
 		LUST_EVENT_CATEGORY_MOUSE_BUTTON = 0x10,
 		LUST_EVENT_CATEGORY_JOYSTICK = 0x20,
 		LUST_EVENT_CATEGORY_JOYSTICK_BUTTON = 0x40,
+		LUST_EVENT_CATEGORY_SOCKET = 0x80,
 	};
 
 #define EVENT_CLASS_TYPE(type) static EventType GetStaticType() { return EventType::##type; }\

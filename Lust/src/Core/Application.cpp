@@ -12,6 +12,7 @@
 #include "RenderCommand.hpp"
 #include "Renderer2D.hpp"
 #include "Sleeper.hpp"
+#include "Sockets.hpp"
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -31,7 +32,9 @@ Lust::Application::Application()
 	m_Window->SetEventCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	m_Window->SetFullScreen(m_Starter->GetFullscreenMode());
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
-	
+	Sockets::StartAPI();
+	Sockets::SetCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
+
 	try
 	{
 		m_SPVCompiler.reset(new SPVCompiler("_main", "_6_8", "1.3"));
@@ -85,6 +88,7 @@ Lust::Application::~Application()
 	m_Starter.reset();
 	Renderer::Shutdown();
 	Console::End();
+	Sockets::StopAPI();
 }
 
 void Lust::Application::Run()
@@ -108,14 +112,18 @@ void Lust::Application::OnEvent(Event& e)
 	dispatcher.Dispatch<MouseMovedEvent>(std::bind(&Application::OnMouseMove, this, std::placeholders::_1), false);
 	dispatcher.Dispatch<MouseButtonPressedEvent>(std::bind(&Application::OnMouseButtonPress, this, std::placeholders::_1), false);
 	dispatcher.Dispatch<MouseScrolledEvent>(std::bind(&Application::OnMouseWheel, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<SocketConnectedEvent>(std::bind(&Application::OnSocketConnect, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<SocketDisconnectedEvent>(std::bind(&Application::OnSocketDisconnect, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<SocketDataSentEvent>(std::bind(&Application::OnSocketSend, this, std::placeholders::_1), false);
+	dispatcher.Dispatch<SocketDataReceivedEvent>(std::bind(&Application::OnSocketReceive, this, std::placeholders::_1), false);
 
-
-	for (auto it = m_LayerStack->rbegin(); it != m_LayerStack->rend(); ++it)
-	{
-		if (e.IsHandled())
-			break;
-		(*it)->OnEvent(e);
-	}
+	if(m_LayerStack)
+		for (auto it = m_LayerStack->rbegin(); it != m_LayerStack->rend(); ++it)
+		{
+			if (e.IsHandled())
+				break;
+			(*it)->OnEvent(e);
+		}
 }
 
 void Lust::Application::PushLayer(Layer* layer)
@@ -231,6 +239,26 @@ bool Lust::Application::OnMouseWheel(MouseScrolledEvent& e)
 {
 	m_Window->DisplayCursor(true);
 	return false;
+}
+
+bool Lust::Application::OnSocketConnect(SocketConnectedEvent& e)
+{
+	return true;
+}
+
+bool Lust::Application::OnSocketDisconnect(SocketDisconnectedEvent& e)
+{
+	return true;
+}
+
+bool Lust::Application::OnSocketSend(SocketDataSentEvent& e)
+{
+	return true;
+}
+
+bool Lust::Application::OnSocketReceive(SocketDataReceivedEvent& e)
+{
+	return true;
 }
 
 void Lust::Application::EnableSingleton(Application* ptr)

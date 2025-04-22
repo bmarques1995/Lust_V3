@@ -5,6 +5,7 @@
 #include "MouseCodes.hpp"
 #include "GamepadCodes.hpp"
 #include <sstream>
+#include "SocketDefs.hpp"
 
 namespace Lust
 {
@@ -530,5 +531,176 @@ namespace Lust
 		EVENT_CLASS_TYPE(JoystickAxisMoved)
 	private:
 		GamepadKeyValue m_Value;
+	};
+
+	/**
+	* @brief Base class for socket events
+	*/
+	class SocketEvent : public Event
+	{
+	public:
+		/**
+		* @brief Returns the host of the socket
+		*/
+		std::string GetHost() const { return m_Host; }
+		/**
+		* @brief Returns the port of the socket
+		*/
+		uint16_t GetPort() const { return m_Port; }
+		/**
+		* @brief Returns the socket type
+		*/
+		SocketType GetSocketType() const { return m_SocketType; }
+		/**
+		* @brief Returns if the socket is IPv6
+		*/
+		bool IsIPv6() const { return m_IsIPv6; }
+
+	protected:
+		SocketEvent(const std::string& host, uint16_t port, SocketType socketType, bool isIPv6)
+			: m_Host(host), m_Port(port), m_SocketType(socketType), m_IsIPv6(isIPv6)
+		{
+
+		}
+		std::string m_Host;
+		uint16_t m_Port;
+		SocketType m_SocketType;
+		bool m_IsIPv6 = false;
+	};
+
+	/**
+	* @brief %Event triggered when a socket is connected
+	* @details This event is dispatched when a socket is connected. its event type is EventType::SocketConnected and its categories are LUST_EVENT_CATEGORY_INPUT | LUST_EVENT_CATEGORY_SOCKET
+	*/
+	class SocketConnectedEvent : public SocketEvent
+	{
+	public:
+		/**
+		* @brief Constructor
+		* @param socket The socket that was connected
+		*/
+		SocketConnectedEvent(const std::string& host, uint16_t port, SocketType socketType, bool isIPv6)
+			: SocketEvent(host, port, socketType, isIPv6)
+		{
+		}
+
+		/**
+		* @brief Returns a string representation of the event
+		*/
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			std::string socketType = m_SocketType == SocketType::TCP ? "TCP" : "UDP";
+			ss << "Connected in: " << m_Host << ":" << m_Port << " in " << socketType << " mode, under IPv" << m_IsIPv6 ? 6 : 4;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(SocketConnected)
+			EVENT_CLASS_CATEGORY(LUST_EVENT_CATEGORY_INPUT |
+				LUST_EVENT_CATEGORY_SOCKET)
+	};
+
+	/**
+	* @brief %Event triggered when a socket is disconnected
+	* @details This event is dispatched when a socket is disconnected. its event type is EventType::SocketDisconnected and its categories are LUST_EVENT_CATEGORY_INPUT | LUST_EVENT_CATEGORY_SOCKET
+	*/
+	class SocketDisconnectedEvent : public SocketEvent
+	{
+	public:
+		/**
+		* @brief Constructor
+		* @param socket The socket that was disconnected
+		*/
+		SocketDisconnectedEvent(const std::string& host, uint16_t port, SocketType socketType, bool isIPv6)
+			: SocketEvent(host, port, socketType, isIPv6)
+		{
+		}
+
+		/**
+		* @brief Returns a string representation of the event
+		*/
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			std::string socketType = m_SocketType == SocketType::TCP ? "TCP" : "UDP";
+			ss << "Disconnected from: " << m_Host << ":" << m_Port << " in " << socketType << " mode, under IPv" << m_IsIPv6 ? 6 : 4;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(SocketDisconnected)
+			EVENT_CLASS_CATEGORY(LUST_EVENT_CATEGORY_INPUT |
+				LUST_EVENT_CATEGORY_SOCKET)
+	};
+
+	/**
+	* @brief %Event triggered when a socket data is received
+	* @details This event is dispatched when a socket data is received. its event type is EventType::SocketDataReceived and its categories are LUST_EVENT_CATEGORY_INPUT | LUST_EVENT_CATEGORY_SOCKET
+	*/
+
+	class SocketDataReceivedEvent : public SocketEvent
+	{
+	public:
+		/**
+		* @brief Constructor
+		* @param socket The socket that received the data
+		* @param data The data that was received
+		*/
+		SocketDataReceivedEvent(const std::string& host, uint16_t port, SocketType socketType, bool isIPv6, const std::string& data)
+			: SocketEvent(host, port, socketType, isIPv6), m_Data(data)
+		{
+		}
+
+		/**
+		* @brief Returns a string representation of the event
+		*/
+		std::string GetData() const { return m_Data; }
+
+		/**
+		* @brief Returns a string representation of the event
+		*/
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			std::string socketType = m_SocketType == SocketType::TCP ? "TCP" : "UDP";
+			ss << "Received from: " << m_Host << ":" << m_Port << " the data: " << m_Data;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(SocketDataReceived)
+			EVENT_CLASS_CATEGORY(LUST_EVENT_CATEGORY_INPUT |
+				LUST_EVENT_CATEGORY_SOCKET)
+	private:
+		std::string m_Data;
+	};
+
+	/**
+	* @brief %Event triggered when a socket data is sent
+	* @details This event is dispatched when a socket data is sent. its event type is EventType::SocketDataSent and its categories are LUST_EVENT_CATEGORY_INPUT | LUST_EVENT_CATEGORY_SOCKET
+	*/
+
+	class SocketDataSentEvent : public SocketEvent
+	{
+	public:
+		/**
+		* @brief Constructor
+		* @param socket The socket that sent the data
+		* @param data The data that was sent
+		*/
+		SocketDataSentEvent(const std::string& host, uint16_t port, SocketType socketType, bool isIPv6, const std::string& data)
+			: SocketEvent(host, port, socketType, isIPv6), m_Data(data)
+		{
+		}
+		std::string GetData() const { return m_Data; }
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "Sent to: " << m_Host << ":" << m_Port << " the data: " << m_Data;
+			return ss.str();
+		}
+		EVENT_CLASS_TYPE(SocketDataSent)
+			EVENT_CLASS_CATEGORY(LUST_EVENT_CATEGORY_INPUT |
+				LUST_EVENT_CATEGORY_SOCKET)
+	private:
+		std::string m_Data;
 	};
 }

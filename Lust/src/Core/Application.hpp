@@ -143,6 +143,14 @@ namespace Lust
 		bool OnMouseWheel(MouseScrolledEvent& e);
 
 		/**
+		* @brief Handles socket connected event
+		*/
+		bool OnSocketConnect(SocketConnectedEvent& e);
+		bool OnSocketDisconnect(SocketDisconnectedEvent& e);
+		bool OnSocketSend(SocketDataSentEvent& e);
+		bool OnSocketReceive(SocketDataReceivedEvent& e);
+
+		/**
 		* @brief Enables the singleton of the application
 		*/
 		static void EnableSingleton(Application* ptr);
