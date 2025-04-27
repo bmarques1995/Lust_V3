@@ -44,6 +44,7 @@ namespace Lust
 		std::shared_ptr<Sampler> m_Sampler;
 		std::shared_ptr<Texture2D> m_WhiteTexture;
 		std::shared_ptr<Sampler> m_WhiteSampler;
+		Eigen::RowVector4f m_BaseVertices[2];
 		uint8_t *m_SSBOInstanceBuffer;
 		size_t m_SSBOInstanceBufferSize;
 		const uint32_t c_MaxInstanceCount = 10000;
@@ -152,6 +153,20 @@ namespace Lust
 		* @brief Dispatches the draws
 		*/
 		static void DispatchDraws();
+
+		/**
+		* @brief Returns if the object is in the view frustum
+		* @details Returns if the object is in the view frustum, comparing the vertices of the quad with the view frustum planes (-1.0f, 1.0f)[x,y]
+		* @param squareSmallBufferMatrix The model matrix of the small buffer
+		*/
+		static bool ShouldRender(const Eigen::Matrix4f& squareSmallBufferMatrix);
+
+		/**
+		* @brief Returns if the object is in the view frustum
+		* @details detects if the object is in the view frustum, comparing the vertices of the quad with the view frustum planes (-1.0f, 1.0f)[x,y]
+		* @param vertices The vertices of the quad
+		*/
+		static bool IsInFrustum(const Eigen::RowVector4f* vertices);
 
 		/**
 		* @brief Returns the complete MVP

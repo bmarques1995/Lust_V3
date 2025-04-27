@@ -19,6 +19,9 @@ Lust::Entity Lust::Scene::CreateEntity()
 void Lust::Scene::OnUpdate(Timestep deltaTime)
 {
 	auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+	/*group.sort<TransformComponent>([](const TransformComponent& lhs, const TransformComponent& rhs) {
+		return lhs.SortingLayer < rhs.SortingLayer;
+	});*/
 	for (auto entity : group)
 	{
 		auto& transform = group.get<TransformComponent>(entity);

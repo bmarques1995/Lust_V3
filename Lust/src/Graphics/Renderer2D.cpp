@@ -23,6 +23,10 @@ void Lust::Renderer2D::Instantiate()
 			.5f, .5f, .0f
 	};
 
+
+	s_Renderer2DStorage->m_BaseVertices[0] = Eigen::RowVector4f(squareVertices[0], squareVertices[1], squareVertices[2], 1.0f);
+	s_Renderer2DStorage->m_BaseVertices[1] = Eigen::RowVector4f(squareVertices[9], squareVertices[10], squareVertices[11], 1.0f);
+
 	uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
 
 	s_Renderer2DStorage->m_ShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/Renderer2D", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
@@ -126,7 +130,8 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Ve
 
 void Lust::Renderer2D::DrawQuad(const Eigen::Matrix4f& model, const SSBOInstanceData& ssboInstanceData)
 {
-	RenderPush(model, ssboInstanceData);
+	if(ShouldRender(model))
+		RenderPush(model, ssboInstanceData);
 }
 
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData)
@@ -140,7 +145,8 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Ve
 	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) * q;
 	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
 
-	RenderPush(squareSmallBufferMatrix, ssboInstanceData);
+	if (ShouldRender(squareSmallBufferMatrix))
+		RenderPush(squareSmallBufferMatrix, ssboInstanceData);
 }
 
 void Lust::Renderer2D::RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const SSBOInstanceData& ssboInstanceData)
@@ -171,4 +177,31 @@ void Lust::Renderer2D::DispatchDraws()
 	s_Renderer2DStorage->m_VertexBuffer->Stage();
 	s_Renderer2DStorage->m_IndexBuffer->Stage();
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), s_Renderer2DStorage->m_InstanceCount);
+}
+
+bool Lust::Renderer2D::ShouldRender(const Eigen::Matrix4f& squareSmallBufferMatrix)
+{
+	Eigen::RowVector4f vertices[2];
+	for (size_t i = 0; i < 2; i++)
+	{
+		vertices[i] = s_Renderer2DStorage->m_BaseVertices[i] * squareSmallBufferMatrix;
+		vertices[i] = vertices[i] * s_SceneData->view;
+		vertices[i] = vertices[i] * s_SceneData->projection;
+	}
+	return IsInFrustum(vertices);
+}
+
+bool Lust::Renderer2D::IsInFrustum(const Eigen::RowVector4f* vertices)
+{
+	Eigen::Vector2f edges[2];
+	for (size_t i = 0; i < 2; i++)
+	{
+		edges[i] = Eigen::Vector2f(vertices[i](0), vertices[i](1));
+	}
+
+	bool condition = 
+		!(edges[1].x() < -1.0f || edges[0].x() > 1.0f ||
+             edges[1].y() < -1.0f || edges[0].y() > 1.0f);
+
+	return condition;
 }
