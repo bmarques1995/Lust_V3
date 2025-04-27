@@ -124,6 +124,11 @@ void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Ve
 	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, rotation, ssboInstanceData);
 }
 
+void Lust::Renderer2D::DrawQuad(const Eigen::Matrix4f& model, const SSBOInstanceData& ssboInstanceData)
+{
+	RenderPush(model, ssboInstanceData);
+}
+
 void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData)
 {
 	DrawQuad(position, size, 0.0f, ssboInstanceData);

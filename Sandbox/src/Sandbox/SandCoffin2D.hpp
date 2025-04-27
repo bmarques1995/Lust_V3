@@ -13,6 +13,8 @@
 #include "CommonDefs.hpp"
 #include <SpriteSheet.hpp>
 #include <Sockets.hpp>
+#include <Scene.hpp>
+#include <Entity.hpp>
 
 namespace Lust
 {
@@ -48,6 +50,8 @@ namespace Lust
 		std::shared_ptr<Sprite2DSheet> m_SpriteSheet;
 		std::shared_ptr<Sampler> m_Renderer2DSampler;
 		std::shared_ptr<Sockets> m_SampleSocket;
+		std::shared_ptr<Scene> m_SampleScene;
+		std::shared_ptr<Shader> m_Renderer2DShader;
 
 		Eigen::Vector3f m_Renderer2DColorFloat = { .2f, .3f, .8f };
 		Eigen::Vector4<uint32_t> m_Renderer2DColor = { 0x334cccff, 0x334cccff, 0x334cccff, 0x334cccff };

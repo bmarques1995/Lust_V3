@@ -116,6 +116,13 @@ namespace Lust
 		
 		/**
 		* @brief Draws a quad
+		* @param model The model matrix
+		* @param ssboInstanceData The SSBO instance data
+		*/
+		static void DrawQuad(const Eigen::Matrix4f& model, const SSBOInstanceData& ssboInstanceData);
+
+		/**
+		* @brief Draws a quad
 		* @param position The position of the quad
 		* @param size The size of the quad
 		* @param ssboInstanceData The SSBO instance data

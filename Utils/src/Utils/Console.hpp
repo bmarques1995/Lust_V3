@@ -4,6 +4,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 #include <memory>
+#include <utility>
 
 template <typename... Args>
 using format_string_t = fmt::format_string<Args...>;
