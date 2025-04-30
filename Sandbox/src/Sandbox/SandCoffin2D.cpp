@@ -9,6 +9,7 @@
 #include <cstdio>
 #include "Instrumentator.hpp"
 #include <Components.hpp>
+#include <Operations.hpp>
 
 Lust::SandCoffin2D::SandCoffin2D() :
 	Layer("SandCoffin2D")
@@ -35,17 +36,48 @@ void Lust::SandCoffin2D::OnAttach()
 	//m_SampleSocket.reset(Sockets::Instantiate());
 	//m_SampleSocket->OpenConnection("127.0.0.1", 8300, SocketType::TCP, false);
 	m_SampleScene.reset(new Scene());
-	auto square = m_SampleScene->CreateEntity();
-	Eigen::Quaternionf q(Eigen::AngleAxisf(0.0f, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
-	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(Eigen::Vector3f(0.0f, 0.0f, .0f)) * Eigen::Scaling(150.0f, 130.0f, 1.0f) * q;
-	Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
-	square.AddComponent<TransformComponent>(modelMatrix);
-	square.AddComponent<SpriteRendererComponent>(
-		Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f),
-		Eigen::Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
-		Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
-		Eigen::Vector4f(1.0f, 1.0f, 0.0f, 1.0f)
-	);
+	{
+		auto square = m_SampleScene->CreateEntity();
+		Eigen::Quaternionf q(Eigen::AngleAxisf(0.0f, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
+		Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(Eigen::Vector3f(0.0f, 0.0f, .0f)) * Eigen::Scaling(150.0f, 130.0f, 1.0f) * q;
+		Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
+		square.AddComponent<TransformComponent>(modelMatrix);
+		square.AddComponent<SpriteRendererComponent>(
+			Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f),
+			Eigen::Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
+			Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
+			Eigen::Vector4f(1.0f, 1.0f, 0.0f, 1.0f)
+		);
+
+		m_SquareEntity = square;
+	}
+
+	{
+		auto square = m_SampleScene->CreateEntity();
+		Eigen::Quaternionf q(Eigen::AngleAxisf(0.0f, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
+		Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(Eigen::Vector3f(0.0f, 0.0f, .0f)) * Eigen::Scaling(15000.0f, 13000.0f, 1.0f) * q;
+		Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
+		square.AddComponent<TransformComponent>(modelMatrix);
+		square.AddComponent<SpriteRendererComponent>(
+			Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f),
+			Eigen::Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
+			Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
+			Eigen::Vector4f(1.0f, 1.0f, 0.0f, 1.0f)
+		);
+
+		m_SquareEntity2 = square;
+	}
+	auto spriteRenderer = m_SquareEntity.GetComponent<SpriteRendererComponent>();
+	spriteRenderer->DrawOrder = 3;
+	auto spriteRenderer2 = m_SquareEntity2.GetComponent<SpriteRendererComponent>();
+	spriteRenderer2->DrawOrder = 0;
+
+	m_CameraEntity = m_SampleScene->CreateEntity();
+	float width = static_cast<float>(window->GetWidth());
+	float height = static_cast<float>(window->GetHeight());
+	auto proj = m_CameraController->GetCamera().GetProjectionMatrix();
+	auto view = m_CameraController->GetCamera().GetViewMatrix();
+	m_CameraEntity.AddComponent<CameraComponent>(Camera(proj, view));
 
 	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
 	Renderer2D::UploadTexture2D(m_SpriteSheetTexture, 2);
@@ -65,13 +97,16 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 	Eigen::Vector2f texSize;
 	{
 		m_CameraController->OnUpdate(ts);
+		auto cameraComponent = m_CameraEntity.GetComponent<CameraComponent>();
+		cameraComponent->CameraElement.ResetProjectionMatrix(m_CameraController->GetCamera().GetProjectionMatrix());
+		cameraComponent->CameraElement.ResetViewMatrix(m_CameraController->GetCamera().GetViewMatrix());
 	}
 	{
 		//m_SampleSocket->SendData("Hello from Lust Engine\n");
 		//m_SampleSocket->Update();
-		Renderer2D::BeginScene(m_CameraController->GetCamera());
+		//Renderer2D::BeginScene(m_CameraController->GetCamera());
 		m_SampleScene->OnUpdate(ts);
-		Renderer2D::EndScene();
+		//Renderer2D::EndScene();
 	}
 	{
 		//texSize = Eigen::Vector2f((float)m_Renderer2DTexture->GetWidth() * 25, (float)m_Renderer2DTexture->GetHeight() * 25);

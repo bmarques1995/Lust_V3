@@ -18,14 +18,30 @@ Lust::Entity Lust::Scene::CreateEntity()
 
 void Lust::Scene::OnUpdate(Timestep deltaTime)
 {
-	auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-	/*group.sort<TransformComponent>([](const TransformComponent& lhs, const TransformComponent& rhs) {
-		return lhs.SortingLayer < rhs.SortingLayer;
-	});*/
-	for (auto entity : group)
+	Camera* mainCamera = nullptr;
 	{
-		auto& transform = group.get<TransformComponent>(entity);
-		auto& sprite = group.get<SpriteRendererComponent>(entity);
-		Lust::Renderer2D::DrawQuad(transform.Transform, sprite.ColorTexInfo);
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entity : view)
+		{
+			mainCamera = &view.get<CameraComponent>(entity).CameraElement;
+			break;
+		}
+	}
+
+	if (mainCamera)
+	{
+		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+		group.sort<SpriteRendererComponent>([](const SpriteRendererComponent& lhs, const SpriteRendererComponent& rhs)
+			{
+				return lhs.DrawOrder < rhs.DrawOrder;
+			});
+		Renderer2D::BeginScene(mainCamera);
+		for (auto entity : group)
+		{
+			auto& transform = group.get<TransformComponent>(entity);
+			auto& sprite = group.get<SpriteRendererComponent>(entity);
+			Lust::Renderer2D::DrawQuad(transform.Transform, sprite.ColorTexInfo);
+		}
+		Renderer2D::EndScene();
 	}
 }

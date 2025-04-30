@@ -2,6 +2,7 @@
 
 #include "LustDLLMacro.hpp"
 #include "OrthographicCamera.hpp"
+#include "Camera.hpp"
 #include <Eigen/Eigen>
 #include "Shader.hpp"
 #include "ShaderReflector.hpp"
@@ -71,9 +72,19 @@ namespace Lust
 		* @brief Begins the scene
 		* @param camera The camera
 		*/
+		static void BeginScene(const Camera& camera);
+		/**
+		* @brief Begins the scene
+		* @param camera The camera pointer, is only used to access cameras provided by pointer
+		*/
+		static void BeginScene(const Camera* camera);
+		/**
+		* @brief Begins the scene
+		* @param camera The camera
+		*/
 		static void BeginScene(const OrthographicCamera& camera);
 		/**
-		* @brief Ends the scene
+		* @brief Begins the scene
 		* @param camera The camera pointer, is only used to access cameras provided by pointer
 		*/
 		static void BeginScene(const OrthographicCamera* camera);

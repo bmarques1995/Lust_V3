@@ -88,6 +88,18 @@ void Lust::Renderer2D::Destroy()
 	s_SceneData.reset();
 }
 
+void Lust::Renderer2D::BeginScene(const Camera& camera)
+{
+	s_SceneData->view = camera.GetViewMatrix();
+	s_SceneData->projection = camera.GetProjectionMatrix();
+	s_Renderer2DStorage->m_InstanceCount = 0;
+}
+
+void Lust::Renderer2D::BeginScene(const Camera* camera)
+{
+	BeginScene(*camera);
+}
+
 void Lust::Renderer2D::BeginScene(const OrthographicCamera& camera)
 {
 	s_SceneData->view = camera.GetViewMatrix();

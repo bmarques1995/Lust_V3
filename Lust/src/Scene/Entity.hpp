@@ -3,6 +3,7 @@
 #include "LustDLLMacro.hpp"
 #include <entt/entt.hpp>
 #include "Scene.hpp"
+#include "Console.hpp"
 #include <memory>
 #include <utility>
 
@@ -15,8 +16,10 @@ namespace Lust
 	class LUST_API Entity
 	{
 	public:
+		Entity() = default;
 		Entity(entt::entity handle, Scene* scene);
-		
+		Entity(const Entity&) = default;
+
 		template<typename T>
 		bool HasComponent()
 		{
@@ -28,8 +31,22 @@ namespace Lust
 		{
 			m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
 		}
+
+		template<typename T>
+		T* GetComponent()
+		{
+			Console::CoreAssert(HasComponent<T>(), "Entity does not have this component");
+			return m_Scene->m_Registry.try_get<T>(m_EntityHandle);
+		}
+
+		template<typename T>
+		void RemoveComponent()
+		{
+			Console::CoreAssert(HasComponent<T>(), "Entity does not have this component");
+			m_Scene->m_Registry.remove<T>(m_EntityHandle);
+		}
 	private:
-		entt::entity m_EntityHandle;
-		Scene* m_Scene;
+		entt::entity m_EntityHandle {entt::null} ;
+		Scene* m_Scene = nullptr;
 	};
 }

@@ -91,6 +91,7 @@ PSInput vs_main(VSInput vsinput)
     PSInput vsoutput;
     vsoutput.pos = float4(vsinput.pos, 1.0f);
     vsoutput.pos = mul(u_InstancedMVP[vsinput.instanceID].Model, vsoutput.pos);
+    vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.M);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.V);
     vsoutput.pos = mul(vsoutput.pos, m_CompleteMVP.P);
     vsoutput.txc = GenerateTexCoords(vsinput.vertexID, u_InstancedMVP[vsinput.instanceID].TexCoordsEdges);

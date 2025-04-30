@@ -3,7 +3,8 @@
 #include "LustDLLMacro.hpp"
 #include <Eigen/Eigen>
 #include <ColorCaster.hpp>
-#include <Renderer2D.hpp>
+#include "Renderer2D.hpp"
+#include "Camera.hpp"
 
 namespace Lust
 {
@@ -32,6 +33,7 @@ namespace Lust
 	struct LUST_API SpriteRendererComponent
 	{
 		SSBOInstanceData ColorTexInfo;
+		uint32_t DrawOrder = 0;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -46,6 +48,24 @@ namespace Lust
 			ColorTexInfo.controllerInfo = Eigen::Vector4<uint32_t>(0, 0, 0, 0);
 			ColorTexInfo.texCoordsEdges = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
 			ColorTexInfo.edgeColors = ColorCaster::CastFloatColor(color0, color1, color2, color3);
+		}
+
+		void SetDrawOrder(uint32_t drawOrder)
+		{
+			DrawOrder = drawOrder;
+		}
+	};
+
+	struct CameraComponent
+	{
+		Camera CameraElement;
+		bool Primary = true;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
+		CameraComponent(const Lust::Camera& camera)
+			: CameraElement(camera)
+		{
 		}
 	};
 }
