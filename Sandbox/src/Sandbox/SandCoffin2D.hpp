@@ -33,8 +33,6 @@ namespace Lust
 
 		Eigen::Vector4<uint32_t> CastFloatColor(Eigen::Vector3f color);
 
-		std::shared_ptr<OrthographicCameraController> m_CameraController;
-
 		bool OnWindowResize(WindowResizedEvent& e);
 
 		struct ProfileResult

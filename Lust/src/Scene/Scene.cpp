@@ -19,12 +19,12 @@ Lust::Entity Lust::Scene::CreateEntity()
 void Lust::Scene::OnUpdate(Timestep deltaTime)
 {
 	{
-		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc)
 		{
 			if (!nsc.Instance)
 			{
 				nsc.Instance = nsc.InstantiateScript();
-				nsc.Instance->m_Entity = {entity, this};
+				nsc.Instance->m_Entity = { entity, this };
 				nsc.Instance->OnCreate();
 			}
 			nsc.Instance->OnUpdate(deltaTime);
@@ -57,4 +57,28 @@ void Lust::Scene::OnUpdate(Timestep deltaTime)
 		}
 		Renderer2D::EndScene();
 	}
+}
+
+void Lust::Scene::OnEvent(Event* e)
+{
+	m_Registry.view<NativeScriptComponent>().each([=](NativeScriptComponent& nsc)
+	{
+		if (nsc.Instance)
+		{
+			nsc.Instance->OnEvent(e);
+		}	
+
+	});
+	
+}
+
+void Lust::Scene::OnCommand()
+{
+	m_Registry.view<NativeScriptComponent>().each([=](NativeScriptComponent& nsc)
+	{
+		if (nsc.Instance)
+		{
+			nsc.Instance->OnCommand();
+		}
+	});
 }

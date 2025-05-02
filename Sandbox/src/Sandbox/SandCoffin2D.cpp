@@ -25,10 +25,9 @@ Lust::SandCoffin2D::~SandCoffin2D()
 
 void Lust::SandCoffin2D::OnAttach()
 {
-	auto window = Application::GetInstance()->GetWindow();
+	//auto window = Application::GetInstance()->GetWindow();
 	auto context = Application::GetInstance()->GetContext();
-	m_CameraController.reset(new OrthographicCameraController(window->GetWidth(), window->GetHeight(), true));
-
+	
 	SamplerInfo samplerInfoController(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
 	m_Renderer2DSampler.reset(Sampler::Instantiate(context, samplerInfoController));
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
@@ -74,11 +73,6 @@ void Lust::SandCoffin2D::OnAttach()
 	spriteRenderer2->DrawOrder = 0;
 
 	m_CameraEntity = m_SampleScene->CreateEntity();
-	float width = static_cast<float>(window->GetWidth());
-	float height = static_cast<float>(window->GetHeight());
-	auto proj = m_CameraController->GetCamera().GetProjectionMatrix();
-	auto view = m_CameraController->GetCamera().GetViewMatrix();
-	m_CameraEntity.AddComponent<CameraComponent>(Camera(proj, view));
 	m_CameraEntity.AddComponent<NativeScriptComponent>()->Bind<CameraController>();
 
 	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
@@ -90,7 +84,6 @@ void Lust::SandCoffin2D::OnDetach()
 {
 	m_SpriteSheetTexture.reset();
 	m_Renderer2DTexture.reset();
-	m_CameraController.reset();
 	//m_SampleSocket->CloseConnection();
 }
 
@@ -98,10 +91,6 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 {
 	Eigen::Vector2f texSize;
 	{
-		m_CameraController->OnUpdate(ts);
-		auto cameraComponent = m_CameraEntity.GetComponent<CameraComponent>();
-		cameraComponent->CameraElement.ResetProjectionMatrix(m_CameraController->GetCamera().GetProjectionMatrix());
-		cameraComponent->CameraElement.ResetViewMatrix(m_CameraController->GetCamera().GetViewMatrix());
 	}
 	{
 		//m_SampleSocket->SendData("Hello from Lust Engine\n");
@@ -139,7 +128,7 @@ void Lust::SandCoffin2D::OnImGuiRender()
 	m_Renderer2DColor = CastFloatColor(m_Renderer2DColorFloat);
 	if (ImGui::Button("Reset camera"))
 	{
-		m_CameraController->ResetCamera();
+		m_SampleScene->OnCommand();
 	}
 	for (auto& profile: m_ProfileResults)
 	{
@@ -154,7 +143,7 @@ void Lust::SandCoffin2D::OnImGuiRender()
 
 void Lust::SandCoffin2D::OnEvent(Event& event)
 {
-	m_CameraController->OnEvent(event);
+	m_SampleScene->OnEvent(&event);
 	EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<WindowResizedEvent>(std::bind(&SandCoffin2D::OnWindowResize, this, std::placeholders::_1), true);
 }

@@ -89,5 +89,11 @@ namespace Lust
 				nsc->Instance = nullptr;
 			};
 		}
+
+		template<typename T>
+		inline T* GetInnerComponent()
+		{
+			return Instance->GetComponent<T>();
+		}
 	};
 }
