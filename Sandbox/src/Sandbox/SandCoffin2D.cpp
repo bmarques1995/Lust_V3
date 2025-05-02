@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdio>
 #include "Instrumentator.hpp"
+#include "CameraController.hpp"
 #include <Components.hpp>
 #include <Operations.hpp>
 
@@ -78,6 +79,7 @@ void Lust::SandCoffin2D::OnAttach()
 	auto proj = m_CameraController->GetCamera().GetProjectionMatrix();
 	auto view = m_CameraController->GetCamera().GetViewMatrix();
 	m_CameraEntity.AddComponent<CameraComponent>(Camera(proj, view));
+	m_CameraEntity.AddComponent<NativeScriptComponent>()->Bind<CameraController>();
 
 	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
 	Renderer2D::UploadTexture2D(m_SpriteSheetTexture, 2);

@@ -19,7 +19,20 @@ if(WIN32)
 	trace_dependency(NAME libjpeg-turbo INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/libjpeg_turbo.ps1")
 endif()
 
+# Check if OpenMP is available
+find_package(OpenMP REQUIRED COMPONENTS C CXX)
+
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${UTILS_HDRS} ${UTILS_SRCS})
+
+# Enable OpenMP if found
+if(OpenMP_CXX_FOUND)
+  target_compile_options(${TARGET_NAME} PUBLIC ${OpenMP_CXX_FLAGS})
+  target_link_libraries(${TARGET_NAME} PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+# Enable Eigen's threading support
+target_compile_definitions(${TARGET_NAME} PUBLIC EIGEN_USE_THREADS)
+
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Utils>
 	$<INSTALL_INTERFACE:./>

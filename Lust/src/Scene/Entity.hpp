@@ -21,28 +21,30 @@ namespace Lust
 		Entity(const Entity&) = default;
 
 		template<typename T>
-		bool HasComponent()
+		inline bool HasComponent()
 		{
 			return m_Scene->m_Registry.all_of<T>(m_EntityHandle);
 		}
 
 		template<typename T, typename... Args>
-		void AddComponent(Args &&... args)
+		inline T* AddComponent(Args &&... args)
 		{
+			Console::CoreAssert(!this->HasComponent<T>(), "Entity already has component!");
 			m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
+			return this->GetComponent<T>();
 		}
 
 		template<typename T>
-		T* GetComponent()
+		inline T* GetComponent()
 		{
-			Console::CoreAssert(HasComponent<T>(), "Entity does not have this component");
+			Console::CoreAssert(this->HasComponent<T>(), "Entity does not have this component");
 			return m_Scene->m_Registry.try_get<T>(m_EntityHandle);
 		}
 
 		template<typename T>
-		void RemoveComponent()
+		inline void RemoveComponent()
 		{
-			Console::CoreAssert(HasComponent<T>(), "Entity does not have this component");
+			Console::CoreAssert(this->HasComponent<T>(), "Entity does not have this component");
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
 	private:

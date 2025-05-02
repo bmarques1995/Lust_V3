@@ -18,6 +18,19 @@ Lust::Entity Lust::Scene::CreateEntity()
 
 void Lust::Scene::OnUpdate(Timestep deltaTime)
 {
+	{
+		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		{
+			if (!nsc.Instance)
+			{
+				nsc.Instance = nsc.InstantiateScript();
+				nsc.Instance->m_Entity = {entity, this};
+				nsc.Instance->OnCreate();
+			}
+			nsc.Instance->OnUpdate(deltaTime);
+		});
+	}
+
 	Camera* mainCamera = nullptr;
 	{
 		auto view = m_Registry.view<CameraComponent>();

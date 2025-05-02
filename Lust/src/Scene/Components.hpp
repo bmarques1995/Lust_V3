@@ -5,6 +5,9 @@
 #include <ColorCaster.hpp>
 #include "Renderer2D.hpp"
 #include "Camera.hpp"
+#include "ScriptableEntity.hpp"
+#include "Timestep.hpp"
+#include <functional>
 
 namespace Lust
 {
@@ -66,6 +69,25 @@ namespace Lust
 		CameraComponent(const Lust::Camera& camera)
 			: CameraElement(camera)
 		{
+		}
+	};
+
+	struct NativeScriptComponent
+	{
+		ScriptableEntity* Instance = nullptr;
+
+		ScriptableEntity* (*InstantiateScript)();
+		void (*DestroyScript)(NativeScriptComponent*);
+
+		template<typename T>
+		inline void Bind()
+		{
+			InstantiateScript = []() -> ScriptableEntity* { return new T(); } ;
+			DestroyScript = [](NativeScriptComponent* nsc)
+			{ 
+				delete nsc->Instance;
+				nsc->Instance = nullptr;
+			};
 		}
 	};
 }
