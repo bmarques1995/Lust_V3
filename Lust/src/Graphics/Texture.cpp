@@ -5,7 +5,7 @@
 #include "D3D12Texture.hpp"
 #endif
 #include "VKTexture.hpp"
-#include "Image.hpp"
+
 
 std::shared_ptr<Lust::CopyPipeline> Lust::TextureLibrary::s_CopyPipeline;
 bool Lust::TextureLibrary::s_IsInitialized = false;
@@ -61,6 +61,32 @@ Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, ui
 	TextureBuffer specification =
 		//std::shared_ptr<Image> img, TextureTensor tensor, std::string filepath
 	{ texture, TextureTensor::TENSOR_2, name};
+	switch (api)
+	{
+#ifdef LUST_USES_WINDOWS
+	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	{
+
+		return new D3D12Texture2D((const D3D12Context*)(context), specification);
+	}
+#endif
+	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	{
+		return new VKTexture2D((const VKContext*)(context), specification);
+	}
+	default:
+		break;
+	}
+	return nullptr;
+}
+
+Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, const std::shared_ptr<Image> image, std::string name)
+{
+	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
+	
+	TextureBuffer specification =
+		//std::shared_ptr<Image> img, TextureTensor tensor, std::string filepath
+	{ image, TextureTensor::TENSOR_2, name };
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
@@ -141,6 +167,14 @@ std::shared_ptr<Lust::Texture2D> Lust::Texture2DLibrary::Load(const std::string&
 {
 	std::shared_ptr<Texture2D> texture;
 	texture.reset(Texture2D::Instantiate(m_Context, filepath));
+	Add(texture);
+	return texture;
+}
+
+std::shared_ptr<Lust::Texture2D> Lust::Texture2DLibrary::Load(const std::shared_ptr<Image>& image, const std::string& name)
+{
+	std::shared_ptr<Texture2D> texture;
+	texture.reset(Texture2D::Instantiate(m_Context, image, name));
 	Add(texture);
 	return texture;
 }

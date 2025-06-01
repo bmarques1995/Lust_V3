@@ -7,9 +7,6 @@ cmake_minimum_required(VERSION 3.22)
 
 set(TARGET_NAME Lust)
 
-set(IMGUI_COMMIT_HASH "11b3a7c8ca23201294464c7f368614a9106af2a1")
-set(IMGUI_SOURCE_URL "https://raw.githubusercontent.com/ocornut/imgui")
-
 set(IMGUI_PUBLIC_FILES "imgui.h"
 					   "imconfig.h"
 					   "imgui.cpp"
@@ -33,12 +30,23 @@ if(WIN32)
 							"backends/imgui_impl_dx12.h")
 endif()
 
-set(SPV_REFLECTION_HASH "refs/heads/vulkan-sdk-1.4.304")
-set(SPV_REFLECTION_URL "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Reflect")
 set(SPV_REFLECTION_FILES "spirv_reflect.h"
 						 "spirv_reflect.c"
 						 "spirv_reflect.cpp")
 
+if(USE_REMOTE)
+	set(IMGUI_COMMIT_HASH "11b3a7c8ca23201294464c7f368614a9106af2a1")
+	set(IMGUI_SOURCE_URL "https://raw.githubusercontent.com/ocornut/imgui")
+
+	set(SPV_REFLECTION_HASH "refs/heads/vulkan-sdk-1.4.304")
+	set(SPV_REFLECTION_URL "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Reflect")
+else()
+	set(IMGUI_COMMIT_HASH "imgui")
+	set(IMGUI_SOURCE_URL "http://localhost:8000")
+
+	set(SPV_REFLECTION_HASH "spv_reflect")
+	set(SPV_REFLECTION_URL "http://localhost:8000")
+endif()
 
 download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_PUBLIC_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui)
 download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_BACKEND_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui)
@@ -55,6 +63,7 @@ if(WIN32)
 	trace_dependency(NAME VulkanLoader INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_loader.ps1")
 	trace_dependency(NAME Spirv-Headers INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spirv_headers.ps1")
 	trace_dependency(NAME SPIRV-Tools INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spirv_tools.ps1")
+	trace_dependency(NAME artery-font COMPONENTS artery-font INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/artery_font.ps1" LIMIT_SEARCH_PATHS)
 	
 	trace_installable_file(NAME "VkLayer_khronos_shader_object" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_extensions.ps1" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "dll")
 	trace_installable_file(NAME "VkLayer_khronos_shader_object" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_extensions.ps1" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "json")
@@ -134,7 +143,7 @@ if(WIN32)
 
 	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid ws2_32)
 endif()
-target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager  EnTT::EnTT)
+target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager EnTT::EnTT artery-font::artery-font)
 if(WIN32)
 	target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_PREFIX_PATH}/lib/dxcompiler.lib)
 elseif(LINUX)

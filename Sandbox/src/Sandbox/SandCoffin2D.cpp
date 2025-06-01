@@ -11,6 +11,8 @@
 #include "CameraController.hpp"
 #include <Components.hpp>
 #include <Operations.hpp>
+#include "FontAtlas.hpp"
+#include "FileHandler.hpp"
 
 Lust::SandCoffin2D::SandCoffin2D() :
 	Layer("SandCoffin2D")
@@ -25,13 +27,33 @@ Lust::SandCoffin2D::~SandCoffin2D()
 
 void Lust::SandCoffin2D::OnAttach()
 {
+	/*FontAtlas::LoadMSDF();
+	FontAtlas* atlas = new FontAtlas("./assets/fonts/RobotoConjugated.arfont");
+
+	atlas->PushFont({"./assets/fonts/NotoSansJP-Regular.ttf",
+	{
+		{0x3000, 0x303f},
+		{0x3040, 0x309f},
+		{0x30a0, 0x30ff},
+		{0xff00, 0xffef},
+		{0x4e00, 0x9faf}
+	}});
+
+	atlas->ExportFont();
+	atlas->ClearFontPack();
+	delete atlas;
+	FontAtlas::UnloadMSDF();*/
+
 	//auto window = Application::GetInstance()->GetWindow();
 	auto context = Application::GetInstance()->GetContext();
-	
-	SamplerInfo samplerInfoController(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
+
+	//m_Font.reset(new Font("./assets/fonts/RobotoConjugated.arfont"));
+
+	SamplerInfo samplerInfoController(SamplerFilter::LINEAR, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
 	m_Renderer2DSampler.reset(Sampler::Instantiate(context, samplerInfoController));
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
 	m_SpriteSheetTexture.reset(Texture2D::Instantiate(context, "./assets/textures/rpg_pack.png"));
+	//m_FontTexture.reset(Texture2D::Instantiate(context, m_Font->GetTexture(), "fontTexture"));
 	m_SpriteSheet.reset(new Sprite2DSheet(m_SpriteSheetTexture, 128, 128));
 	//m_SampleSocket.reset(Sockets::Instantiate());
 	//m_SampleSocket->OpenConnection("127.0.0.1", 8300, SocketType::TCP, false);
@@ -52,36 +74,22 @@ void Lust::SandCoffin2D::OnAttach()
 		m_SquareEntity = square;
 	}
 
-	{
-		auto square = m_SampleScene->CreateEntity();
-		Eigen::Quaternionf q(Eigen::AngleAxisf(0.0f, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
-		Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(Eigen::Vector3f(0.0f, 0.0f, .0f)) * Eigen::Scaling(15000.0f, 13000.0f, 1.0f) * q;
-		Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
-		square.AddComponent<TransformComponent>(modelMatrix);
-		square.AddComponent<SpriteRendererComponent>(
-			Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f),
-			Eigen::Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
-			Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
-			Eigen::Vector4f(1.0f, 1.0f, 0.0f, 1.0f)
-		);
-
-		m_SquareEntity2 = square;
-	}
 	auto spriteRenderer = m_SquareEntity.GetComponent<SpriteRendererComponent>();
 	spriteRenderer->DrawOrder = 3;
-	auto spriteRenderer2 = m_SquareEntity2.GetComponent<SpriteRendererComponent>();
-	spriteRenderer2->DrawOrder = 0;
+	
 
 	m_CameraEntity = m_SampleScene->CreateEntity();
 	m_CameraEntity.AddComponent<NativeScriptComponent>()->Bind<CameraController>();
 
 	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
 	Renderer2D::UploadTexture2D(m_SpriteSheetTexture, 2);
+	//Renderer2D::UploadTexture2D(m_FontTexture, 3);
 	Renderer2D::UploadSampler(m_Renderer2DSampler);
 }
 
 void Lust::SandCoffin2D::OnDetach()
 {
+	m_Font.reset();
 	m_SpriteSheetTexture.reset();
 	m_Renderer2DTexture.reset();
 	//m_SampleSocket->CloseConnection();
@@ -97,6 +105,7 @@ void Lust::SandCoffin2D::OnUpdate(Timestep ts)
 		//m_SampleSocket->Update();
 		//Renderer2D::BeginScene(m_CameraController->GetCamera());
 		m_SampleScene->OnUpdate(ts);
+
 		//Renderer2D::EndScene();
 	}
 	{

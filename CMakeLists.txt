@@ -12,6 +12,7 @@ option(BUILD_EXAMPLES "Build example program" ON)
 option(BUILD_TESTS "Build tests" ON)
 option(GEN_DOCS "Generate documentation" ON)
 option(DISABLE_BUILDS "Disable builds" OFF)
+option(USE_REMOTE "Use remote source to download text and binaries" ON)
 
 set(BUILD_TYPE STATIC CACHE STRING "Set if the lib will be static or shared")
 if(BUILD_SHARED_LIBS)

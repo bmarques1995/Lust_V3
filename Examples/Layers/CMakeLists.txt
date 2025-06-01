@@ -2,12 +2,23 @@ cmake_minimum_required(VERSION 3.22)
 
 set(TARGET_NAME LustLayers)
 
-set(SAMPLE_IMAGES
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/nanao.png"
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/sample.png"
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/david.jpg"
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/yor.png"
-)
+if(USE_REMOTE)
+	set(SAMPLE_IMAGES
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/nanao.png"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/sample.png"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/david.jpg"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/rpg_pack.png"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/yor.png"
+	)
+else()
+	set(SAMPLE_IMAGES
+		"http://localhost:8000/images/nanao.png"
+		"http://localhost:8000/images/sample.png"
+		"http://localhost:8000/images/david.jpg"
+		"http://localhost:8000/images/rpg_pack.png"
+		"http://localhost:8000/images/yor.png"
+	)
+endif()
 
 download_remote_files(SOURCE_INPUTS ${SAMPLE_IMAGES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Examples/Layers/assets/textures)
 

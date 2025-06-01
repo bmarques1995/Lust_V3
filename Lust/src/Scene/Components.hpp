@@ -53,6 +53,11 @@ namespace Lust
 			ColorTexInfo.edgeColors = ColorCaster::CastFloatColor(color0, color1, color2, color3);
 		}
 
+		void SetRenderComponents(const Eigen::Vector4<uint32_t>& components)
+		{
+			ColorTexInfo.controllerInfo = components;
+		}
+
 		void SetDrawOrder(uint32_t drawOrder)
 		{
 			DrawOrder = drawOrder;

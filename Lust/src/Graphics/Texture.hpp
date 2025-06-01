@@ -5,6 +5,7 @@
 #include "GraphicsContext.hpp"
 #include "TextureLayout.hpp"
 #include "CopyPipeline.hpp"
+#include "Image.hpp"
 
 // For Vulkan, I'm using the location mapping slot and spaceSet(std140(slot, spaceSet)) to locate the texture
 // For D3D12, I'm using the heapSlot(RootSignature descriptor range index) and textureIndex(a descriptor table can handle multiple textures)
@@ -110,6 +111,13 @@ namespace Lust
 		* @param name The texture name
 		*/
 		static Texture2D* Instantiate(const GraphicsContext* context, uint32_t width, uint32_t height, std::string name);
+		/**
+		* @brief Instantiate texture
+		* @param context The graphics context
+		* @param image The texture buffer
+		* @details Factory method
+		*/
+		static Texture2D* Instantiate(const GraphicsContext* context, const std::shared_ptr<Image> image, std::string name);
 	};
 
 	/**
@@ -145,6 +153,11 @@ namespace Lust
 		* @param filepath The texture filepath
 		*/
 		std::shared_ptr<Texture2D> Load(const std::string& filepath);
+		/**
+		* @brief Load texture
+		* @param image The texture buffer
+		*/
+		std::shared_ptr<Texture2D> Load(const std::shared_ptr<Image>& image, const std::string& name);
 		/**
 		* @brief Load texture
 		* @param name The texture name

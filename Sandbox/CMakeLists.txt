@@ -8,27 +8,59 @@ cmake_minimum_required(VERSION 3.22)
 
 set(TARGET_NAME LustSandbox)
 
-set(SAMPLE_IMAGES
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/nanao.png"
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/sample.png"
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/david.jpg"
-	"https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/rpg_pack.png"
-    "https://media.githubusercontent.com/media/bmarques1995/Render/master/TargetView/assets/textures/yor.png"
-)
+if(USE_REMOTE)
+	set(SAMPLE_IMAGES
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/nanao.png"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/sample.png"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/david.jpg"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/rpg_pack.png"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/textures/yor.png"
+	)
+
+	set(SAMPLE_FONTS
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/fonts/NotoSansJP-Regular.ttf"
+		"https://media.githubusercontent.com/media/bmarques1995/Lust_Sample_Assets/master/fonts/Roboto-Regular.ttf"
+	)
+else()
+	set(SAMPLE_IMAGES
+		"http://localhost:8000/images/nanao.png"
+		"http://localhost:8000/images/sample.png"
+		"http://localhost:8000/images/david.jpg"
+		"http://localhost:8000/images/rpg_pack.png"
+		"http://localhost:8000/images/yor.png"
+	)
+	set(SAMPLE_FONTS
+		"http://localhost:8000/fonts/NotoSansJP-Regular.ttf"
+		"http://localhost:8000/fonts/Roboto-Regular.ttf"
+	)
+endif()
 
 download_remote_files(SOURCE_INPUTS ${SAMPLE_IMAGES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/assets/textures FORCE_DOWNLOAD)
+download_remote_files(SOURCE_INPUTS ${SAMPLE_FONTS} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts FORCE_DOWNLOAD)
 
 file(GLOB_RECURSE SANDBOX_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE SANDBOX_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
+if(WIN32)
+	trace_library(NAME brotlienc INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/brotli.ps1")
+	trace_library(NAME brotlidec INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/brotli.ps1")
+	trace_library(NAME brotlicommon INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/brotli.ps1")
+	trace_dependency(NAME harfbuzz INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/harfbuzz.ps1")
+	trace_dependency(NAME freetype INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/freetype.ps1")
+	trace_dependency(NAME tinyxml2 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/tinyxml2.ps1")
+	trace_dependency(NAME msdfgen INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/msdfgen.ps1")
+	trace_dependency(NAME msdf-atlas-gen INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/msdf_atlas.ps1")
+endif()
+
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${SANDBOX_HDRS} ${SANDBOX_SRCS})
-target_link_libraries(${TARGET_NAME} PUBLIC Lust)
+target_link_libraries(${TARGET_NAME} PUBLIC Lust msdf-atlas-gen::msdf-atlas-gen)
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Sandbox>
 	$<INSTALL_INTERFACE:./>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
 )
+
 
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_SANDBOX_BUILD_DLL)

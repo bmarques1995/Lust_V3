@@ -15,6 +15,7 @@
 #include <Sockets.hpp>
 #include <Scene.hpp>
 #include <Entity.hpp>
+#include "Font.hpp"
 
 namespace Lust
 {
@@ -50,6 +51,8 @@ namespace Lust
 		std::shared_ptr<Sockets> m_SampleSocket;
 		std::shared_ptr<Scene> m_SampleScene;
 		std::shared_ptr<Shader> m_Renderer2DShader;
+		std::shared_ptr<Texture2D> m_FontTexture;
+		std::shared_ptr<Font> m_Font;
 		Lust::Entity m_SquareEntity;
 		Lust::Entity m_SquareEntity2;
 		Lust::Entity m_CameraEntity;
