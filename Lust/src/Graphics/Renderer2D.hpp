@@ -115,7 +115,7 @@ namespace Lust
 		* @param size The size of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const vec2& position, const vec2& size, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec2& position, const vec2& size, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum = false);
 
 		/**
 		* @brief Draws a quad
@@ -124,14 +124,14 @@ namespace Lust
 		* @param rotation The rotation of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const vec2& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec2& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum = false);
 		
 		/**
 		* @brief Draws a quad
 		* @param model The model matrix
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const mat4& model, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const mat4& model, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum = false);
 
 		/**
 		* @brief Draws a quad
@@ -139,7 +139,7 @@ namespace Lust
 		* @param size The size of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const vec3& position, const vec2& size, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec3& position, const vec2& size, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum = false);
 		
 		/**
 		* @brief Draws a quad
@@ -148,7 +148,7 @@ namespace Lust
 		* @param rotation The rotation of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const vec3& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec3& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum = false);
 
 	private:
 		/**

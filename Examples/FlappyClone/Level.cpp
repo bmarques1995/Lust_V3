@@ -67,13 +67,13 @@ void Level::OnRender()
 	auto playerPos = m_Player.GetPosition();
 
 	Lust::vec4 texCoordsEdges = Lust::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-	Lust::Renderer2D::DrawQuad(Lust::vec2{ playerPos.x(), -floorDistance }, Lust::vec2{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
-	Lust::Renderer2D::DrawQuad(Lust::vec2{ playerPos.x(), floorDistance }, Lust::vec2{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
+	Lust::Renderer2D::DrawQuad(Lust::vec2{ playerPos.x(), -floorDistance }, Lust::vec2{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) }, true);
+	Lust::Renderer2D::DrawQuad(Lust::vec2{ playerPos.x(), floorDistance }, Lust::vec2{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) }, true);
 
 	for (auto& pillar : m_Pillars)
 	{
-		Lust::Renderer2D::DrawQuad(pillar.TopPosition, pillar.TopScale, Lust::Radians(180.0f), { pillarControllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) });
-		Lust::Renderer2D::DrawQuad(pillar.BottomPosition, pillar.BottomScale, 0.0f, { pillarControllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
+		Lust::Renderer2D::DrawQuad(pillar.TopPosition, pillar.TopScale, Lust::Radians(180.0f), { pillarControllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) }, true);
+		Lust::Renderer2D::DrawQuad(pillar.BottomPosition, pillar.BottomScale, 0.0f, { pillarControllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) }, true);
 	}
 
 	m_Player.OnRender();

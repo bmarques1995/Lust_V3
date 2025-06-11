@@ -131,33 +131,33 @@ void Lust::Renderer2D::UploadSampler(const std::shared_ptr<Sampler>& sampler, ui
 	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
 }
 
-void Lust::Renderer2D::DrawQuad(const vec2& position, const vec2& size, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec2& position, const vec2& size, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum)
 {
-	DrawQuad(position, size, 0.0f, ssboInstanceData);
+	DrawQuad(position, size, 0.0f, ssboInstanceData, bypassFrustum);
 }
-void Lust::Renderer2D::DrawQuad(const vec2& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec2& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum)
 {
-	DrawQuad(vec3(position(0), position(1), 0.0f), size, rotation, ssboInstanceData);
+	DrawQuad(vec3(position(0), position(1), 0.0f), size, rotation, ssboInstanceData, bypassFrustum);
 }
 
-void Lust::Renderer2D::DrawQuad(const mat4& model, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const mat4& model, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum)
 {
-	if(ShouldRender(model))
+	if(ShouldRender(model) || bypassFrustum)
 		RenderPush(model, ssboInstanceData);
 }
 
-void Lust::Renderer2D::DrawQuad(const vec3& position, const vec2& size, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec3& position, const vec2& size, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum)
 {
-	DrawQuad(position, size, 0.0f, ssboInstanceData);
+	DrawQuad(position, size, 0.0f, ssboInstanceData, bypassFrustum);
 }
 
-void Lust::Renderer2D::DrawQuad(const vec3& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec3& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData, bool bypassFrustum)
 {
 	Eigen::Quaternionf q(Eigen::AngleAxisf(rotation, vec3(0.0f, 0.0f, 1.0f)));
 	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) * q;
 	mat4 squareSmallBufferMatrix = element_transform.matrix().transpose();
 
-	if (ShouldRender(squareSmallBufferMatrix))
+	if (ShouldRender(squareSmallBufferMatrix) || bypassFrustum)
 		RenderPush(squareSmallBufferMatrix, ssboInstanceData);
 }
 
