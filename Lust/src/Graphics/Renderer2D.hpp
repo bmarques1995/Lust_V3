@@ -45,7 +45,7 @@ namespace Lust
 		std::shared_ptr<Sampler> m_Sampler;
 		std::shared_ptr<Texture2D> m_WhiteTexture;
 		std::shared_ptr<Sampler> m_WhiteSampler;
-		Eigen::RowVector4f m_BaseVertices[2];
+		rvec4 m_BaseVertices[4];
 		uint8_t *m_SSBOInstanceBuffer;
 		size_t m_SSBOInstanceBufferSize;
 		const uint32_t c_MaxInstanceCount = 10000;

@@ -17,15 +17,17 @@ void Lust::Renderer2D::Instantiate()
 	SmallMVP m_Renderer2DSmallMVP;
 
 	float squareVertices[3 * 4] = {
-			-.5f, -.5f, .0f,
-			-.5f, .5f, .0f,
-			.5f, -.5f, .0f,
-			.5f, .5f, .0f
+		-.5f, -.5f, .0f,
+		-.5f, .5f, .0f,
+		.5f, -.5f, .0f,
+		.5f, .5f, .0f
 	};
 
 
 	s_Renderer2DStorage->m_BaseVertices[0] = Eigen::RowVector4f(squareVertices[0], squareVertices[1], squareVertices[2], 1.0f);
-	s_Renderer2DStorage->m_BaseVertices[1] = Eigen::RowVector4f(squareVertices[9], squareVertices[10], squareVertices[11], 1.0f);
+	s_Renderer2DStorage->m_BaseVertices[1] = Eigen::RowVector4f(squareVertices[3], squareVertices[4], squareVertices[5], 1.0f);
+	s_Renderer2DStorage->m_BaseVertices[2] = Eigen::RowVector4f(squareVertices[6], squareVertices[7], squareVertices[8], 1.0f);
+	s_Renderer2DStorage->m_BaseVertices[3] = Eigen::RowVector4f(squareVertices[9], squareVertices[10], squareVertices[11], 1.0f);
 
 	uint32_t squareIndices[6] = { 3,2,1, 1,2,0 };
 
@@ -193,10 +195,11 @@ void Lust::Renderer2D::DispatchDraws()
 
 bool Lust::Renderer2D::ShouldRender(const mat4& squareSmallBufferMatrix)
 {
-	Eigen::RowVector4f vertices[2];
-	for (size_t i = 0; i < 2; i++)
+	Eigen::RowVector4f vertices[4];
+	
+	for (size_t i = 0; i < 4; i++)
 	{
-		vertices[i] = s_Renderer2DStorage->m_BaseVertices[i] * squareSmallBufferMatrix;
+		vertices[i] =  s_Renderer2DStorage->m_BaseVertices[i] * squareSmallBufferMatrix;
 		vertices[i] = vertices[i] * s_SceneData->view;
 		vertices[i] = vertices[i] * s_SceneData->projection;
 	}
@@ -205,15 +208,23 @@ bool Lust::Renderer2D::ShouldRender(const mat4& squareSmallBufferMatrix)
 
 bool Lust::Renderer2D::IsInFrustum(const rvec4* vertices)
 {
-	vec2 edges[2];
-	for (size_t i = 0; i < 2; i++)
-	{
-		edges[i] = vec2(vertices[i](0), vertices[i](1));
+	bool allLeft = true;
+	bool allRight = true;
+	bool allBelow = true;
+	bool allAbove = true;
+
+	for (size_t i = 0; i < 4; i++) {
+		rvec4 clip = vertices[i];
+
+		// Perspective divide
+		float x = clip.x();
+		float y = clip.y();
+
+		allLeft &= (x < -1.0f);
+		allRight &= (x > 1.0f);
+		allBelow &= (y < -1.0f);
+		allAbove &= (y > 1.0f);
 	}
 
-	bool condition = 
-		!(edges[1].x() < -1.0f || edges[0].x() > 1.0f ||
-             edges[1].y() < -1.0f || edges[0].y() > 1.0f);
-
-	return condition;
+	return !(allLeft || allRight || allBelow || allAbove);
 }
