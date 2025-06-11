@@ -32,10 +32,10 @@ void Lust::Renderer2D::Instantiate()
 	s_Renderer2DStorage->m_ShaderReflector.reset(ShaderReflector::Instantiate("./assets/shaders/Renderer2D", AllowedStages::VERTEX_STAGE | AllowedStages::PIXEL_STAGE));
 
 	*s_SceneData = {
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity()
+		mat4::Identity(),
+		mat4::Identity(),
+		mat4::Identity(),
+		mat4::Identity()
 	};
 
 	s_Renderer2DStorage->m_ShaderReflector->GetStructuredBufferLayout().GetElement("u_InstancedMVP").SetNumberOfElements(s_Renderer2DStorage->c_MaxInstanceCount);
@@ -131,37 +131,37 @@ void Lust::Renderer2D::UploadSampler(const std::shared_ptr<Sampler>& sampler, ui
 	s_Renderer2DStorage->m_Shader->UploadSamplerPackedDescSet(samplerArray);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec2& position, const vec2& size, const SSBOInstanceData& ssboInstanceData)
 {
 	DrawQuad(position, size, 0.0f, ssboInstanceData);
 }
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float rotation, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec2& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData)
 {
-	DrawQuad(Eigen::Vector3f(position(0), position(1), 0.0f), size, rotation, ssboInstanceData);
+	DrawQuad(vec3(position(0), position(1), 0.0f), size, rotation, ssboInstanceData);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Matrix4f& model, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const mat4& model, const SSBOInstanceData& ssboInstanceData)
 {
 	if(ShouldRender(model))
 		RenderPush(model, ssboInstanceData);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec3& position, const vec2& size, const SSBOInstanceData& ssboInstanceData)
 {
 	DrawQuad(position, size, 0.0f, ssboInstanceData);
 }
 
-void Lust::Renderer2D::DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float rotation, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::DrawQuad(const vec3& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData)
 {
-	Eigen::Quaternionf q(Eigen::AngleAxisf(rotation, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
+	Eigen::Quaternionf q(Eigen::AngleAxisf(rotation, vec3(0.0f, 0.0f, 1.0f)));
 	Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(position) * Eigen::Scaling(size(0), size(1), 1.0f) * q;
-	Eigen::Matrix4f squareSmallBufferMatrix = element_transform.matrix().transpose();
+	mat4 squareSmallBufferMatrix = element_transform.matrix().transpose();
 
 	if (ShouldRender(squareSmallBufferMatrix))
 		RenderPush(squareSmallBufferMatrix, ssboInstanceData);
 }
 
-void Lust::Renderer2D::RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const SSBOInstanceData& ssboInstanceData)
+void Lust::Renderer2D::RenderPush(const mat4& squareSmallBufferMatrix, const SSBOInstanceData& ssboInstanceData)
 {
 	if (s_Renderer2DStorage->m_InstanceCount >= s_Renderer2DStorage->c_MaxInstanceCount)
 	{
@@ -191,7 +191,7 @@ void Lust::Renderer2D::DispatchDraws()
 	RenderCommand::DrawIndexed(s_Renderer2DStorage->m_IndexBuffer->GetCount(), s_Renderer2DStorage->m_InstanceCount);
 }
 
-bool Lust::Renderer2D::ShouldRender(const Eigen::Matrix4f& squareSmallBufferMatrix)
+bool Lust::Renderer2D::ShouldRender(const mat4& squareSmallBufferMatrix)
 {
 	Eigen::RowVector4f vertices[2];
 	for (size_t i = 0; i < 2; i++)
@@ -203,12 +203,12 @@ bool Lust::Renderer2D::ShouldRender(const Eigen::Matrix4f& squareSmallBufferMatr
 	return IsInFrustum(vertices);
 }
 
-bool Lust::Renderer2D::IsInFrustum(const Eigen::RowVector4f* vertices)
+bool Lust::Renderer2D::IsInFrustum(const rvec4* vertices)
 {
-	Eigen::Vector2f edges[2];
+	vec2 edges[2];
 	for (size_t i = 0; i < 2; i++)
 	{
-		edges[i] = Eigen::Vector2f(vertices[i](0), vertices[i](1));
+		edges[i] = vec2(vertices[i](0), vertices[i](1));
 	}
 
 	bool condition = 

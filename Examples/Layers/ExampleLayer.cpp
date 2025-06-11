@@ -4,7 +4,7 @@
 #include <Operations.hpp>
 #include <Application.hpp>
 #include <RenderCommand.hpp>
-
+#include <MathUtils.hpp>
 
 ExampleLayer::ExampleLayer() :
 	Lust::Layer("Example")
@@ -24,10 +24,10 @@ void ExampleLayer::OnAttach()
 	m_PointSampler.reset(Lust::Sampler::Instantiate(context, dynamicSamplerInfo2));
 
 	m_CompleteMVP = {
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity(),
-		Eigen::Matrix4f::Identity()
+		Lust::mat4::Identity(),
+		Lust::mat4::Identity(),
+		Lust::mat4::Identity(),
+		Lust::mat4::Identity()
 	};
 
 	m_CameraController.reset(new Lust::OrthographicCameraController(window->GetWidth(), window->GetHeight(), true));
@@ -40,7 +40,7 @@ void ExampleLayer::OnAttach()
 	m_Texture2 = m_Texture2DLibrary->Get("sample");
 	m_UniformBuffer.reset(Lust::UniformBuffer::Instantiate(context, &m_CompleteMVP.model(0, 0), sizeof(m_CompleteMVP)));
 
-	Eigen::Transform<float, 3, Eigen::Affine> model_transform = Eigen::Translation3f(0.0f, 0.0f, 0.0f) * Eigen::Scaling(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f);
+	Lust::affine3 model_transform = Lust::translation3(0.0f, 0.0f, 0.0f) * Lust::scaling(m_Texture1->GetWidth() * .5f, m_Texture1->GetHeight() * .5f, 1.0f);
 
 	m_SmallMVP.model = model_transform.matrix();
 
@@ -87,21 +87,21 @@ void ExampleLayer::OnAttach()
 
 	uint8_t* m_SSBO = new uint8_t[m_SquareShader->GetStructuredBufferLayout().GetElement("u_InstancedMVP").GetSize()];
 
-	Eigen::Matrix4f squareSmallBufferMatrix;
-	Eigen::AlignedScaling3f baseScale = Eigen::Scaling(50.0f, 50.0f, 1.0f);
-	Eigen::Transform<float, 3, Eigen::Affine> element_transform;
+	Lust::mat4 squareSmallBufferMatrix;
+	Lust::scaling3 baseScale = Lust::scaling(50.0f, 50.0f, 1.0f);
+	Lust::affine3 element_transform;
 	for (size_t i = 0; i < rows; i++)
 	{
 		for (size_t j = 0; j < cols; j++)
 		{
-			element_transform = Eigen::Translation<float, 3>(i * 60.0f, j * 60.0f, 0.0f) * baseScale;
+			element_transform = Lust::translation3(i * 60.0f, j * 60.0f, 0.0f) * baseScale;
 			squareSmallBufferMatrix = element_transform.matrix().transpose();
-			size_t offset = (i * rows + j) * sizeof(Eigen::Matrix4f);
-			memcpy(m_SSBO + offset, squareSmallBufferMatrix.data(), sizeof(Eigen::Matrix4f));
+			size_t offset = (i * rows + j) * sizeof(Lust::mat4);
+			memcpy(m_SSBO + offset, squareSmallBufferMatrix.data(), sizeof(Lust::mat4));
 		}
 	}
 
-	m_SquareStructuredBuffer.reset(Lust::StructuredBuffer::Instantiate(context, m_SSBO, rows * cols * sizeof(Eigen::Matrix4f)));
+	m_SquareStructuredBuffer.reset(Lust::StructuredBuffer::Instantiate(context, m_SSBO, rows * cols * sizeof(Lust::mat4)));
 
 	delete[] m_SSBO;
 
@@ -140,7 +140,7 @@ void ExampleLayer::OnUpdate(Lust::Timestep ts)
 	//SampleInput();
 
 	Lust::Renderer::BeginScene(m_CameraController->GetCamera());
-	Eigen::Matrix4f squareSmallBufferMatrix = Eigen::Matrix4f::Identity();
+	Lust::mat4 squareSmallBufferMatrix = Lust::mat4::Identity();
 
 	Lust::Renderer::SubmitCBV(&m_SquareUniformBuffer);
 	Lust::Renderer::SubmitShader(m_SquareShader, m_SquareVertexBuffer, m_SquareIndexBuffer);

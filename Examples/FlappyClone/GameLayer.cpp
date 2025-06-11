@@ -47,7 +47,7 @@ void GameLayer::OnUpdate(Lust::Timestep ts)
 	}
 
 	const auto& playerPos = m_Level.GetPlayer().GetPosition();
-	m_Camera->SetPosition(Eigen::Vector3f{ playerPos.x(), playerPos.y(), 0.0f });
+	m_Camera->SetPosition(Lust::vec3{ playerPos.x(), playerPos.y(), 0.0f });
 	Lust::Renderer2D::BeginScene(m_Camera.get());
 	m_Level.OnRender();
 	Lust::Renderer2D::EndScene();

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LustDLLMacro.hpp"
-#include <Eigen/Eigen>
+#include <MathComponents.hpp>
 #include <ColorCaster.hpp>
 #include "Renderer2D.hpp"
 #include "Camera.hpp"
@@ -13,21 +13,21 @@ namespace Lust
 {
 	struct LUST_API TransformComponent
 	{		
-		Eigen::Matrix4f Transform = Eigen::Matrix4f::Identity();
+		mat4 Transform = mat4::Identity();
 
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const Eigen::Matrix4f& transform)
+		TransformComponent(const mat4& transform)
 			: Transform(transform)
 		{
 		}
 
-		operator Eigen::Matrix4f& ()
+		operator mat4& ()
 		{
 			return Transform;
 		}
 
-		operator const Eigen::Matrix4f& () const
+		operator const mat4& () const
 		{
 			return Transform;
 		}
@@ -40,16 +40,16 @@ namespace Lust
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
-		SpriteRendererComponent(const Eigen::Vector4f& color)
+		SpriteRendererComponent(const vec4& color)
 		{
-			ColorTexInfo.controllerInfo = Eigen::Vector4<uint32_t>(0, 0, 0, 0);
-			ColorTexInfo.texCoordsEdges = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
+			ColorTexInfo.controllerInfo = uvec4(0, 0, 0, 0);
+			ColorTexInfo.texCoordsEdges = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 			ColorTexInfo.edgeColors = ColorCaster::CastFloatColor(color);
 		}
-		SpriteRendererComponent(const Eigen::Vector4f& color0, const Eigen::Vector4f& color1, const Eigen::Vector4f& color2, const Eigen::Vector4f& color3)
+		SpriteRendererComponent(const vec4& color0, const vec4& color1, const vec4& color2, const vec4& color3)
 		{
-			ColorTexInfo.controllerInfo = Eigen::Vector4<uint32_t>(0, 0, 0, 0);
-			ColorTexInfo.texCoordsEdges = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
+			ColorTexInfo.controllerInfo = uvec4(0, 0, 0, 0);
+			ColorTexInfo.texCoordsEdges = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 			ColorTexInfo.edgeColors = ColorCaster::CastFloatColor(color0, color1, color2, color3);
 		}
 

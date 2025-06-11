@@ -5,7 +5,7 @@
 * @brief Contains functions to copy matrices to a buffer
 */
 
-#include <Eigen/Eigen>
+#include <MathComponents.hpp>
 #include <cstring>
 
 namespace Lust
@@ -17,7 +17,7 @@ namespace Lust
 	* @param start Start offset
 	*/
 	template<typename T>
-	void CopyMatrix4ToBuffer(Eigen::Matrix4<T> matrix, uint8_t** buffer, size_t start)
+	void CopyMatrix4ToBuffer(tmat4<T> matrix, uint8_t** buffer, size_t start)
 	{
 		for (size_t i = 0; i < 4; i++)
 		{

@@ -17,7 +17,7 @@ void Lust::OrthographicCameraController::OnUpdate(Timestep ts)
 	{	
 		float rightStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTX);
 		float rightStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_RIGHTY);
-		Eigen::Vector2f rightStick(rightStickX, rightStickY);
+		vec2 rightStick(rightStickX, rightStickY);
 		if ((rightStick.norm() > maxAxis * Input::GetGamepadLowerDeadZone()) && (rightStick.norm() < maxAxis * Input::GetGamepadUpperDeadZone()))
 		{
 			rightStick.normalize();
@@ -32,7 +32,7 @@ void Lust::OrthographicCameraController::OnUpdate(Timestep ts)
 	
 	float leftStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
 	float leftStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
-	Eigen::Vector2f leftStick(leftStickX, leftStickY);
+	vec2 leftStick(leftStickX, leftStickY);
 	if ((leftStick.norm() > maxAxis * Input::GetGamepadLowerDeadZone()) && (leftStick.norm() < maxAxis * Input::GetGamepadUpperDeadZone()))
 	{
 		leftStick.normalize();

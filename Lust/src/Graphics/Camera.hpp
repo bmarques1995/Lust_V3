@@ -1,22 +1,22 @@
 #pragma once
 
 #include "LustDLLMacro.hpp"
-#include <Eigen/Eigen>
+#include <MathComponents.hpp>
 
 namespace Lust
 {
 	class LUST_API Camera
 	{
 	public:
-		Camera(const Eigen::Matrix4f& projectionMatrix, const Eigen::Matrix4f& viewMatrix);
+		Camera(const mat4& projectionMatrix, const mat4& viewMatrix);
 
-		const Eigen::Matrix4f& GetProjectionMatrix() const;
-		const Eigen::Matrix4f& GetViewMatrix() const;
+		const mat4& GetProjectionMatrix() const;
+		const mat4& GetViewMatrix() const;
 
-		void ResetProjectionMatrix(const Eigen::Matrix4f& projectionMatrix);
-		void ResetViewMatrix(const Eigen::Matrix4f& viewMatrix);
+		void ResetProjectionMatrix(const mat4& projectionMatrix);
+		void ResetViewMatrix(const mat4& viewMatrix);
 	private:
-		Eigen::Matrix4f m_ProjectionMatrix = Eigen::Matrix4f::Identity();
-		Eigen::Matrix4f m_ViewMatrix = Eigen::Matrix4f::Identity();
+		mat4 m_ProjectionMatrix = mat4::Identity();
+		mat4 m_ViewMatrix = mat4::Identity();
 	};
 }

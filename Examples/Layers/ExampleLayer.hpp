@@ -13,15 +13,15 @@ namespace LustLayer
 {
 	struct CompleteMVP
 	{
-		Eigen::Matrix4f model;
-		Eigen::Matrix4f view;
-		Eigen::Matrix4f projection;
-		Eigen::Matrix4f mipLevel;
+		Lust::mat4 model;
+		Lust::mat4 view;
+		Lust::mat4 projection;
+		Lust::mat4 mipLevel;
 	};
 
 	struct SmallMVP
 	{
-		Eigen::Matrix4f model;
+		Lust::mat4 model;
 	};
 }
 
@@ -66,7 +66,7 @@ private:
 
 	bool OnWindowResize(Lust::WindowResizedEvent& e);
 
-	Eigen::Vector<float, 9> m_VBuffer[4] =
+	Lust::vecn<9> m_VBuffer[4] =
 	{
 		{-.5f, -.5f, .2f, 1.0f, .0f, .0f, 1.0f,  0.0f, 1.0f },
 		{-.5f, .5f, .2f, .0f, 1.0f, .0f, 1.0f,  0.0f, 0.0f },
@@ -93,7 +93,7 @@ private:
 	LustLayer::CompleteMVP m_CompleteMVP;
 	LustLayer::SmallMVP m_SquareSmallMVP;
 	//#f1c40f
-	Eigen::Vector4f m_SquareColor = { 0xf1 / 255.0f, 0xc4 / 255.0f, 0x0f / 255.0f, 1.0f };
+	Lust::vec4 m_SquareColor = { 0xf1 / 255.0f, 0xc4 / 255.0f, 0x0f / 255.0f, 1.0f };
 	//#9b59b6
-	Eigen::Vector4f m_SquareColor2 = { 0x9b / 255.0f, 0x59 / 255.0f, 0Xb6 / 255.0f, 1.0f };
+	Lust::vec4 m_SquareColor2 = { 0x9b / 255.0f, 0x59 / 255.0f, 0Xb6 / 255.0f, 1.0f };
 };

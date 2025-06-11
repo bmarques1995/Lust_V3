@@ -1,25 +1,25 @@
 #include "ColorCaster.hpp"
 
-Eigen::Vector4<uint32_t> Lust::ColorCaster::CastFloatColor(const Eigen::Vector3f& color)
+Lust::uvec4 Lust::ColorCaster::CastFloatColor(const vec3& color)
 {
 	uint8_t r = (uint8_t)(color(0) * 255.0f);
 	uint8_t g = (uint8_t)(color(1) * 255.0f);
 	uint8_t b = (uint8_t)(color(2) * 255.0f);
 	uint32_t pixel = (r << 24) | (g << 16) | (b << 8) | 0xff;
-	return Eigen::Vector4<uint32_t>(pixel, pixel, pixel, pixel);
+	return uvec4(pixel, pixel, pixel, pixel);
 }
 
-Eigen::Vector4<uint32_t> Lust::ColorCaster::CastFloatColor(const Eigen::Vector4f& color)
+Lust::uvec4 Lust::ColorCaster::CastFloatColor(const vec4& color)
 {
 	uint8_t r = (uint8_t)(color(0) * 255.0f);
 	uint8_t g = (uint8_t)(color(1) * 255.0f);
 	uint8_t b = (uint8_t)(color(2) * 255.0f);
 	uint8_t a = (uint8_t)(color(3) * 255.0f);
 	uint32_t pixel = (r << 24) | (g << 16) | (b << 8) | a;
-	return Eigen::Vector4<uint32_t>(pixel, pixel, pixel, pixel);
+	return uvec4(pixel, pixel, pixel, pixel);
 }
 
-Eigen::Vector4<uint32_t> Lust::ColorCaster::CastFloatColor(const Eigen::Vector3f& colorEdge00, const Eigen::Vector3f& colorEdge01, const Eigen::Vector3f& colorEdge10, const Eigen::Vector3f& colorEdge11)
+Lust::uvec4 Lust::ColorCaster::CastFloatColor(const vec3& colorEdge00, const vec3& colorEdge01, const vec3& colorEdge10, const vec3& colorEdge11)
 {
 	uint8_t r00 = (uint8_t)(colorEdge00(0) * 255.0f);
 	uint8_t g00 = (uint8_t)(colorEdge00(1) * 255.0f);
@@ -37,10 +37,10 @@ Eigen::Vector4<uint32_t> Lust::ColorCaster::CastFloatColor(const Eigen::Vector3f
 	uint8_t g11 = (uint8_t)(colorEdge11(1) * 255.0f);
 	uint8_t b11 = (uint8_t)(colorEdge11(2) * 255.0f);
 	uint32_t pixel11 = (r11 << 24) | (g11 << 16) | (b11 << 8) | 0xff;
-	return Eigen::Vector4<uint32_t>(pixel00, pixel01, pixel10, pixel11);
+	return uvec4(pixel00, pixel01, pixel10, pixel11);
 }
 
-Eigen::Vector4<uint32_t> Lust::ColorCaster::CastFloatColor(const Eigen::Vector4f& colorEdge00, const Eigen::Vector4f& colorEdge01, const Eigen::Vector4f& colorEdge10, const Eigen::Vector4f& colorEdge11)
+Lust::uvec4 Lust::ColorCaster::CastFloatColor(const vec4& colorEdge00, const vec4& colorEdge01, const vec4& colorEdge10, const vec4& colorEdge11)
 {
 	uint8_t r00 = (uint8_t)(colorEdge00(0) * 255.0f);
 	uint8_t g00 = (uint8_t)(colorEdge00(1) * 255.0f);
@@ -62,5 +62,5 @@ Eigen::Vector4<uint32_t> Lust::ColorCaster::CastFloatColor(const Eigen::Vector4f
 	uint8_t b11 = (uint8_t)(colorEdge11(2) * 255.0f);
 	uint8_t a11 = (uint8_t)(colorEdge11(3) * 255.0f);
 	uint32_t pixel11 = (r11 << 24) | (g11 << 16) | (b11 << 8) | a11;
-	return Eigen::Vector4<uint32_t>(pixel00, pixel01, pixel10, pixel11);
+	return uvec4(pixel00, pixel01, pixel10, pixel11);
 }

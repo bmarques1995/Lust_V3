@@ -32,7 +32,7 @@ private:
 	bool m_Blink = false;
 	float m_Time;
 
-	Eigen::Vector3f m_SquareColor = { 0.2f, 0.3f, 0.8f };
+	Lust::vec3 m_SquareColor = { 0.2f, 0.3f, 0.8f };
 
 	enum class GameState
 	{

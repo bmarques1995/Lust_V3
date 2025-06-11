@@ -14,9 +14,9 @@ namespace Lust
 {
 	struct SSBOInstanceData
 	{
-		Eigen::Vector4<uint32_t> controllerInfo;
-		Eigen::Vector4f texCoordsEdges;
-		Eigen::Vector4<uint32_t> edgeColors;
+		uvec4 controllerInfo;
+		vec4 texCoordsEdges;
+		uvec4 edgeColors;
 	};
 	/**
 	* @brief %Renderer2D storage
@@ -115,7 +115,7 @@ namespace Lust
 		* @param size The size of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec2& position, const vec2& size, const SSBOInstanceData& ssboInstanceData);
 
 		/**
 		* @brief Draws a quad
@@ -124,14 +124,14 @@ namespace Lust
 		* @param rotation The rotation of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const Eigen::Vector2f& position, const Eigen::Vector2f& size, float rotation, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec2& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData);
 		
 		/**
 		* @brief Draws a quad
 		* @param model The model matrix
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const Eigen::Matrix4f& model, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const mat4& model, const SSBOInstanceData& ssboInstanceData);
 
 		/**
 		* @brief Draws a quad
@@ -139,7 +139,7 @@ namespace Lust
 		* @param size The size of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec3& position, const vec2& size, const SSBOInstanceData& ssboInstanceData);
 		
 		/**
 		* @brief Draws a quad
@@ -148,7 +148,7 @@ namespace Lust
 		* @param rotation The rotation of the quad
 		* @param ssboInstanceData The SSBO instance data
 		*/
-		static void DrawQuad(const Eigen::Vector3f& position, const Eigen::Vector2f& size, float rotation, const SSBOInstanceData& ssboInstanceData);
+		static void DrawQuad(const vec3& position, const vec2& size, float rotation, const SSBOInstanceData& ssboInstanceData);
 
 	private:
 		/**
@@ -158,7 +158,7 @@ namespace Lust
 		* @param element_names The element names of the small buffer
 		* @param controllerInfo A set of 4 uint32_t values, the first one is the texture slot, the second one is the sampler slot, the third one is the level of detail, the fourth one is the mips bias
 		*/
-		static void RenderPush(const Eigen::Matrix4f& squareSmallBufferMatrix, const SSBOInstanceData& ssboInstanceData);
+		static void RenderPush(const mat4& squareSmallBufferMatrix, const SSBOInstanceData& ssboInstanceData);
 
 		/**
 		* @brief Dispatches the draws
@@ -170,14 +170,14 @@ namespace Lust
 		* @details Returns if the object is in the view frustum, comparing the vertices of the quad with the view frustum planes (-1.0f, 1.0f)[x,y]
 		* @param squareSmallBufferMatrix The model matrix of the small buffer
 		*/
-		static bool ShouldRender(const Eigen::Matrix4f& squareSmallBufferMatrix);
+		static bool ShouldRender(const mat4& squareSmallBufferMatrix);
 
 		/**
 		* @brief Returns if the object is in the view frustum
 		* @details detects if the object is in the view frustum, comparing the vertices of the quad with the view frustum planes (-1.0f, 1.0f)[x,y]
 		* @param vertices The vertices of the quad
 		*/
-		static bool IsInFrustum(const Eigen::RowVector4f* vertices);
+		static bool IsInFrustum(const rvec4* vertices);
 
 		/**
 		* @brief Returns the complete MVP
@@ -188,15 +188,15 @@ namespace Lust
 		*/
 		struct CompleteMVP
 		{
-			Eigen::Matrix4f model;
-			Eigen::Matrix4f view;
-			Eigen::Matrix4f projection;
-			Eigen::Matrix4f mipLevel;
+			mat4 model;
+			mat4 view;
+			mat4 projection;
+			mat4 mipLevel;
 		};
 
 		struct SmallMVP
 		{
-			Eigen::Matrix4f model;
+			mat4 model;
 		};
 
 		static std::shared_ptr<Renderer2DStorage> s_Renderer2DStorage;

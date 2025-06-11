@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Eigen>
+#include <MathComponents.hpp>
 #include "LustDLLMacro.hpp"
 
 namespace Lust
@@ -35,7 +35,7 @@ namespace Lust
 		* @brief Sets the position of the camera
 		* @param position The position of the camera
 		*/
-		void SetPosition(const Eigen::Vector3f& position);
+		void SetPosition(const vec3& position);
 		/**
 		* @brief Sets the rotation of the camera
 		* @param rotation The rotation of the camera
@@ -46,7 +46,7 @@ namespace Lust
 		* @brief Gets the position of the camera
 		* @return The position of the camera
 		*/
-		const Eigen::Vector3f& GetPosition() const;
+		const vec3& GetPosition() const;
 		/**
 		* @brief Gets the rotation of the camera
 		* @return The rotation of the camera
@@ -58,20 +58,20 @@ namespace Lust
 		* @param position The position of the camera
 		* @param rotation The rotation of the camera
 		*/
-		void SetPositionAndRotation(const Eigen::Vector3f& position, float rotation);
+		void SetPositionAndRotation(const vec3& position, float rotation);
 
 		/**
 		* @brief Gets the projection, view and view projection matrices of the camera
 		*/
-		const Eigen::Matrix4f& GetProjectionMatrix() const;
+		const mat4& GetProjectionMatrix() const;
 		/**
 		* @brief Gets the view and view projection matrices of the camera
 		*/
-		const Eigen::Matrix4f& GetViewMatrix() const;
+		const mat4& GetViewMatrix() const;
 		/**
 		* @brief Gets the view projection matrix of the camera
 		*/
-		const Eigen::Matrix4f& GetViewProjectionMatrix() const;
+		const mat4& GetViewProjectionMatrix() const;
 
 	private:
 		/**
@@ -79,11 +79,11 @@ namespace Lust
 		*/
 		void RecalculateViewMatrix();
 
-		Eigen::Matrix4f m_ProjectionMatrix;
-		Eigen::Matrix4f m_ViewMatrix;
-		Eigen::Matrix4f m_ViewProjectionMatrix;
+		mat4 m_ProjectionMatrix;
+		mat4 m_ViewMatrix;
+		mat4 m_ViewProjectionMatrix;
 
-		Eigen::Vector3f m_CameraPosition;
+		vec3 m_CameraPosition;
 		float m_Rotation;
 	};
 }

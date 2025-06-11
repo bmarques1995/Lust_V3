@@ -19,7 +19,7 @@
 #include "Renderer.hpp"
 #include "Shader.hpp"
 #include "Buffer.hpp"
-#include <Eigen/Eigen>
+#include <MathComponents.hpp>
 
 namespace Lust
 {

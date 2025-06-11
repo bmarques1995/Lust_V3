@@ -5,7 +5,7 @@
 #include <Conversions.hpp>
 #include <algorithm>
 
-static bool PointInTri(const Eigen::Vector2f& p, Eigen::Vector2f& p0, const Eigen::Vector2f& p1, const Eigen::Vector2f& p2)
+static bool PointInTri(const Lust::vec2& p, const Lust::vec2& p0, const Lust::vec2& p1, const Lust::vec2& p2)
 {
 	float s = p0.y() * p2.x() - p0.x() * p2.y() + (p2.y() - p0.y()) * p.x() + (p0.x() - p2.x()) * p.y();
 	float t = p0.x() * p1.y() - p0.y() * p1.x() + (p0.y() - p1.y()) * p.x() + (p1.x() - p0.x()) * p.y();
@@ -62,18 +62,18 @@ void Level::OnUpdate(Lust::Timestep ts)
 
 void Level::OnRender()
 {
-	Eigen::Vector4<uint32_t> pillarControllerInfo = Eigen::Vector4<uint32_t>(2, 2, 0, 0);
-	Eigen::Vector4<uint32_t> controllerInfo = Eigen::Vector4<uint32_t>(0, 0, 0, 0);
+	Lust::uvec4 pillarControllerInfo = Lust::uvec4(2, 2, 0, 0);
+	Lust::uvec4 controllerInfo = Lust::uvec4(0, 0, 0, 0);
 	auto playerPos = m_Player.GetPosition();
 
-	Eigen::Vector4f texCoordsEdges = Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f);
-	Lust::Renderer2D::DrawQuad(Eigen::Vector2f{ playerPos.x(), -floorDistance }, Eigen::Vector2f{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Eigen::Vector4<uint32_t>(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
-	Lust::Renderer2D::DrawQuad(Eigen::Vector2f{ playerPos.x(), floorDistance }, Eigen::Vector2f{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Eigen::Vector4<uint32_t>(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
+	Lust::vec4 texCoordsEdges = Lust::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+	Lust::Renderer2D::DrawQuad(Lust::vec2{ playerPos.x(), -floorDistance }, Lust::vec2{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
+	Lust::Renderer2D::DrawQuad(Lust::vec2{ playerPos.x(), floorDistance }, Lust::vec2{ 50.0f, 50.0f }, { controllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
 
 	for (auto& pillar : m_Pillars)
 	{
-		Lust::Renderer2D::DrawQuad(pillar.TopPosition, pillar.TopScale, Lust::Radians(180.0f), { pillarControllerInfo, texCoordsEdges, Eigen::Vector4<uint32_t>(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) });
-		Lust::Renderer2D::DrawQuad(pillar.BottomPosition, pillar.BottomScale, 0.0f, { pillarControllerInfo, texCoordsEdges, Eigen::Vector4<uint32_t>(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
+		Lust::Renderer2D::DrawQuad(pillar.TopPosition, pillar.TopScale, Lust::Radians(180.0f), { pillarControllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) });
+		Lust::Renderer2D::DrawQuad(pillar.BottomPosition, pillar.BottomScale, 0.0f, { pillarControllerInfo, texCoordsEdges, Lust::uvec4(0xffffffff,0xffffffff,0xffffffff,0xffffffff) });
 	}
 
 	m_Player.OnRender();
@@ -137,7 +137,7 @@ bool Level::CollisionTest()
 	Eigen::Vector4f playerTransformedVerts[4];
 	for (int i = 0; i < 4; i++)
 	{
-		Eigen::Quaternionf q(Eigen::AngleAxisf(Lust::Radians(m_Player.GetRotation()), Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
+		Eigen::Quaternionf q(Eigen::AngleAxisf(Lust::Radians(m_Player.GetRotation()), Lust::vec3(0.0f, 0.0f, 1.0f)));
 		Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>({ pos.x(), pos.y(), 0.0f }) * q * Eigen::Scaling(Eigen::Vector3f{ 1.3f, 1.3f, 1.0f });
 
 		playerTransformedVerts[i] = element_transform.matrix()

@@ -5,7 +5,7 @@
 * @brief Contains projection functions, orthographic
 */
 
-#include <Eigen/Eigen>
+#include <MathComponents.hpp>
 
 namespace Lust
 {
@@ -19,9 +19,9 @@ namespace Lust
 	* @param zFar Far bound
 	*/
 	template<typename T>
-	Eigen::Matrix<T, 4, 4> Ortho(const T left, const T right, const T bottom, const T top, const T zNear, const T zFar)
+	tmat<T, 4, 4> Ortho(const T left, const T right, const T bottom, const T top, const T zNear, const T zFar)
 	{
-		Eigen::Matrix<T, 4, 4> matrix = Eigen::Matrix<T, 4, 4>::Identity();
+		tmat<T, 4, 4> matrix = tmat<T, 4, 4>::Identity();
 		matrix(0,0) = static_cast<T>(2) / (right - left);
 		matrix(1,1) = static_cast<T>(2) / (top - bottom);
 		matrix(2,2) = -static_cast<T>(1) / (zNear - zFar);

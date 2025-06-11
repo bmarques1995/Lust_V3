@@ -1,6 +1,7 @@
 #pragma once
 
 #include <LustSandboxDLLMacro.hpp>
+#include <MathComponents.hpp>
 
 namespace Lust
 {
@@ -8,15 +9,15 @@ namespace Lust
 	{
 		struct CompleteMVP
 		{
-			Eigen::Matrix4f model;
-			Eigen::Matrix4f view;
-			Eigen::Matrix4f projection;
-			Eigen::Matrix4f mipLevel;
+			mat4 model;
+			mat4 view;
+			mat4 projection;
+			mat4 mipLevel;
 		};
 
 		struct SmallMVP
 		{
-			Eigen::Matrix4f model;
+			mat4 model;
 		};
 	}
 }
