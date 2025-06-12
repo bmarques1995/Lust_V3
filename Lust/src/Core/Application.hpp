@@ -155,6 +155,8 @@ namespace Lust
 		*/
 		static void EnableSingleton(Application* ptr);
 
+		static TargetAPI CastLustToShaderManagerAPI(GraphicsAPI api);
+
 		std::shared_ptr<CSOCompiler> m_CSOCompiler;
 		std::shared_ptr<SPVCompiler> m_SPVCompiler;
 

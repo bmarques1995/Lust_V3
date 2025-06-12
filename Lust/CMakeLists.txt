@@ -33,16 +33,8 @@ if(WIN32)
 							"backends/imgui_impl_dx12.h")
 endif()
 
-set(SPV_REFLECTION_HASH "refs/heads/vulkan-sdk-1.4.304")
-set(SPV_REFLECTION_URL "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Reflect")
-set(SPV_REFLECTION_FILES "spirv_reflect.h"
-						 "spirv_reflect.c"
-						 "spirv_reflect.cpp")
-
-
 download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_PUBLIC_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui)
 download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_BACKEND_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui)
-download_sources_from_git_repo(COMMIT_VALUE ${SPV_REFLECTION_HASH} SOURCE_BASE_URL ${SPV_REFLECTION_URL} SOURCE_INPUTS ${SPV_REFLECTION_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/spv_reflect)
 
 file(GLOB_RECURSE LUST_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE LUST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
@@ -92,7 +84,6 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Graphics/VK>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/backends>
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/spv_reflect>
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -100,8 +91,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
 	target_compile_definitions(${TARGET_NAME} PUBLIC LUST_RELEASE_MODE)
 endif()
-
-target_compile_definitions(${TARGET_NAME} PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H)
 
 if(WIN32)
 	target_include_directories(${TARGET_NAME} PRIVATE
@@ -111,20 +100,6 @@ if(WIN32)
 	target_include_directories(${TARGET_NAME}
 		PRIVATE 
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Platform/Graphics/D3D12>)
-	add_custom_target(copy_d3d12 ALL
-			COMMAND ${CMAKE_COMMAND} -E copy
-			"${PROJECT_SOURCE_DIR}/D3D12Core/build/native/bin/x64/D3D12Core.dll"
-			${CMAKE_PREFIX_PATH}/bin/D3D12/D3D12Core.dll
-			COMMENT "Copying D3D12Core dll into binary directory")
-	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		add_custom_target(copy_d3d12_sdk ALL
-				COMMAND ${CMAKE_COMMAND} -E copy
-				"${PROJECT_SOURCE_DIR}/D3D12Core/build/native/bin/x64/d3d12SDKLayers.dll"
-				${CMAKE_PREFIX_PATH}/bin/D3D12/d3d12SDKLayers.dll
-				COMMENT "Copying d3d12SDKLayers dll into binary directory")
-		add_dependencies(${TARGET_NAME} copy_d3d12_sdk)
-	endif()
-	add_dependencies(${TARGET_NAME} copy_d3d12)
 	
 	target_compile_definitions(${TARGET_NAME} PUBLIC WIN32_LEAN_AND_MEAN LUST_USES_WINDOWS NOMINMAX VK_USE_PLATFORM_WIN32_KHR)
 
@@ -134,7 +109,7 @@ if(WIN32)
 
 	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid ws2_32)
 endif()
-target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager  EnTT::EnTT)
+target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager EnTT::EnTT)
 if(WIN32)
 	target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_PREFIX_PATH}/lib/dxcompiler.lib)
 elseif(LINUX)

@@ -53,12 +53,12 @@ Lust::ImguiContext* Lust::ImguiContext::Instantiate(const GraphicsContext* graph
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12ImguiContext((const D3D12Context*)(graphicsContext));
 	}
 #endif
-	case SAMPLE_RENDER_GRAPHICS_API_VK:
+	case RENDER_GRAPHICS_API_VK:
 	{
 		return new VKImguiContext((const VKContext*)(graphicsContext));
 	}

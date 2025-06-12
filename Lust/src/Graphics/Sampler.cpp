@@ -17,12 +17,12 @@ Lust::Sampler* Lust::Sampler::Instantiate(const GraphicsContext* context, const 
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12Sampler(info);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKSampler((const VKContext*)(context), info);
 	}

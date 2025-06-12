@@ -1,11 +1,12 @@
 #pragma once
 
-#include "LustDLLMacro.hpp"
+#include "LustShaderManagerDLLMacro.hpp"
 #include "InputBufferLayout.hpp"
 #include "UniformsLayout.hpp"
 #include "SamplerLayout.hpp"
 #include "TextureLayout.hpp"
 #include "StructuredBufferLayout.hpp"
+#include "TargetAPI.hpp"
 #include <string>
 #include <json/json.h>
 
@@ -16,7 +17,7 @@ namespace Lust
 	* @details Contains the shader reflector, which is used to reflect the shader, in other words, to get the layout of the shader,
 	* of all the inputs, uniforms, textures, samplers, structured buffers, and the input assembly layout
 	*/
-	class LUST_API ShaderReflector
+	class LUST_SHADER_MNG_API ShaderReflector
 	{
 	public:
 		/**
@@ -71,6 +72,14 @@ namespace Lust
 		*/
 		static ShaderReflector* Instantiate(std::string_view jsonBasepath, uint32_t stages, uint32_t numInstances = 1);
 	
+		/**
+		* @brief Init the infos of the api
+		* @param uniformAttachment uniform attachment
+		* @param smallBufferAttachment uniform attachment
+		* @param api current graphics api
+		*/
+		static void InitAPIInfos(uint32_t uniformAttachment, uint32_t smallBufferAttachment, TargetAPI api);
+
 	protected:
 		InputBufferLayout m_InputBufferLayout;
 		SmallBufferLayout m_SmallBufferLayout;
@@ -85,6 +94,7 @@ namespace Lust
 		std::string m_ShaderDir;
 
 		uint32_t m_NumberOfInstances;
+		
 
 		/**
 		* @brief Initializes the json and paths
@@ -93,5 +103,14 @@ namespace Lust
 		void InitJsonAndPaths(std::string_view jsonFilepath);
 
 		static const std::list<std::string> s_GraphicsPipelineStages;
+
+		static uint32_t GetUniformAttachment();
+		static uint32_t GetSmallBufferAttachment();
+
+	private:
+		static uint32_t s_UniformAttachment;
+		static uint32_t s_SmallBufferAttachment;
+		static TargetAPI s_API;
+		static bool s_InitializedAttachments;
 	};
 }

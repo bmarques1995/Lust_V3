@@ -1,6 +1,6 @@
 #include "ShaderReflector.hpp"
-#include "Application.hpp"
-#ifdef LUST_USES_WINDOWS
+
+#ifdef LUST_SHADER_MNG_USES_WINDOWS
 #include "D3D12ShaderReflector.hpp"
 #endif
 #include "VKShaderReflector.hpp"
@@ -9,6 +9,11 @@
 #include <filesystem>
 
 namespace fs = std::filesystem;
+
+uint32_t Lust::ShaderReflector::s_UniformAttachment;
+uint32_t Lust::ShaderReflector::s_SmallBufferAttachment;
+bool Lust::ShaderReflector::s_InitializedAttachments = false;
+Lust::TargetAPI Lust::ShaderReflector::s_API;
 
 const std::list<std::string> Lust::ShaderReflector::s_GraphicsPipelineStages =
 {
@@ -22,20 +27,23 @@ const std::list<std::string> Lust::ShaderReflector::s_GraphicsPipelineStages =
 
 Lust::ShaderReflector* Lust::ShaderReflector::Instantiate(std::string_view jsonBasepath, uint32_t stages, uint32_t numInstances)
 {
-	GraphicsAPI api = Application::GetInstance()->GetCurrentAPI();
+	if (!s_InitializedAttachments)
+	{
+		return nullptr;
+	}
 	std::stringstream controller_path;
 	controller_path << jsonBasepath.data();
-	switch (api)
+	switch (s_API)
 	{
-#ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+#ifdef LUST_SHADER_MNG_USES_WINDOWS
+	case Lust::SHADER_MANAGER_GRAPHICS_API_D3D12:
 	{
 		controller_path << ".d3d12.json";
 		std::string json_controller_path = controller_path.str();
 		return new D3D12ShaderReflector(json_controller_path, stages, numInstances);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::SHADER_MANAGER_GRAPHICS_API_VK:
 	{
 		controller_path << ".vk.json";
 		std::string json_controller_path = controller_path.str();
@@ -104,4 +112,25 @@ const Lust::SamplerArrayLayout& Lust::ShaderReflector::GetSamplerArrayLayout() c
 const Lust::StructuredBufferLayout& Lust::ShaderReflector::GetStructuredBufferLayout() const
 {
 	return m_StructuredBufferLayout;
+}
+
+uint32_t Lust::ShaderReflector::GetUniformAttachment()
+{
+	return s_UniformAttachment;
+}
+
+uint32_t Lust::ShaderReflector::GetSmallBufferAttachment()
+{
+	return s_SmallBufferAttachment;
+}
+
+void Lust::ShaderReflector::InitAPIInfos(uint32_t uniformAttachment, uint32_t smallBufferAttachment, TargetAPI api)
+{
+	if (!s_InitializedAttachments)
+	{
+		s_API = api;
+		s_SmallBufferAttachment = smallBufferAttachment;
+		s_UniformAttachment = uniformAttachment;
+		s_InitializedAttachments = true;
+	}
 }

@@ -138,7 +138,7 @@ namespace Lust
 		VkInstance m_Instance;
 		VkSurfaceKHR m_Surface;
 		VkPhysicalDevice m_Adapter = VK_NULL_HANDLE;
-		uint32_t m_UniformAttachment;
+		uint32_t s_UniformAttachment;
 		VkDevice m_Device;
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentQueue;

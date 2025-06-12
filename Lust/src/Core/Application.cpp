@@ -13,6 +13,7 @@
 #include "Renderer2D.hpp"
 #include "Sleeper.hpp"
 #include "Sockets.hpp"
+#include <ShaderReflector.hpp>
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -34,6 +35,7 @@ Lust::Application::Application()
 	m_Context.reset(GraphicsContext::Instantiate(m_Window.get(), 3));
 	Sockets::StartAPI();
 	Sockets::SetCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
+	ShaderReflector::InitAPIInfos(m_Context->GetUniformAttachment(), m_Context->GetSmallBufferAttachment(), CastLustToShaderManagerAPI(GetCurrentAPI()));
 
 	try
 	{
@@ -62,7 +64,7 @@ Lust::Application::Application()
 	m_ImguiContext.reset(ImguiContext::Instantiate(m_Context.get()));
 
 	std::stringstream buffer;
-	buffer << m_Window->GetTitle() <<" [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
+	buffer << m_Window->GetTitle() <<" [" << (m_Starter->GetCurrentAPI() == GraphicsAPI::RENDER_GRAPHICS_API_VK ? "Vulkan" : "D3D12") << "]";
 	m_Window->ResetTitle(buffer.str());
 
 	m_Instrumentator.reset(GPUInstrumentator::Instantiate(m_Context.get()));
@@ -274,3 +276,16 @@ Lust::Application* Lust::Application::GetInstance()
 {
 	return s_AppSingleton;
 }
+
+Lust::TargetAPI Lust::Application::CastLustToShaderManagerAPI(GraphicsAPI api)
+{
+	switch (api)
+	{
+	default:
+	case Lust::RENDER_GRAPHICS_API_VK:
+		return TargetAPI::SHADER_MANAGER_GRAPHICS_API_VK;
+	case Lust::RENDER_GRAPHICS_API_D3D12:
+		return TargetAPI::SHADER_MANAGER_GRAPHICS_API_D3D12;
+	}
+}
+

@@ -1,10 +1,11 @@
 #pragma once
 
-#ifdef LUST_USES_WINDOWS
+#ifdef LUST_SHADER_MNG_USES_WINDOWS
 
 #include "ShaderReflector.hpp"
 #include <ComPointer.hpp>
 #include "DXCSafeInclude.hpp"
+#include <d3d12.h>
 #include <d3d12shader.h>
 
 namespace Lust

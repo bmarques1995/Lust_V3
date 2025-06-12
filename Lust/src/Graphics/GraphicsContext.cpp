@@ -11,10 +11,10 @@ Lust::GraphicsContext* Lust::GraphicsContext::Instantiate(const Window* window, 
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case GraphicsAPI::RENDER_GRAPHICS_API_D3D12:
 		return new D3D12Context(window, framesInFlight);
 #endif
-	case GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case GraphicsAPI::RENDER_GRAPHICS_API_VK:
 		return new VKContext(window, framesInFlight);
 	default:
 		break;

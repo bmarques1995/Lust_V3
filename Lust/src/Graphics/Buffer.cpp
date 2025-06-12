@@ -11,12 +11,12 @@ Lust::VertexBuffer* Lust::VertexBuffer::Instantiate(const GraphicsContext* conte
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12VertexBuffer((const D3D12Context*)(context), data, size, stride, dynamicBuffer);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKVertexBuffer((const VKContext*)(context), data, size, stride, dynamicBuffer);
 	}
@@ -32,12 +32,12 @@ Lust::IndexBuffer* Lust::IndexBuffer::Instantiate(const GraphicsContext* context
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12IndexBuffer((const D3D12Context*)(context), data, count, dynamicBuffer);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKIndexBuffer((const VKContext*)(context), data, count, dynamicBuffer);
 	}
@@ -53,12 +53,12 @@ Lust::UniformBuffer* Lust::UniformBuffer::Instantiate(const GraphicsContext* con
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12UniformBuffer((const D3D12Context*)(context), data, size);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKUniformBuffer((const VKContext*)(context), data, size);
 	}
@@ -74,12 +74,12 @@ Lust::StructuredBuffer* Lust::StructuredBuffer::Instantiate(const GraphicsContex
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12StructuredBuffer((const D3D12Context*)(context), data, size);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKStructuredBuffer((const VKContext*)(context), data, size);
 	}

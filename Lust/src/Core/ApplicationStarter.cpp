@@ -3,21 +3,21 @@
 
 const std::unordered_map<std::string, Lust::GraphicsAPI> Lust::ApplicationStarter::s_GraphicsAPIMapper =
 {
-	{"SAMPLE_RENDER_GRAPHICS_API_VK", Lust::GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK},
-	{"SAMPLE_RENDER_GRAPHICS_API_VULKAN", Lust::GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK},
+	{"SAMPLE_RENDER_GRAPHICS_API_VK", Lust::GraphicsAPI::RENDER_GRAPHICS_API_VK},
+	{"SAMPLE_RENDER_GRAPHICS_API_VULKAN", Lust::GraphicsAPI::RENDER_GRAPHICS_API_VK},
 #ifdef LUST_USES_WINDOWS
-	{"SAMPLE_RENDER_GRAPHICS_API_DX12", Lust::GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_D3D12},
-	{"SAMPLE_RENDER_GRAPHICS_API_D3D12", Lust::GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_D3D12},
-	{"SAMPLE_RENDER_GRAPHICS_API_DIRECTX12", Lust::GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_D3D12},
-	{"SAMPLE_RENDER_GRAPHICS_API_DIRECT3D12", Lust::GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_D3D12},
+	{"SAMPLE_RENDER_GRAPHICS_API_DX12", Lust::GraphicsAPI::RENDER_GRAPHICS_API_D3D12},
+	{"SAMPLE_RENDER_GRAPHICS_API_D3D12", Lust::GraphicsAPI::RENDER_GRAPHICS_API_D3D12},
+	{"SAMPLE_RENDER_GRAPHICS_API_DIRECTX12", Lust::GraphicsAPI::RENDER_GRAPHICS_API_D3D12},
+	{"SAMPLE_RENDER_GRAPHICS_API_DIRECT3D12", Lust::GraphicsAPI::RENDER_GRAPHICS_API_D3D12},
 #endif
 };
 
 const std::unordered_map<Lust::GraphicsAPI, std::string> Lust::ApplicationStarter::s_GraphicsAPIReverseMapper =
 {
-	{GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_VK, "SAMPLE_RENDER_GRAPHICS_API_VK"},
+	{GraphicsAPI::RENDER_GRAPHICS_API_VK, "SAMPLE_RENDER_GRAPHICS_API_VK"},
 #ifdef LUST_USES_WINDOWS
-	{GraphicsAPI::SAMPLE_RENDER_GRAPHICS_API_D3D12, "SAMPLE_RENDER_GRAPHICS_API_D3D12"},
+	{GraphicsAPI::RENDER_GRAPHICS_API_D3D12, "SAMPLE_RENDER_GRAPHICS_API_D3D12"},
 #endif
 };
 
@@ -28,7 +28,7 @@ Lust::ApplicationStarter::ApplicationStarter(std::string_view jsonFilepath) :
 	if (!FileHandler::FileExists(jsonFilepath.data()))
 	{
 		m_Starter["GraphicsAPI"] = "SAMPLE_RENDER_GRAPHICS_API_VK";
-		m_API = SAMPLE_RENDER_GRAPHICS_API_VK;
+		m_API = RENDER_GRAPHICS_API_VK;
 		FileHandler::WriteTextFile(jsonFilepath.data(), m_Starter.toStyledString());
 		m_Starter["FullscreenMode"] = false;
 		m_FullscreenMode = false;
@@ -49,7 +49,7 @@ Lust::ApplicationStarter::ApplicationStarter(std::string_view jsonFilepath) :
 		{
 			m_Width = 1280;
 			m_Height = 720;
-			m_API = SAMPLE_RENDER_GRAPHICS_API_VK;
+			m_API = RENDER_GRAPHICS_API_VK;
 			m_FullscreenMode = false;
 			m_Starter["GraphicsAPI"] = "SAMPLE_RENDER_GRAPHICS_API_VK";
 			m_Starter["FullscreenMode"] = m_FullscreenMode;

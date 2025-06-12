@@ -1,7 +1,6 @@
 #include "VKShaderReflector.hpp"
 #include <cstring>
-#include "FileHandler.hpp" 
-#include <Application.hpp>
+#include "FileHandler.hpp"
 #include <Stack>
 
 Lust::RawBuffer::RawBuffer()
@@ -97,12 +96,12 @@ void Lust::VKShaderReflector::GenerateSmallBufferLayout(const SpvReflectShaderMo
 	spvReflectEnumeratePushConstantBlocks(module, &pushConstantCount, nullptr);
 	std::vector<SpvReflectBlockVariable*> pushConstants(pushConstantCount);
 	spvReflectEnumeratePushConstantBlocks(module, &pushConstantCount, pushConstants.data());
-	auto context = Application::GetInstance()->GetContext();
+	//auto context = Application::GetInstance()->GetContext();
 	for (auto it = pushConstants.begin(); it != pushConstants.end(); it++)
 	{
 		if (m_SmallBufferLayout.GetElements().find((*it)->name) == m_SmallBufferLayout.GetElements().end())
 		{
-			SmallBufferElement sbe((*it)->offset, (*it)->size, 0, context->GetSmallBufferAttachment(), (*it)->name);
+			SmallBufferElement sbe((*it)->offset, (*it)->size, 0, GetSmallBufferAttachment(), (*it)->name);
 			m_SmallBufferLayout.Upload(sbe);
 		}
 	}
@@ -139,8 +138,6 @@ void Lust::VKShaderReflector::GenerateBuffersLayout(const SpvReflectShaderModule
 
 void Lust::VKShaderReflector::UploadBlob(std::string_view shader_stage, RawBuffer* blob)
 {
-	HRESULT hr;
-
 	std::string shaderName = m_PipelineInfo["BinShaders"][shader_stage.data()]["filename"].asString();
 	if ((shaderName.size() == 0))
 		return;
@@ -174,9 +171,9 @@ void Lust::VKShaderReflector::ReflectStage(std::string_view shader_stage, const 
 
 void Lust::VKShaderReflector::CreateUniformElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
 {
-	auto context = Application::GetInstance()->GetContext();
+	//auto context = Application::GetInstance()->GetContext();
 	UniformElement ue(BufferType::UNIFORM_CONSTANT_BUFFER, (*reflector_binder)->block.size, (*reflector_binder)->binding, (*reflector_binder)->set, 0,
-		AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 1, (*reflector_binder)->name);
+		AccessLevel::ROOT_BUFFER, 1, GetUniformAttachment(), 1, (*reflector_binder)->name);
 	instance->m_UniformLayout.Upload(ue);
 }
 
@@ -210,14 +207,14 @@ void Lust::VKShaderReflector::CreateSamplerElement(SpvReflectDescriptorBinding**
 
 void Lust::VKShaderReflector::CreateStructuredBufferElement(SpvReflectDescriptorBinding** reflector_binder, VKShaderReflector* instance)
 { 
-	auto context = Application::GetInstance()->GetContext();
+	//auto context = Application::GetInstance()->GetContext();
 	auto b_block = (*reflector_binder)->block;
 #if 0
 	size_t recursivebufferStride = GetStructuredBufferStrideRecursively((*reflector_binder)->type_description);
 #endif
 	size_t bufferStride = GetStructuredBufferStride((*reflector_binder)->type_description);
 	StructuredBufferElement sbe((*reflector_binder)->binding, (uint32_t)0, (*reflector_binder)->set, 0, bufferStride,
-		AccessLevel::ROOT_BUFFER, context->GetUniformAttachment(), (*reflector_binder)->name, instance->m_NumberOfInstances);
+		AccessLevel::ROOT_BUFFER, GetUniformAttachment(), (*reflector_binder)->name, instance->m_NumberOfInstances);
 	instance->m_StructuredBufferLayout.Upload(sbe);
 }
 

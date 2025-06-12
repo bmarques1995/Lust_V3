@@ -11,12 +11,12 @@ Lust::Drawer* Lust::Drawer::Instantiate(const GraphicsContext* context)
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12Drawer((const D3D12Context*)(context));
 	}
 #endif
-	case SAMPLE_RENDER_GRAPHICS_API_VK:
+	case RENDER_GRAPHICS_API_VK:
 	{
 		return new VKDrawer((const VKContext*)(context));
 	}

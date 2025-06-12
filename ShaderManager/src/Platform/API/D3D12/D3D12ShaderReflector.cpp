@@ -1,8 +1,7 @@
-#ifdef LUST_USES_WINDOWS
+#ifdef LUST_SHADER_MNG_USES_WINDOWS
 
 #include "D3D12ShaderReflector.hpp"
 #include "FileHandler.hpp"
-#include <Application.hpp>
 
 const std::unordered_map<std::string, bool> Lust::D3D12ShaderReflector::s_HLSLSysVals =
 {
@@ -165,7 +164,7 @@ void Lust::D3D12ShaderReflector::PushExternalElementPreInfo(ID3D12ShaderReflecti
 void Lust::D3D12ShaderReflector::PushRootElement(const D3D12_ROOT_PARAMETER& param, uint32_t rootIndex)
 {
 	uint32_t index = 0xffffffff;
-	auto context = Application::GetInstance()->GetContext();
+	//auto context = Application::GetInstance()->GetContext();
 	auto it = s_ReturnTypesMap.find(param.ParameterType);
 	if (it != s_ReturnTypesMap.end())
 	{
@@ -197,16 +196,16 @@ void Lust::D3D12ShaderReflector::PushRootElement(const D3D12_ROOT_PARAMETER& par
 	{
 		if (param.ParameterType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
 		{
-			m_SmallBufferLayout.Upload(SmallBufferElement(0, bufferSize, rootIndex, context->GetSmallBufferAttachment(), bufferName));
+			m_SmallBufferLayout.Upload(SmallBufferElement(0, bufferSize, rootIndex, GetSmallBufferAttachment(), bufferName));
 		}
 		else
 		{
-			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, rootIndex, AccessLevel::ROOT_BUFFER, 1, context->GetUniformAttachment(), 0, bufferName));
+			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, rootIndex, AccessLevel::ROOT_BUFFER, 1, GetUniformAttachment(), 0, bufferName));
 		}
 		break;
 	}
 	case D3D_SIT_STRUCTURED:
-		m_StructuredBufferLayout.Upload(StructuredBufferElement(0, rootIndex, 0, 0, bufferSize, AccessLevel::ROOT_BUFFER, context->GetUniformAttachment(), bufferName, m_NumberOfInstances));
+		m_StructuredBufferLayout.Upload(StructuredBufferElement(0, rootIndex, 0, 0, bufferSize, AccessLevel::ROOT_BUFFER, GetUniformAttachment(), bufferName, m_NumberOfInstances));
 		break;
 	default:
 		break;
@@ -217,7 +216,7 @@ void Lust::D3D12ShaderReflector::PushDescriptorTable(const D3D12_ROOT_PARAMETER&
 {
 	uint32_t index = 0xffffffff;
 	uint32_t descriptorOffset = 0;
-	auto context = Application::GetInstance()->GetContext();
+	//auto context = Application::GetInstance()->GetContext();
 	for (size_t j = 0; j < param.DescriptorTable.NumDescriptorRanges; j++)
 	{
 		auto it = s_ReturnRangeTypesMap.find(param.DescriptorTable.pDescriptorRanges[j].RangeType);
@@ -250,7 +249,7 @@ void Lust::D3D12ShaderReflector::PushDescriptorTable(const D3D12_ROOT_PARAMETER&
 		{
 		case D3D_SIT_CBUFFER:
 			//BufferType bufferType, size_t size, uint32_t bindingSlot, uint32_t spaceSet, uint32_t shaderRegister, AccessLevel accessLevel, uint32_t numberOfBuffers, uint32_t bufferAttachment, uint32_t tableIndex, std::string name
-			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, rootIndex, AccessLevel::DESCRIPTOR_BUFFER, 1, context->GetUniformAttachment(), descriptorOffset, bufferName));
+			m_UniformLayout.Upload(UniformElement(BufferType::UNIFORM_CONSTANT_BUFFER, bufferSize, 0, 0, rootIndex, AccessLevel::DESCRIPTOR_BUFFER, 1, GetUniformAttachment(), descriptorOffset, bufferName));
 			break;
 		case D3D_SIT_TEXTURE:
 		{
@@ -279,7 +278,7 @@ void Lust::D3D12ShaderReflector::PushDescriptorTable(const D3D12_ROOT_PARAMETER&
 			uint32_t bindingSlot, uint32_t shaderRegister, uint32_t spaceSet, uint32_t bufferIndex, size_t stride,
 AccessLevel accessLevel, size_t bufferAlignment, std::string name, uint32_t numberOfElements
 			*/
-			m_StructuredBufferLayout.Upload(StructuredBufferElement(0, rootIndex, 0, descriptorOffset, bufferSize, AccessLevel::DESCRIPTOR_BUFFER, context->GetUniformAttachment(), bufferName, m_NumberOfInstances));
+			m_StructuredBufferLayout.Upload(StructuredBufferElement(0, rootIndex, 0, descriptorOffset, bufferSize, AccessLevel::DESCRIPTOR_BUFFER, GetUniformAttachment(), bufferName, m_NumberOfInstances));
 			break;
 		default:
 			break;

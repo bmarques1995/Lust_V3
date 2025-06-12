@@ -124,7 +124,7 @@ void Lust::VKContext::SetClearColor(float r, float g, float b, float a)
 
 uint32_t Lust::VKContext::GetUniformAttachment() const
 {
-    return m_UniformAttachment;
+    return s_UniformAttachment;
 }
 
 uint32_t Lust::VKContext::GetSmallBufferAttachment() const
@@ -529,7 +529,7 @@ void Lust::VKContext::BufferizeUniformAttachment()
 {
     VkPhysicalDeviceProperties deviceProperties;
     VKFunctions::vkGetPhysicalDevicePropertiesFn(m_Adapter, &deviceProperties);
-    m_UniformAttachment = (uint32_t)deviceProperties.limits.minUniformBufferOffsetAlignment;
+    s_UniformAttachment = (uint32_t)deviceProperties.limits.minUniformBufferOffsetAlignment;
 }
 
 void Lust::VKContext::CreateDevice()

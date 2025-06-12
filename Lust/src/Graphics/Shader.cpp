@@ -104,14 +104,14 @@ Lust::Shader* Lust::Shader::Instantiate(const GraphicsContext* context, std::str
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		controller_path << ".d3d12.json";
 		std::string json_controller_path = controller_path.str();
 		return new D3D12Shader((const D3D12Context*)(context), json_controller_path, inputInfo, topology);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		controller_path << ".vk.json";
 		std::string json_controller_path = controller_path.str();

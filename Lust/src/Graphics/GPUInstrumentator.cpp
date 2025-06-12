@@ -11,12 +11,12 @@ Lust::GPUInstrumentator* Lust::GPUInstrumentator::Instantiate(const GraphicsCont
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12Instrumentator((const D3D12Context*)(context));
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKInstrumentator((const VKContext*)(context));
 	}

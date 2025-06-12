@@ -1,0 +1,12 @@
+#pragma once
+
+namespace Lust
+{
+	enum TargetAPI
+	{
+		SHADER_MANAGER_GRAPHICS_API_VK = 1,
+	#ifdef LUST_SHADER_MNG_USES_WINDOWS
+		SHADER_MANAGER_GRAPHICS_API_D3D12,
+	#endif //D3D12_GUARD
+	};
+}

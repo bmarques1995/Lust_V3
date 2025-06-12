@@ -32,12 +32,12 @@ Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, co
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 		return new D3D12Texture2D((const D3D12Context*)(context), specification);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKTexture2D((const VKContext*)(context), specification);
 	}
@@ -64,13 +64,13 @@ Lust::Texture2D* Lust::Texture2D::Instantiate(const GraphicsContext* context, ui
 	switch (api)
 	{
 #ifdef LUST_USES_WINDOWS
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_D3D12:
+	case Lust::RENDER_GRAPHICS_API_D3D12:
 	{
 
 		return new D3D12Texture2D((const D3D12Context*)(context), specification);
 	}
 #endif
-	case Lust::SAMPLE_RENDER_GRAPHICS_API_VK:
+	case Lust::RENDER_GRAPHICS_API_VK:
 	{
 		return new VKTexture2D((const VKContext*)(context), specification);
 	}
