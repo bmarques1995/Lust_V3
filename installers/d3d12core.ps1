@@ -3,8 +3,8 @@ param (
 )
 
 $direct3DVersionMajor = "1"
-$direct3DVersionMinor = "615"
-$direct3DVersionPatch = "0"
+$direct3DVersionMinor = "616"
+$direct3DVersionPatch = "1"
 
 
 if ($moduleDestination -ne "") {
