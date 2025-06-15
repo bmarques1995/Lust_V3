@@ -38,6 +38,7 @@ if(NOT DISABLE_BUILDS)
     # Inclua subprojetos.
     add_subdirectory("Utils")
     add_subdirectory("ShaderManager")
+    add_subdirectory("UI")
     add_subdirectory("Lust")
     add_subdirectory("Sandbox")
     add_subdirectory("Launcher")

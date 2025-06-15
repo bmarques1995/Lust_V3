@@ -109,7 +109,7 @@ if(WIN32)
 
 	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid ws2_32)
 endif()
-target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager EnTT::EnTT)
+target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager LustUI EnTT::EnTT)
 if(WIN32)
 	target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_PREFIX_PATH}/lib/dxcompiler.lib)
 elseif(LINUX)
