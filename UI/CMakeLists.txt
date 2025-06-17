@@ -5,18 +5,43 @@ if(BUILD_SHARED_LIBS)
 	set(LIB_TYPE SHARED)
 endif()
 
-file(GLOB_RECURSE SHADER_MNG_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
-file(GLOB_RECURSE SHADER_MNG_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
+file(GLOB_RECURSE VMA_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "vma/*.hpp")
+file(GLOB_RECURSE VMA_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "vma/*.cpp")
+file(GLOB_RECURSE UI_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
+file(GLOB_RECURSE UI_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 if(WIN32)
 	trace_library(NAME "dxcompiler" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/dxc.ps1" LIMIT_SEARCH_PATHS)
 	trace_dependency(NAME jsoncpp INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/jsoncpp.ps1")
-	trace_dependency(NAME flatbuffers INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/flatbuffers.ps1")
-	trace_dependency(NAME Spirv-Headers INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spirv_headers.ps1")
-	trace_dependency(NAME SPIRV-Tools INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spirv_tools.ps1")
+	trace_dependency(NAME VulkanHeaders INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_headers.ps1")
+	trace_dependency(NAME VulkanLoader INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_loader.ps1")
+	trace_dependency(NAME VulkanMemoryAllocator INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vma.ps1")
+	trace_dependency(NAME D3D12MemoryAllocator INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/d3d12ma.ps1")
 endif()
 
-add_library(${TARGET_NAME} ${LIB_TYPE} ${SHADER_MNG_HDRS} ${SHADER_MNG_SRCS})
+add_library(LustVMA ${LIB_TYPE} ${VMA_HDRS} ${VMA_SRCS})
+target_link_libraries(LustVMA PUBLIC GPUOpen::VulkanMemoryAllocator)
+target_include_directories(LustVMA PUBLIC 
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vma>
+	$<INSTALL_INTERFACE:./>
+)
+
+set_cxx_project_standards(LustVMA 20 FALSE)
+target_installation_behaviour(
+	CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/vma.cmake.in
+	TARGET_NAME LustVMA
+	VERSION ${PROJECT_VERSION}
+	PROJECT_NAME ${PROJECT_NAME}
+	NAMESPACE "Lust" 
+	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/vma/
+	HEADER_OUTPUT ./include/LustVMA)
+
+if(WIN32 AND BUILD_SHARED_LIBS)
+	target_compile_definitions(LustVMA PRIVATE LUST_VMA_BUILD_DLL)
+	target_compile_definitions(LustVMA INTERFACE LUST_VMA_CONSUME_DLL)
+endif()
+
+add_library(${TARGET_NAME} ${LIB_TYPE} ${UI_HDRS} ${UI_SRCS})
 target_include_directories(${TARGET_NAME} PUBLIC 
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/UI>
 	$<INSTALL_INTERFACE:./>
@@ -24,12 +49,13 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	PRIVATE
 	#$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/API/VK>
 )
+target_link_libraries(${TARGET_NAME} PRIVATE Vulkan::Headers Vulkan::Loader LustVMA)
 if(WIN32)
 	find_library(D3D12_FOUND NAMES d3d12 REQUIRED)
 	find_library(DXGI_FOUND NAMES dxgi REQUIRED)
 	find_library(DXGUID_FOUND NAMES dxguid REQUIRED)
 
-	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid)
+	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid GPUOpen::D3D12MemoryAllocator)
 endif()
 
 if(WIN32)
