@@ -144,6 +144,7 @@ void Lust::D3D12Context::SubmitRenderPass()
 void Lust::D3D12Context::ReceiveCommands()
 {
 	m_CurrentBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
+	m_Allocator->SetCurrentFrameIndex(m_CurrentBufferIndex);
 }
 
 void Lust::D3D12Context::DispatchCommands()

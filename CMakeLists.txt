@@ -34,11 +34,41 @@ if (MSVC)
   add_compile_options(/ZI)
 endif ()
 
+file(GLOB_RECURSE VMA_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "vma/*.hpp")
+file(GLOB_RECURSE VMA_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "vma/*.cpp")
+
+if(WIN32)
+	trace_dependency(NAME VulkanHeaders INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_headers.ps1")
+	trace_dependency(NAME VulkanLoader INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_loader.ps1")
+	trace_dependency(NAME VulkanMemoryAllocator INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vma.ps1")
+endif()
+
+add_library(LustVMA ${LIB_TYPE} ${VMA_HDRS} ${VMA_SRCS})
+target_link_libraries(LustVMA PUBLIC GPUOpen::VulkanMemoryAllocator Vulkan::Headers Vulkan::Loader)
+target_include_directories(LustVMA PUBLIC 
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vma>
+	$<INSTALL_INTERFACE:./>
+)
+
+set_cxx_project_standards(LustVMA 20 FALSE)
+target_installation_behaviour(
+	CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vma/cmake/vma.cmake.in
+	TARGET_NAME LustVMA
+	VERSION ${PROJECT_VERSION}
+	PROJECT_NAME ${PROJECT_NAME}
+	NAMESPACE "Lust" 
+	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/vma/
+	HEADER_OUTPUT ./include/LustVMA)
+
+if(WIN32 AND BUILD_SHARED_LIBS)
+	target_compile_definitions(LustVMA PRIVATE LUST_VMA_BUILD_DLL)
+	target_compile_definitions(LustVMA INTERFACE LUST_VMA_CONSUME_DLL)
+endif()
+
 if(NOT DISABLE_BUILDS)
     # Inclua subprojetos.
     add_subdirectory("Utils")
     add_subdirectory("ShaderManager")
-    add_subdirectory("UI")
     add_subdirectory("Lust")
     add_subdirectory("Sandbox")
     add_subdirectory("Launcher")

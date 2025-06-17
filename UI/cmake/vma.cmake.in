@@ -1,4 +1,0 @@
-include(CMakeFindDependencyMacro)
-
-#This variable name "TARGET_TARGETS_EXPORT_NAME" is mandatory
-include("${CMAKE_CURRENT_LIST_DIR}/@TARGET_TARGETS_EXPORT_NAME@.cmake")

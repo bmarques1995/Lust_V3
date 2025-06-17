@@ -14,7 +14,6 @@
 #include "Sleeper.hpp"
 #include "Sockets.hpp"
 #include <ShaderReflector.hpp>
-#include <UI.hpp>
 
 Lust::Application* Lust::Application::s_AppSingleton = nullptr;
 bool Lust::Application::s_SingletonEnabled = false;
@@ -37,8 +36,6 @@ Lust::Application::Application()
 	Sockets::StartAPI();
 	Sockets::SetCallback(std::bind(&Application::OnEvent, this, std::placeholders::_1));
 	ShaderReflector::InitAPIInfos(m_Context->GetUniformAttachment(), m_Context->GetSmallBufferAttachment(), CastLustToShaderManagerAPI(GetCurrentAPI()));
-
-	UI::UIHello();
 
 	try
 	{
