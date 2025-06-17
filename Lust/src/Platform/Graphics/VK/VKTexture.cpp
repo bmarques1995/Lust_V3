@@ -20,10 +20,10 @@ Lust::VKTexture2D::VKTexture2D(const VKContext* context, const TextureBuffer& sp
 Lust::VKTexture2D::~VKTexture2D()
 {
     auto device = m_Context->GetDevice();
+	auto allocator = m_Context->GetAllocator();
     VKFunctions::vkDeviceWaitIdleFn(device);
     VKFunctions::vkDestroyImageViewFn(device, m_ResourceView, nullptr);
-    VKFunctions::vkFreeMemoryFn(device, m_Memory, nullptr);
-    VKFunctions::vkDestroyImageFn(device, m_Resource, nullptr);
+    VKFunctions::vmaDestroyImageFn(allocator, m_Resource, m_Allocation);
 }
 
 const Lust::TextureBuffer& Lust::VKTexture2D::GetTextureDescription() const
@@ -51,9 +51,9 @@ VkImage Lust::VKTexture2D::GetResource() const
 	return m_Resource;
 }
 
-VkDeviceMemory Lust::VKTexture2D::GetMemory() const
+VmaAllocation Lust::VKTexture2D::GetAllocation() const
 {
-	return m_Memory;
+	return m_Allocation;
 }
 
 VkImageView Lust::VKTexture2D::GetView() const
@@ -65,6 +65,7 @@ void Lust::VKTexture2D::CreateResource()
 {
     VkResult vkr;
     auto device = m_Context->GetDevice();
+	auto allocator = m_Context->GetAllocator();
     VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
     VkImageCreateInfo imageInfo{};
@@ -84,22 +85,13 @@ void Lust::VKTexture2D::CreateResource()
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = VKFunctions::vkCreateImageFn(device, &imageInfo, nullptr, &m_Resource);
-    assert(vkr == VK_SUCCESS);
+    VmaAllocationCreateInfo imageAllocCreateInfo = {};
+    imageAllocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-    VkMemoryRequirements memRequirements;
-    VKFunctions::vkGetImageMemoryRequirementsFn(device, m_Resource, &memRequirements);
+    VmaAllocationInfo depthImageAllocInfo = {};
 
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-    vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, &m_Memory);
-    assert(vkr == VK_SUCCESS);
-
-    vkr = VKFunctions::vkBindImageMemoryFn(device, m_Resource, m_Memory, 0);
-    assert(vkr == VK_SUCCESS);
+    vkr = VKFunctions::vmaCreateImageFn(allocator, &imageInfo, &imageAllocCreateInfo, &m_Resource, &m_Allocation, &depthImageAllocInfo);
+    (vkr == VK_SUCCESS);
 
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -120,6 +112,7 @@ void Lust::VKTexture2D::CopyBuffer()
 {
     VkResult vkr;
     auto device = m_Context->GetDevice();
+	auto allocator = m_Context->GetAllocator();
     std::shared_ptr<VKCopyPipeline>* copyPipeline = (std::shared_ptr<VKCopyPipeline>*)
         TextureLibrary::GetCopyPipeline();
 
@@ -129,36 +122,28 @@ void Lust::VKTexture2D::CopyBuffer()
     VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
     VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    VmaAllocation stagingBufferAllocation;
     size_t imageSize = (m_Specification.GetWidth() * m_Specification.GetHeight() * m_Specification.GetDepth() * m_Specification.GetChannels());
 
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = imageSize;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	VkBufferCreateInfo bufferInfo{};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = imageSize;
+	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = VKFunctions::vkCreateBufferFn(device, &bufferInfo, nullptr, &stagingBuffer);
-    assert(vkr == VK_SUCCESS);
+	// Define allocation info
+	VmaAllocationCreateInfo allocCreateInfo = {};
+	allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO; // Automatically select memory type
+	allocCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT; // Optional: Use dedicated memory
 
-    VkMemoryRequirements memRequirements;
-    VKFunctions::vkGetBufferMemoryRequirementsFn(device, stagingBuffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-    vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, &stagingBufferMemory);
-    assert(vkr == VK_SUCCESS);
-
-    VKFunctions::vkBindBufferMemoryFn(device, stagingBuffer, stagingBufferMemory, 0);
+	vkr = VKFunctions::vmaCreateBufferFn(allocator, &bufferInfo, &allocCreateInfo, &stagingBuffer, &stagingBufferAllocation, nullptr);
+	assert(vkr == VK_SUCCESS);
 
     void* GPUData = nullptr;
-    vkr = VKFunctions::vkMapMemoryFn(device, stagingBufferMemory, 0, imageSize, 0, &GPUData);
+    vkr = VKFunctions::vmaMapMemoryFn(allocator, stagingBufferAllocation, &GPUData);
     assert(vkr == VK_SUCCESS);
     memcpy(GPUData, m_Specification.GetTextureBuffer(), imageSize);
-    VKFunctions::vkUnmapMemoryFn(device, stagingBufferMemory);
+    VKFunctions::vmaUnmapMemoryFn(allocator, stagingBufferAllocation);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -240,23 +225,7 @@ void Lust::VKTexture2D::CopyBuffer()
 
     (*copyPipeline)->Wait();
 
-    VKFunctions::vkDestroyBufferFn(device, stagingBuffer, nullptr);
-    VKFunctions::vkFreeMemoryFn(device, stagingBufferMemory, nullptr);
-}
-
-uint32_t Lust::VKTexture2D::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-    auto adapter = m_Context->GetAdapter();
-    VkPhysicalDeviceMemoryProperties memProperties;
-    VKFunctions::vkGetPhysicalDeviceMemoryPropertiesFn(adapter, &memProperties);
-
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    return 0xffffffff;
+    VKFunctions::vmaDestroyBufferFn(allocator, stagingBuffer, stagingBufferAllocation);
 }
 
 VkImageType Lust::VKTexture2D::GetNativeTensor(TextureTensor tensor)

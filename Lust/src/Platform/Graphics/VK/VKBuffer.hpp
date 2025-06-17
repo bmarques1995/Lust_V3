@@ -10,10 +10,10 @@ namespace Lust
 	{
 	public:
 		VkBuffer GetBuffer() const;
-		VkDeviceMemory GetMemory() const;
+		VmaAllocation GetAllocation() const;
 	protected:
 		VKBuffer(const VKContext* context);
-		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, bool dynamicbuffer = false);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VmaAllocation& bufferMemory, bool dynamicbuffer = false);
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 		void RemapCall(const void* data, size_t size, size_t offset);
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -23,7 +23,7 @@ namespace Lust
 
 		const VKContext* m_Context;
 		VkBuffer m_Buffer;
-		VkDeviceMemory m_BufferMemory;
+		VmaAllocation m_BufferAllocation;
 		uint8_t* m_GPUData;
 		bool m_IsDynamic;
 	private:

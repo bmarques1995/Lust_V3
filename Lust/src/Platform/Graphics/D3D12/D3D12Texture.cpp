@@ -57,6 +57,7 @@ void Lust::D3D12Texture2D::UpdateTextureInfo(const D3D12_RESOURCE_DESC1& desc)
 void Lust::D3D12Texture2D::CreateResource()
 {
 	auto device = m_Context->GetDevicePtr();
+	auto allocator = m_Context->GetAllocatorPtr();
 	HRESULT hr;
 
 	D3D12_RESOURCE_DESC1 textureBufferDesc = {};
@@ -79,14 +80,13 @@ void Lust::D3D12Texture2D::CreateResource()
 	heapProps.CreationNodeMask = 1;
 	heapProps.VisibleNodeMask = 1;
 
-	hr = device->CreateCommittedResource2(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&textureBufferDesc,
-		D3D12_RESOURCE_STATE_COMMON,
-		nullptr,
-		nullptr,
-		IID_PPV_ARGS(m_Texture.GetAddressOf()));
+	D3D12MA::ALLOCATION_DESC allocDesc = {};
+	allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+
+	hr = allocator->CreateResource2(
+		&allocDesc, &textureBufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+		m_TextureAllocation.GetAddressOf(), IID_PPV_ARGS(m_Texture.GetAddressOf()));
 
 	assert(hr == S_OK);
 }
@@ -95,7 +95,9 @@ void Lust::D3D12Texture2D::CopyBuffer()
 {
 	HRESULT hr;
 	auto device = m_Context->GetDevicePtr();
+	auto allocator = m_Context->GetAllocatorPtr();
 	ComPointer<ID3D12Resource2> textureBuffer;
+	ComPointer<D3D12MA::Allocation> textureBufferAllocation;
 	std::shared_ptr<D3D12CopyPipeline>* copyPipeline = (std::shared_ptr<D3D12CopyPipeline>*)
 		TextureLibrary::GetCopyPipeline();
 
@@ -121,16 +123,16 @@ void Lust::D3D12Texture2D::CopyBuffer()
 	uploadBufferDesc.SampleDesc.Count = 1;
 	uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	D3D12_HEAP_PROPERTIES uploadHeapProperties = {};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
 
-	hr = device->CreateCommittedResource1(
-		&uploadHeapProperties,
-		D3D12_HEAP_FLAG_NONE,
+	D3D12MA::ALLOCATION_DESC allocDesc = {};
+	allocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+
+	hr = allocator->CreateResource(
+		&allocDesc,
 		&uploadBufferDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,  // Upload heap is CPU-accessible
 		nullptr,
-		nullptr,
+		textureBufferAllocation.GetAddressOf(),
 		IID_PPV_ARGS(textureBuffer.GetAddressOf())
 	);
 

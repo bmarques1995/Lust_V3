@@ -1,5 +1,47 @@
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
+
+typedef VkResult(VMA_CALL_POST* PFN_vmaCreateAllocator)(
+    const VmaAllocatorCreateInfo* pCreateInfo,
+    VmaAllocator* pAllocator);
+
+typedef VkResult(VMA_CALL_POST* PFN_vmaCreateImage)(VmaAllocator allocator,
+    const VkImageCreateInfo* pImageCreateInfo,
+    const VmaAllocationCreateInfo* pAllocationCreateInfo,
+    VkImage* pImage,
+    VmaAllocation* pAllocation,
+    VmaAllocationInfo* pAllocationInfo);
+
+typedef void(VMA_CALL_POST* PFN_vmaDestroyAllocator)(
+	VmaAllocator VMA_NOT_NULL allocator);
+
+typedef void(VMA_CALL_POST* PFN_vmaDestroyImage)(
+    VmaAllocator VMA_NOT_NULL allocator,
+    VkImage VMA_NULLABLE_NON_DISPATCHABLE image,
+	VmaAllocation VMA_NULLABLE allocation);
+
+typedef VkResult(VMA_CALL_POST* PFN_vmaCreateBuffer)(
+    VmaAllocator allocator,
+    const VkBufferCreateInfo* pBufferCreateInfo,
+    const VmaAllocationCreateInfo* pAllocationCreateInfo,
+    VkBuffer* pBuffer,
+    VmaAllocation* pAllocation,
+	VmaAllocationInfo* pAllocationInfo);
+
+typedef void (VMA_CALL_POST* PFN_vmaDestroyBuffer)(
+    VmaAllocator VMA_NOT_NULL allocator,
+    VkBuffer VMA_NULLABLE_NON_DISPATCHABLE buffer,
+	VmaAllocation VMA_NULLABLE allocation);
+
+typedef VkResult(VMA_CALL_POST* PFN_vmaMapMemory)(
+    VmaAllocator VMA_NOT_NULL allocator,
+    VmaAllocation allocation,
+	void** ppData);
+
+typedef void(VMA_CALL_POST* PFN_vmaUnmapMemory)(
+    VmaAllocator VMA_NOT_NULL allocator,
+	VmaAllocation allocation);
 
 namespace Lust 
 {
@@ -107,6 +149,15 @@ namespace Lust
         static PFN_vkDestroySampler vkDestroySamplerFn;
         static PFN_vkCmdPipelineBarrier vkCmdPipelineBarrierFn;
         static PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImageFn;
+
+		static PFN_vmaCreateAllocator vmaCreateAllocatorFn;
+		static PFN_vmaCreateImage vmaCreateImageFn;
+        static PFN_vmaCreateBuffer vmaCreateBufferFn;
+        static PFN_vmaMapMemory vmaMapMemoryFn;
+		static PFN_vmaDestroyAllocator vmaDestroyAllocatorFn;
+		static PFN_vmaDestroyImage vmaDestroyImageFn;
+		static PFN_vmaDestroyBuffer vmaDestroyBufferFn;
+		static PFN_vmaUnmapMemory vmaUnmapMemoryFn;
 
         static bool s_IsLoaded;
     };

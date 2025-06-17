@@ -19,14 +19,14 @@ namespace Lust
 		bool IsLoaded() const override;
 	
 		VkImage GetResource() const;
-		VkDeviceMemory GetMemory() const;
+		VmaAllocation GetAllocation() const;
 		VkImageView GetView() const;
 
 	private:
 		void CreateResource();
 		void CopyBuffer();
 
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		//uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		static VkImageType GetNativeTensor(TextureTensor tensor);
 		static VkImageViewType GetNativeTensorView(TextureTensor tensor);
@@ -37,7 +37,7 @@ namespace Lust
 		TextureBuffer m_Specification;
 
 		VkImage m_Resource;
-		VkDeviceMemory m_Memory;
+		VmaAllocation m_Allocation;
 		VkImageView m_ResourceView;
 	};
 }

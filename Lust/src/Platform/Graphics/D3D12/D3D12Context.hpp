@@ -14,6 +14,8 @@
 #include <d3d12sdklayers.h>
 #endif
 
+#include <D3D12MemAlloc.h>
+
 namespace Lust
 {
 	class LUST_API D3D12Context : public GraphicsContext
@@ -40,6 +42,7 @@ namespace Lust
 		uint32_t GetFramesInFlight() const override;
 
 		ID3D12Device14* GetDevicePtr() const;
+		D3D12MA::Allocator* GetAllocatorPtr() const;
 		ID3D12GraphicsCommandList10* GetCurrentCommandList() const;
 		ID3D12CommandQueue* GetCommandQueue() const;
 		D3D_FEATURE_LEVEL GetFeatureLevel() const;
@@ -52,6 +55,7 @@ namespace Lust
 		void CreateFactory();
 		void CreateAdapter();
 		void CreateDevice();
+		void CreateAllocator();
 		void CreateCommandQueue();
 		void CreateSwapChain(HWND windowHandle);
 		void CreateRenderTargetView();
@@ -95,6 +99,7 @@ namespace Lust
 		ComPointer<ID3D12DescriptorHeap> m_RTVHeap;
 		D3D12_CPU_DESCRIPTOR_HANDLE* m_RTVHandles;
 		ComPointer<ID3D12Resource2> m_DepthStencilView;
+		ComPointer<D3D12MA::Allocation> m_DSVAllocation;
 		ComPointer<ID3D12DescriptorHeap> m_DSVHeap;
 		D3D12_CPU_DESCRIPTOR_HANDLE m_DSVHandle;
 		uint32_t m_FramesInFlight;
@@ -102,6 +107,7 @@ namespace Lust
 
 		ComPointer<ID3D12CommandAllocator>* m_CommandAllocators;
 		ComPointer<ID3D12GraphicsCommandList10>* m_CommandLists;
+		ComPointer<D3D12MA::Allocator> m_Allocator;
 
 		UINT m_CurrentBufferIndex = -1;
 	};

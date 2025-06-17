@@ -34,6 +34,7 @@ namespace Lust
 		TextureBuffer m_Specification;
 
 		ComPointer<ID3D12Resource2> m_Texture;
+		ComPointer<D3D12MA::Allocation> m_TextureAllocation;
 	};
 }
 

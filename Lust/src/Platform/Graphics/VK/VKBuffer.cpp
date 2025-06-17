@@ -9,9 +9,9 @@ VkBuffer Lust::VKBuffer::GetBuffer() const
     return m_Buffer;
 }
 
-VkDeviceMemory Lust::VKBuffer::GetMemory() const
+VmaAllocation Lust::VKBuffer::GetAllocation() const
 {
-    return m_BufferMemory;
+    return m_BufferAllocation;
 }
 
 Lust::VKBuffer::VKBuffer(const VKContext* context) :
@@ -19,36 +19,30 @@ Lust::VKBuffer::VKBuffer(const VKContext* context) :
 {
 }
 
-void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, bool dynamicbuffer)
+void Lust::VKBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VmaAllocation& bufferAllocation, bool dynamicbuffer)
 {
     m_IsDynamic = dynamicbuffer;
     VkResult vkr;
     auto device = m_Context->GetDevice();
-    
+	auto allocator = m_Context->GetAllocator();
+
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;
     bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = VKFunctions::vkCreateBufferFn(device, &bufferInfo, nullptr, &buffer);
+    // Define allocation info
+    VmaAllocationCreateInfo allocCreateInfo = {};
+    allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO; // Automatically select memory type
+    allocCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT; // Optional: Use dedicated memory
+
+    vkr = VKFunctions::vmaCreateBufferFn(allocator, &bufferInfo, &allocCreateInfo, &buffer, &bufferAllocation, nullptr);
     assert(vkr == VK_SUCCESS);
-
-    VkMemoryRequirements memRequirements;
-    VKFunctions::vkGetBufferMemoryRequirementsFn(device, buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-    vkr = VKFunctions::vkAllocateMemoryFn(device, &allocInfo, nullptr, &bufferMemory);
-    assert(vkr == VK_SUCCESS);
-    VKFunctions::vkBindBufferMemoryFn(device, buffer, bufferMemory, 0);
 
     if (m_IsDynamic)
     {
-        vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&m_GPUData);
+        vkr = VKFunctions::vmaMapMemoryFn(allocator, m_BufferAllocation, (void**)&m_GPUData);
         assert(vkr == VK_SUCCESS);
     }
 }
@@ -99,11 +93,11 @@ void Lust::VKBuffer::RemapBuffer(const void* data, size_t size, size_t offset)
 void Lust::VKBuffer::RemapBufferStaticly(const void* data, size_t size, size_t offset)
 {
     VkResult vkr;
-    auto device = m_Context->GetDevice();
-    vkr = VKFunctions::vkMapMemoryFn(device, m_BufferMemory, 0, size, 0, (void**)&m_GPUData);
+	auto allocator = m_Context->GetAllocator();
+    vkr = VKFunctions::vmaMapMemoryFn(allocator, m_BufferAllocation, (void**)&m_GPUData);
     assert(vkr == VK_SUCCESS);
     memcpy(m_GPUData + offset, data, size);
-    VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
+    VKFunctions::vmaUnmapMemoryFn(allocator, m_BufferAllocation);
 }
 
 void Lust::VKBuffer::RemapCall(const void* data, size_t size, size_t offset)
@@ -138,11 +132,11 @@ bool Lust::VKBuffer::IsBufferConformed(size_t size)
 void Lust::VKBuffer::DestroyBuffer()
 {
     auto device = m_Context->GetDevice();
+	auto allocator = m_Context->GetAllocator();
     if(m_IsDynamic)
-        VKFunctions::vkUnmapMemoryFn(device, m_BufferMemory);
+        VKFunctions::vmaUnmapMemoryFn(allocator, m_BufferAllocation);
     VKFunctions::vkDeviceWaitIdleFn(device);
-    VKFunctions::vkDestroyBufferFn(device, m_Buffer, nullptr);
-    VKFunctions::vkFreeMemoryFn(device, m_BufferMemory, nullptr);
+    VKFunctions::vmaDestroyBufferFn(allocator, m_Buffer, m_BufferAllocation);
 }
 
 Lust::VKVertexBuffer::VKVertexBuffer(const VKContext* context, const void* data, size_t size, uint32_t stride, bool dynamicBuffer) :
@@ -151,7 +145,7 @@ Lust::VKVertexBuffer::VKVertexBuffer(const VKContext* context, const void* data,
     m_Stride = stride;
     CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        m_Buffer, m_BufferMemory, dynamicBuffer);
+        m_Buffer, m_BufferAllocation, dynamicBuffer);
     RemapCall(data, size, 0);
 }
 
@@ -179,7 +173,7 @@ Lust::VKIndexBuffer::VKIndexBuffer(const VKContext* context, const void* data, u
     VkDeviceSize bufferSize = sizeof(uint32_t) * m_Count;
     CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        m_Buffer, m_BufferMemory, dynamicBuffer);
+        m_Buffer, m_BufferAllocation, dynamicBuffer);
 	RemapCall(data, bufferSize, 0);
 }
 
@@ -210,7 +204,7 @@ Lust::VKUniformBuffer::VKUniformBuffer(const VKContext* context, const void* dat
     m_BufferSize = size;
     if (!IsBufferConformed(size))
         throw AttachmentMismatchException(size, m_Context->GetUniformAttachment());
-    CreateBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferMemory);
+    CreateBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferAllocation);
 	Remap(data, size);
 }
 
@@ -239,7 +233,7 @@ Lust::VKStructuredBuffer::VKStructuredBuffer(const VKContext* context, const voi
         bufferCorrection += (m_Context->GetUniformAttachment() - (bufferCorrection % m_Context->GetUniformAttachment()));
         m_BufferSize += bufferCorrection;
     }
-    CreateBuffer(m_BufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferMemory, true);
+    CreateBuffer(m_BufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_BufferAllocation, true);
 	Remap(data, size, 0);
 }
 

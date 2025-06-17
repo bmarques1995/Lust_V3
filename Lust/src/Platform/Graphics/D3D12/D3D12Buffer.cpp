@@ -19,11 +19,6 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size, bool dynamic
 	HRESULT hr;
 	m_IsDynamic = dynamicBuffer;
 
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-	heapProps.CreationNodeMask = 1;
-	heapProps.VisibleNodeMask = 1;
-
 	D3D12_RESOURCE_DESC1 resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	resourceDesc.Alignment = 0;
@@ -38,14 +33,17 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size, bool dynamic
 	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 	auto device = m_Context->GetDevicePtr();
+	auto allocator = m_Context->GetAllocatorPtr();
 	
-	hr = device->CreateCommittedResource2(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
+	D3D12MA::ALLOCATION_DESC allocDesc = {};
+	allocDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+
+	hr = allocator->CreateResource2(
+		&allocDesc,
 		&resourceDesc,
 		D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
-		nullptr,
+		m_BufferAllocation.GetAddressOf(),
 		IID_PPV_ARGS(m_Buffer.GetAddressOf()));
 	assert(hr == S_OK);
 
@@ -65,6 +63,7 @@ void Lust::D3D12Buffer::DestroyBuffer()
 		m_Buffer->Unmap(0, NULL);
 	}
 	m_Buffer.Release();
+	m_BufferAllocation.Release();
 }
 
 void Lust::D3D12Buffer::RemapBuffer(const void* data, size_t size, size_t offset)

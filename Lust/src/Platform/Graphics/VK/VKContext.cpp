@@ -8,6 +8,7 @@
 #include <utility>
 #include <array>
 #include "VKFunctions.hpp"
+#include <vk_mem_alloc.h>
 
 #ifdef LUST_DEBUG_MODE
 const std::vector<const char*> Lust::VKContext::s_ValidationLayers =
@@ -15,6 +16,8 @@ const std::vector<const char*> Lust::VKContext::s_ValidationLayers =
     "VK_LAYER_KHRONOS_validation"
 };
 #endif
+
+uint32_t Lust::VKContext::s_VKVersion;
 
 bool Lust::VKContext::CheckLayerSupport(uint32_t vkVersion, const std::vector<const char*>& layerList)
 {
@@ -68,6 +71,7 @@ Lust::VKContext::VKContext(const Window* windowHandle, uint32_t framesInFlight) 
     BufferizeUniformAttachment();
     GetGPUName();
     CreateDevice();
+	CreateAllocator();
     CreateViewportAndScissor(windowHandle->GetWidth(), windowHandle->GetHeight());
     CreateSwapChain();
     CreateImageView();
@@ -102,6 +106,7 @@ Lust::VKContext::~VKContext()
     VKFunctions::vkDestroyRenderPassFn(m_Device, m_RenderPass, nullptr);
     CleanupImageView();
     CleanupSwapChain();
+	VKFunctions::vmaDestroyAllocatorFn(m_Allocator);
     VKFunctions::vkDestroyDeviceFn(m_Device, nullptr);
     VKFunctions::vkDestroySurfaceKHRFn(m_Instance, m_Surface, nullptr);
 #ifdef LUST_DEBUG_MODE
@@ -306,6 +311,11 @@ VkDevice Lust::VKContext::GetDevice() const
     return m_Device;
 }
 
+VmaAllocator Lust::VKContext::GetAllocator() const
+{ 
+    return m_Allocator;
+}
+
 VkRenderPass Lust::VKContext::GetRenderPass() const
 {
     return m_RenderPass;
@@ -333,19 +343,19 @@ uint32_t Lust::VKContext::GetSwapchainImageCount() const
 
 void Lust::VKContext::CreateInstance()
 {
-    uint32_t vkVersion = VK_MAKE_API_VERSION(0, 1, 4, 304);
+    s_VKVersion = VK_MAKE_API_VERSION(0, 1, 4, 304);
     VkResult vkr;
 #ifdef LUST_DEBUG_MODE
-    assert(CheckLayerSupport(vkVersion, s_ValidationLayers));
+    assert(CheckLayerSupport(s_VKVersion, s_ValidationLayers));
 #endif
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Hello Triangle";
-    appInfo.applicationVersion = vkVersion;
+    appInfo.applicationVersion = s_VKVersion;
     appInfo.pEngineName = "No Engine";
-    appInfo.engineVersion = vkVersion;
-    appInfo.apiVersion = vkVersion;
+    appInfo.engineVersion = s_VKVersion;
+    appInfo.apiVersion = s_VKVersion;
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -581,6 +591,19 @@ void Lust::VKContext::CreateDevice()
 
     VKFunctions::vkGetDeviceQueueFn(m_Device, m_QueueFamilyIndices.graphicsFamily.value(), 0, &m_GraphicsQueue);
     VKFunctions::vkGetDeviceQueueFn(m_Device, m_QueueFamilyIndices.presentFamily.value(), 0, &m_PresentQueue);
+}
+
+void Lust::VKContext::CreateAllocator()
+{
+    // Initialize VulkanMemoryAllocator
+    VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.vulkanApiVersion = s_VKVersion;
+    allocatorInfo.physicalDevice = m_Adapter;
+    allocatorInfo.device = m_Device;
+    allocatorInfo.instance = m_Instance;
+
+    VkResult vkr = VKFunctions::vmaCreateAllocatorFn(&allocatorInfo, &m_Allocator);
+	assert(vkr == VK_SUCCESS);
 }
 
 void Lust::VKContext::CreateViewportAndScissor(uint32_t width, uint32_t height)
@@ -853,38 +876,20 @@ void Lust::VKContext::CreateDepthStencilView()
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
-    imageInfo.format = m_DepthStencilImageFormat;
+    imageInfo.format = VK_FORMAT_D24_UNORM_S8_UINT;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    vkr = VKFunctions::vkCreateImageFn(m_Device, &imageInfo, nullptr, &m_DepthStencilBuffer);
+    VmaAllocationCreateInfo imageAllocCreateInfo = {};
+    imageAllocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+    VmaAllocationInfo depthImageAllocInfo = {};
+
+    vkr = VKFunctions::vmaCreateImageFn(m_Allocator, &imageInfo, &imageAllocCreateInfo, &m_DepthStencilBuffer, &m_DSVAllocation, &depthImageAllocInfo);
     (vkr == VK_SUCCESS);
-
-    VkMemoryRequirements memRequirements;
-    VKFunctions::vkGetImageMemoryRequirementsFn(m_Device, m_DepthStencilBuffer, &memRequirements);
-
-    VkPhysicalDeviceMemoryProperties memProperties;
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = 0xffffffffu;
-
-    VKFunctions::vkGetPhysicalDeviceMemoryPropertiesFn(m_Adapter, &memProperties);
-
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((memRequirements.memoryTypeBits & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-            allocInfo.memoryTypeIndex = i;
-        }
-    }
-
-
-    vkr = VKFunctions::vkAllocateMemoryFn(m_Device, &allocInfo, nullptr, &m_DepthStencilMemory);
-    assert(vkr == VK_SUCCESS);
-
-    VKFunctions::vkBindImageMemoryFn(m_Device, m_DepthStencilBuffer, m_DepthStencilMemory, 0);
 
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -904,8 +909,7 @@ void Lust::VKContext::CreateDepthStencilView()
 void Lust::VKContext::CleanupDepthStencilView()
 {
     VKFunctions::vkDestroyImageViewFn(m_Device, m_DepthStencilView, nullptr);
-    VKFunctions::vkDestroyImageFn(m_Device, m_DepthStencilBuffer, nullptr);
-    VKFunctions::vkFreeMemoryFn(m_Device, m_DepthStencilMemory, nullptr);
+    VKFunctions::vmaDestroyImageFn(m_Allocator, m_DepthStencilBuffer, m_DSVAllocation);
 }
 
 void Lust::VKContext::CreateCommandPool()

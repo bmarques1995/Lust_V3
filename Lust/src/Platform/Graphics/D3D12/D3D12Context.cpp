@@ -30,6 +30,7 @@ Lust::D3D12Context::D3D12Context(const Window* windowHandle, uint32_t framesInFl
 	CreateFactory();
 	CreateAdapter();
 	CreateDevice();
+	CreateAllocator();
 	CreateCommandQueue();
 	CreateViewportAndScissor(windowHandle->GetWidth(), windowHandle->GetHeight());
 	CreateSwapChain(std::any_cast<HWND>(windowHandle->GetNativePointer()));
@@ -46,12 +47,14 @@ Lust::D3D12Context::~D3D12Context()
 	delete[] m_CommandLists;
 	delete[] m_CommandAllocators;
 	m_DepthStencilView.Release();
+	m_DSVAllocation.Release();
 	m_DSVHeap.Release();
 	delete[] m_RenderTargets;
 	delete[] m_RTVHandles;
 	m_RTVHeap.Release();
 	m_SwapChain.Release();
 	m_CommandQueue.Release();
+	m_Allocator.Release();
 	m_Device.Release();
 
 	m_DXGIAdapter.Release();
@@ -184,6 +187,11 @@ ID3D12Device14* Lust::D3D12Context::GetDevicePtr() const
 	return m_Device.GetConst();
 }
 
+D3D12MA::Allocator* Lust::D3D12Context::GetAllocatorPtr() const
+{ 
+	return m_Allocator.GetConst();
+}
+
 ID3D12GraphicsCommandList10* Lust::D3D12Context::GetCurrentCommandList() const
 {
 	return m_CommandLists[m_CurrentBufferIndex].GetConst();
@@ -217,6 +225,7 @@ void Lust::D3D12Context::WindowResize(uint32_t width, uint32_t height)
 	m_SwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
 	GetTargets();
 	m_DepthStencilView.Release();
+	m_DSVAllocation.Release();
 	CreateDepthStencilView();
 }
 
@@ -291,6 +300,19 @@ void Lust::D3D12Context::CreateAdapter()
 void Lust::D3D12Context::CreateDevice()
 {
 	D3D12Functions::D3D12CreateDeviceFn(m_DXGIAdapter.Get(), m_FeatureLevel, IID_PPV_ARGS(m_Device.GetAddressOf()));
+}
+
+void Lust::D3D12Context::CreateAllocator()
+{
+	HRESULT hr;
+
+	D3D12MA::ALLOCATOR_DESC desc = {};
+	desc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
+	desc.pDevice = m_Device;
+	desc.pAdapter = m_DXGIAdapter;
+
+	hr = D3D12Functions::D3D12MACreateAllocatorFn(&desc, m_Allocator.GetAddressOf());
+	assert(hr == S_OK);
 }
 
 void Lust::D3D12Context::CreateCommandQueue()
@@ -431,21 +453,13 @@ void Lust::D3D12Context::CreateDepthStencilView()
 	depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
 	depthOptimizedClearValue.DepthStencil.Stencil = 0;
 
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProps.CreationNodeMask = 1;
-	heapProps.VisibleNodeMask = 1;
+	D3D12MA::ALLOCATION_DESC allocDesc = {};
+	allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 
-	hr = m_Device->CreateCommittedResource2(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&depthStencilDesc,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		&depthOptimizedClearValue,
-		nullptr,
-		IID_PPV_ARGS(m_DepthStencilView.GetAddressOf()));
+	hr = m_Allocator->CreateResource2(
+		&allocDesc, &depthStencilDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE, nullptr,
+		m_DSVAllocation.GetAddressOf(), IID_PPV_ARGS(m_DepthStencilView.GetAddressOf()));
 	assert(hr == S_OK);
 
 	// Create the depth/stencil view

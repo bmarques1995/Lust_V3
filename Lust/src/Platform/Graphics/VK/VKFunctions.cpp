@@ -100,6 +100,15 @@ PFN_vkDestroySampler Lust::VKFunctions::vkDestroySamplerFn;
 PFN_vkCmdPipelineBarrier Lust::VKFunctions::vkCmdPipelineBarrierFn;
 PFN_vkCmdCopyBufferToImage Lust::VKFunctions::vkCmdCopyBufferToImageFn;
 
+PFN_vmaCreateAllocator Lust::VKFunctions::vmaCreateAllocatorFn;
+PFN_vmaCreateImage Lust::VKFunctions::vmaCreateImageFn;
+PFN_vmaCreateBuffer Lust::VKFunctions::vmaCreateBufferFn;
+PFN_vmaMapMemory Lust::VKFunctions::vmaMapMemoryFn;
+PFN_vmaDestroyAllocator Lust::VKFunctions::vmaDestroyAllocatorFn;
+PFN_vmaDestroyImage Lust::VKFunctions::vmaDestroyImageFn;
+PFN_vmaDestroyBuffer Lust::VKFunctions::vmaDestroyBufferFn;
+PFN_vmaUnmapMemory Lust::VKFunctions::vmaUnmapMemoryFn;
+
 void Lust::VKFunctions::LoadVulkanFunctions()
 {
 	if(s_IsLoaded)
@@ -198,6 +207,15 @@ void Lust::VKFunctions::LoadVulkanFunctions()
 	vkDestroySamplerFn = vkDestroySampler;
 	vkCmdPipelineBarrierFn = vkCmdPipelineBarrier;
 	vkCmdCopyBufferToImageFn = vkCmdCopyBufferToImage;
+
+	vmaCreateAllocatorFn = vmaCreateAllocator;
+	vmaCreateImageFn = vmaCreateImage;
+	vmaCreateBufferFn = vmaCreateBuffer;
+	vmaMapMemoryFn = vmaMapMemory;
+	vmaDestroyAllocatorFn = vmaDestroyAllocator;
+	vmaDestroyImageFn = vmaDestroyImage;
+	vmaDestroyBufferFn = vmaDestroyBuffer;
+	vmaUnmapMemoryFn = vmaUnmapMemory;
 
 	s_IsLoaded = true;
 }
@@ -300,6 +318,16 @@ void Lust::VKFunctions::UnloadVulkanFunctions()
 	vkDestroySamplerFn = nullptr;
 	vkCmdPipelineBarrierFn = nullptr;
 	vkCmdCopyBufferToImageFn = nullptr;
+
+	vmaCreateAllocatorFn = nullptr;
+	vmaCreateImageFn = nullptr;
+	vmaCreateBufferFn = nullptr;
+	vmaMapMemoryFn = nullptr;
+	
+	vmaDestroyAllocatorFn = nullptr;
+	vmaDestroyImageFn = nullptr;
+	vmaDestroyBufferFn = nullptr;
+	vmaUnmapMemoryFn = nullptr;
 
 	s_IsLoaded = false;
 }

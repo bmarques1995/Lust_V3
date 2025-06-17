@@ -21,6 +21,7 @@ namespace Lust
 		bool IsBufferConformed(size_t size);
 
 		ComPointer<ID3D12Resource2> m_Buffer;
+		ComPointer<D3D12MA::Allocation> m_BufferAllocation;
 		const D3D12Context* m_Context;
 		uint8_t* m_GPUData;
 		bool m_IsDynamic;

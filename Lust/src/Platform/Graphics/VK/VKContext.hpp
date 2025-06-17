@@ -7,6 +7,7 @@
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
 #include <optional>
+#include <vk_mem_alloc.h>
 
 namespace Lust
 {
@@ -56,6 +57,7 @@ namespace Lust
 		VkQueue GetGraphicsQueue() const;
 		VkPhysicalDevice GetAdapter() const;
 		VkDevice GetDevice() const;
+		VmaAllocator GetAllocator() const;
 		VkRenderPass GetRenderPass() const;
 		VkCommandBuffer GetCurrentCommandBuffer() const;
 		VkSurfaceKHR GetSurface() const;
@@ -96,6 +98,9 @@ namespace Lust
 
 		//Master
 		void CreateDevice();
+
+		//Master
+		void CreateAllocator();
 
 		//Master
 		void CreateViewportAndScissor(uint32_t width, uint32_t height);
@@ -140,6 +145,7 @@ namespace Lust
 		VkPhysicalDevice m_Adapter = VK_NULL_HANDLE;
 		uint32_t s_UniformAttachment;
 		VkDevice m_Device;
+		VmaAllocator m_Allocator;
 		VkQueue m_GraphicsQueue;
 		VkQueue m_PresentQueue;
 		VkSwapchainKHR m_SwapChain;
@@ -156,7 +162,7 @@ namespace Lust
 		VkFramebuffer* m_SwapChainFramebuffers;
 
 		VkImage m_DepthStencilBuffer;
-		VkDeviceMemory m_DepthStencilMemory;
+		VmaAllocation m_DSVAllocation;
 		VkImageView m_DepthStencilView;
 
 		const bool* m_IsWindowClosing;
@@ -173,6 +179,7 @@ namespace Lust
 		uint32_t m_FramesInFlight;
 		uint32_t m_CurrentBufferIndex = 0;
 		uint32_t m_CurrentImageIndex;
+		static uint32_t s_VKVersion;
 
 		VkViewport m_Viewport;
 		VkRect2D m_ScissorRect;

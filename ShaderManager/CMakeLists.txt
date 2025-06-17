@@ -91,7 +91,7 @@ target_installation_behaviour(
 	TARGET_NAME ${TARGET_NAME}
 	VERSION ${PROJECT_VERSION}
 	PROJECT_NAME ${PROJECT_NAME}
-	NAMESPACE "RenderV2" 
+	NAMESPACE "Lust" 
 	HEADER_INPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/ShaderManager/
 	HEADER_OUTPUT ./include/Lust/ShaderManager)
 

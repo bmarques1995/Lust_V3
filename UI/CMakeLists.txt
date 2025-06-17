@@ -20,7 +20,7 @@ if(WIN32)
 endif()
 
 add_library(LustVMA ${LIB_TYPE} ${VMA_HDRS} ${VMA_SRCS})
-target_link_libraries(LustVMA PUBLIC GPUOpen::VulkanMemoryAllocator)
+target_link_libraries(LustVMA PUBLIC GPUOpen::VulkanMemoryAllocator Vulkan::Headers Vulkan::Loader)
 target_include_directories(LustVMA PUBLIC 
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vma>
 	$<INSTALL_INTERFACE:./>
