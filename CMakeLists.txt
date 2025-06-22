@@ -38,6 +38,8 @@ file(GLOB_RECURSE VMA_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "vma/*.hpp")
 file(GLOB_RECURSE VMA_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "vma/*.cpp")
 
 if(WIN32)
+    trace_dependency(NAME Qt6 COMPONENTS Core Widgets INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtbase.ps1" USE_VSTOOLS LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME Qt6 COMPONENTS Svg INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtsvg.ps1" USE_VSTOOLS LIMIT_SEARCH_PATHS)
 	trace_dependency(NAME VulkanHeaders INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_headers.ps1")
 	trace_dependency(NAME VulkanLoader INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_loader.ps1")
 	trace_dependency(NAME VulkanMemoryAllocator INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vma.ps1")

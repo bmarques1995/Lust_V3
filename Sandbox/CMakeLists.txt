@@ -21,6 +21,10 @@ download_remote_files(SOURCE_INPUTS ${SAMPLE_IMAGES} SOURCE_BASE_OUTPUT_DIR ${CM
 file(GLOB_RECURSE SANDBOX_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE SANDBOX_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
+if(WIN32)
+	trace_dependency(NAME zstd INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/zstd.ps1" LIMIT_SEARCH_PATHS)
+endif()
+
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${SANDBOX_HDRS} ${SANDBOX_SRCS})
 target_link_libraries(${TARGET_NAME} PUBLIC Lust)
 target_include_directories(${TARGET_NAME} PUBLIC

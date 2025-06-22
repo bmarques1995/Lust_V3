@@ -6,7 +6,7 @@ param (
 
 if (($buildMode -eq "Debug" -or $buildMode -eq "Release") -and ($installPrefix -ne "") -and ($moduleDestination -ne ""))
 {
-    git clone --recursive -b "vulkan-sdk-1.4.304" https://github.com/KhronosGroup/Vulkan-ExtensionLayer.git "$moduleDestination/modules/vulkan_extension"
+    git clone --recursive -b "vulkan-sdk-1.4.313" https://github.com/KhronosGroup/Vulkan-ExtensionLayer.git "$moduleDestination/modules/vulkan_extension"
     cmake -S "$moduleDestination/modules/vulkan_extension" -B "$moduleDestination/dependencies/windows/vulkan_extension" -DCMAKE_INSTALL_PREFIX="$installPrefix" -DUPDATE_DEPS=ON -DCMAKE_BUILD_TYPE="$buildMode"
     cmake --build "$moduleDestination/dependencies/windows/vulkan_extension" --config "$buildMode" --target install
 }
