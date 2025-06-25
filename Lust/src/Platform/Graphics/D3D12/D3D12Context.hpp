@@ -55,6 +55,7 @@ namespace Lust
 		void CreateFactory();
 		void CreateAdapter();
 		void CreateDevice();
+		void CreateInfoQueue();
 		void CreateAllocator();
 		void CreateCommandQueue();
 		void CreateSwapChain(HWND windowHandle);
@@ -85,6 +86,7 @@ namespace Lust
 		ComPointer<IDXGIAdapter4> m_DXGIAdapter;
 
 		ComPointer<ID3D12Device14> m_Device;
+		ComPointer<ID3D12InfoQueue> m_InfoQueue;
 		ComPointer<ID3D12CommandQueue> m_CommandQueue;
 		ComPointer<ID3D12Fence> m_CommandQueueFence;
 		uint64_t m_CommandQueueFenceValue = 0;
