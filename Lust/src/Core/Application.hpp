@@ -94,6 +94,11 @@ namespace Lust
 		void PushOverlay(Layer* layer);
 
 		/**
+		* @brief Checks if the application really wants to close
+		*/
+		virtual bool ProceedClose();
+
+		/**
 		* @brief Gets the copy pipeline
 		*/
 		std::shared_ptr<CopyPipeline>* GetCopyPipeline();

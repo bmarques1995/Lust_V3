@@ -2,27 +2,22 @@
 #include "SandCoffin2D.hpp"
 
 #include "Instrumentator.hpp"
-#include <windows.h>
+#include <QMessageBox>
+#include <functional>
 
-Lust::SandCoffin::SandCoffin(int argc, char** argv)
+Lust::SandCoffin::SandCoffin(int argc, char** argv):
+	m_CloseController(&m_SignalRegistered)
 {
-	m_App = new QGuiApplication(argc, argv);
+	m_App = new QApplication(argc, argv);
 	PushLayer(new SandCoffin2D());
 	
 #ifdef LUST_SANDBOX_WINDOWS
 	typedef HWND window_handle_t;
 #endif
 
-	window_handle_t externalHwnd = nullptr;
+	window_handle_t externalHwnd = std::any_cast<HWND>(m_Window->GetNativePointer());
 
-	m_WrappedWindow = new ExampleQWindow(reinterpret_cast<WId>(externalHwnd));
-	m_WrappedWindow->show();
-
-	QObject::connect(m_App, &QCoreApplication::aboutToQuit, []() {
-#ifdef LUST_SANDBOX_WINDOWS
-		OutputDebugStringA("Sample: [Hook] Application is about to quit.");
-#endif
-	});
+	m_WrappedWindow = QWindow::fromWinId(reinterpret_cast<WId>(externalHwnd));
 }
 
 Lust::SandCoffin::~SandCoffin()
@@ -32,14 +27,41 @@ Lust::SandCoffin::~SandCoffin()
 	delete m_App;
 }
 
+bool Lust::SandCoffin::ProceedClose()
+{
+	if (!m_CloseController.IsDialogOpen())
+		m_CloseController.ShowCloseDialog();
+	return false;
+}
+
 void Lust::SandCoffin::ExtraRun()
 {
 	while (m_Running)
 	{
+		if (m_SignalRegistered)
+		{
+			m_SignalRegistered = false;
+			CreateDialogBox();
+		}
 		Lust::InstrumentationTimer timer("Frametime");
 		m_App->processEvents();
-		m_WrappedWindow->manualUpdate();
 		RenderAction();
 		timer.Stop();
+	}
+}
+
+void Lust::SandCoffin::CreateDialogBox()
+{
+	auto reply = QMessageBox::question(nullptr, "Confirm Exit",
+		"Are you sure you want to quit?",
+		QMessageBox::Yes | QMessageBox::No);
+
+	if (reply == QMessageBox::Yes) {
+		m_Window->EmitClose();
+		m_Running = false;
+		m_CloseController.CloseDialog();
+	}
+	else {
+		m_CloseController.CloseDialog();
 	}
 }

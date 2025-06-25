@@ -124,6 +124,11 @@ void Lust::Application::PushOverlay(Layer* layer)
 	m_LayerStack->PushOverlay(layer);
 }
 
+bool Lust::Application::ProceedClose()
+{
+	return true;
+}
+
 std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
 {
 	return &m_CopyPipeline;
@@ -209,8 +214,12 @@ void Lust::Application::RenderAction()
 
 bool Lust::Application::OnWindowClose(WindowClosedEvent& e)
 {
-	m_Window->EmitClose();
-	m_Running = false;
+	bool proceed = ProceedClose();
+	if (ProceedClose())
+	{
+		m_Window->EmitClose();
+		m_Running = false;
+	}
 	return true;
 }
 
