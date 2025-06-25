@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.22)
 project("Lust" VERSION 0.0.1)
 
 option(BUILD_SHARED_LIBS "Build all libs as .dll/.so" OFF)
-option(BUILD_AS_WINDOWED_APP "Build the app as Win32 application" OFF)
+option(BUILD_AS_WINDOWED_APP "Build the app as Win32 application" ON)
 option(REGISTER_VULKAN_LAYERS "Set vulkan layers location on regedit" OFF)
 option(BUILD_EXAMPLES "Build example program" ON)
 option(BUILD_TESTS "Build tests" ON)

@@ -23,10 +23,12 @@ file(GLOB_RECURSE SANDBOX_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 if(WIN32)
 	trace_dependency(NAME zstd INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/zstd.ps1" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME Qt6 COMPONENTS Core Widgets Gui INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtbase.ps1" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME Qt6 COMPONENTS Svg INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtsvg.ps1" LIMIT_SEARCH_PATHS)
 endif()
 
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${SANDBOX_HDRS} ${SANDBOX_SRCS})
-target_link_libraries(${TARGET_NAME} PUBLIC Lust)
+target_link_libraries(${TARGET_NAME} PUBLIC Lust Qt6::Core Qt6::Widgets Qt6::Svg Qt6::Gui)
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Sandbox>
 	$<INSTALL_INTERFACE:./>

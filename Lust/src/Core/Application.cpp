@@ -76,26 +76,12 @@ Lust::Application::Application()
 
 Lust::Application::~Application()
 {
-	m_LayerStack.reset();
-	m_Instrumentator.reset();
-	m_ImguiContext.reset();
-	m_ImguiWindowController.reset();
-	ImguiContext::EndImgui();
-	m_CopyPipeline.reset();
-	Renderer2D::Destroy();
-	RenderCommand::Shutdown();
-	TextureLibrary::DestroyCopyPipeline();
-	m_Context.reset();
-	m_Window.reset();
-	m_Starter.reset();
-	Renderer::Shutdown();
-	Console::End();
-	Sockets::StopAPI();
+	if(!m_Destroyed)
+		DestroyApplication();
 }
 
 void Lust::Application::Run()
 {	
-	
 	while (m_Running)
 	{
 		Lust::InstrumentationTimer timer("Frametime");
@@ -141,6 +127,26 @@ void Lust::Application::PushOverlay(Layer* layer)
 std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
 {
 	return &m_CopyPipeline;
+}
+
+void Lust::Application::DestroyApplication()
+{
+	m_LayerStack.reset();
+	m_Instrumentator.reset();
+	m_ImguiContext.reset();
+	m_ImguiWindowController.reset();
+	ImguiContext::EndImgui();
+	m_CopyPipeline.reset();
+	Renderer2D::Destroy();
+	RenderCommand::Shutdown();
+	TextureLibrary::DestroyCopyPipeline();
+	m_Context.reset();
+	m_Window.reset();
+	m_Starter.reset();
+	Renderer::Shutdown();
+	Console::End();
+	Sockets::StopAPI();
+	m_Destroyed = true;
 }
 
 void Lust::Application::RenderAction()
@@ -203,6 +209,7 @@ void Lust::Application::RenderAction()
 
 bool Lust::Application::OnWindowClose(WindowClosedEvent& e)
 {
+	m_Window->EmitClose();
 	m_Running = false;
 	return true;
 }

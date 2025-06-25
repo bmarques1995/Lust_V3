@@ -37,7 +37,7 @@ namespace Lust
 		/**
 		* @brief Application destructor
 		*/
-		~Application();
+		virtual ~Application();
 
 		/**
 		* @brief Run the application, main loop
@@ -109,6 +109,11 @@ namespace Lust
 
 	protected:
 		/**
+		* @brief Destroys the application
+		*/
+		void DestroyApplication();
+
+		/**
 		* @brief Render action
 		* @details render the scene, is used in the main loop as the render loop
 		*/
@@ -178,5 +183,7 @@ namespace Lust
 		static bool s_SingletonEnabled;
 		std::unique_ptr<ApplicationStarter> m_Starter;
 		bool m_Running = true;
+		bool m_LoopFinished = false;
+		bool m_Destroyed = false;
 	};
 }
