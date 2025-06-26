@@ -9,7 +9,7 @@ LUST_SANDBOX_API int lust_entrypoint(int argc, char** argv)
 	Lust::SandCoffin* app = new Lust::SandCoffin(argc, argv);
 	instrumentator->EndSession();
 	instrumentator->BeginSession("Runtime", "lust_runtime.json");
-	app->ExtraRun();
+	app->Run();
 	instrumentator->EndSession();
 	instrumentator->BeginSession("Shutdown", "lust_shutdown.json");
 	delete app;

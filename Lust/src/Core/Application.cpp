@@ -84,9 +84,7 @@ void Lust::Application::Run()
 {	
 	while (m_Running)
 	{
-		Lust::InstrumentationTimer timer("Frametime");
-		RenderAction();
-		timer.Stop();
+		GameLoop();
 	}
 }
 
@@ -132,6 +130,13 @@ bool Lust::Application::ProceedClose()
 std::shared_ptr<Lust::CopyPipeline>* Lust::Application::GetCopyPipeline()
 {
 	return &m_CopyPipeline;
+}
+
+void Lust::Application::GameLoop()
+{
+	Lust::InstrumentationTimer timer("Frametime");
+	RenderAction();
+	timer.Stop();
 }
 
 void Lust::Application::DestroyApplication()

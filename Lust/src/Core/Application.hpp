@@ -114,6 +114,10 @@ namespace Lust
 
 	protected:
 		/**
+		* @brief Game loop wrapper, to hide inner logic
+		*/
+		void GameLoop();
+		/**
 		* @brief Destroys the application
 		*/
 		void DestroyApplication();
