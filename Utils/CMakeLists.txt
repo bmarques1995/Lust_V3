@@ -11,6 +11,7 @@ file(GLOB_RECURSE UTILS_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE UTILS_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 if(WIN32)
+	trace_dependency(NAME Qt6 COMPONENTS Widgets INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtbase.ps1" LIMIT_SEARCH_PATHS)
 	trace_dependency(NAME jsoncpp INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/jsoncpp.ps1" LIMIT_SEARCH_PATHS)
 	trace_dependency(NAME spdlog INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spdlog.ps1")
 	trace_dependency(NAME Eigen3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/eigen.ps1" LIMIT_SEARCH_PATHS)
@@ -39,7 +40,7 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
 )
-target_link_libraries(${TARGET_NAME} PUBLIC spdlog::spdlog libjpeg-turbo::jpeg PNG::PNG ZLIB::ZLIB jsoncpp_lib Eigen3::Eigen)
+target_link_libraries(${TARGET_NAME} PUBLIC spdlog::spdlog libjpeg-turbo::jpeg PNG::PNG ZLIB::ZLIB jsoncpp_lib Eigen3::Eigen Qt6::Widgets)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_UTILS_BUILD_DLL)
