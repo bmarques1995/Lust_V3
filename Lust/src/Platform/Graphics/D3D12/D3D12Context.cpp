@@ -45,6 +45,11 @@ Lust::D3D12Context::~D3D12Context()
 {
 	FlushQueue();
 	m_CommandQueueFence.Release();
+	for (size_t i = 0; i < m_FramesInFlight; i++)
+	{
+		m_CommandLists[i].Release();
+		m_CommandAllocators[i].Release();
+	}
 	delete[] m_CommandLists;
 	delete[] m_CommandAllocators;
 	m_DepthStencilView.Release();

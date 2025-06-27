@@ -36,11 +36,11 @@ Editor::Editor(int argc, char** argv) :
 Editor::~Editor()
 {
 	m_ConsoleWindow.reset();
-	this->DestroyApplication();
-	m_WrappedWindowContainer.reset();	
+	m_WrappedWindowContainer.reset();
 	m_WrappedWindow.reset();
 	m_App->quit();
 	delete m_App;
+	this->DestroyApplication();
 }
 
 void Editor::ExtraRun()
