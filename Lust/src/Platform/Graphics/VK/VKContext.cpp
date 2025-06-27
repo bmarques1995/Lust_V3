@@ -343,7 +343,7 @@ uint32_t Lust::VKContext::GetSwapchainImageCount() const
 
 void Lust::VKContext::CreateInstance()
 {
-    s_VKVersion = VK_MAKE_API_VERSION(0, 1, 4, 304);
+    s_VKVersion = VK_MAKE_API_VERSION(0, 1, 4, 313);
     VkResult vkr;
 #ifdef LUST_DEBUG_MODE
     assert(CheckLayerSupport(s_VKVersion, s_ValidationLayers));

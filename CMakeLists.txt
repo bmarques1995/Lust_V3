@@ -29,6 +29,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_helpers;${PROJECT_SOURCE_DIR}
 include(dep_tracer)
 include(target_destination)
 include(source_downloader)
+include(d3d12_exporter)
 
 if (MSVC)
   add_compile_options(/ZI)
