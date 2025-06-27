@@ -9,20 +9,21 @@ Lust::D3D12ImguiContext::D3D12ImguiContext(const D3D12Context* context) :
 	m_Context(context)
 {
     HRESULT hr;
-    auto device = m_Context->GetDevicePtr();
+    m_LiveDevice = m_Context->GetDevicePtr();
+	m_LiveCommandQueue = m_Context->GetCommandQueue();
     const uint32_t APP_SRV_HEAP_SIZE = 64;
     D3D12_DESCRIPTOR_HEAP_DESC desc = {};
     desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     desc.NumDescriptors = APP_SRV_HEAP_SIZE;
     desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_ImGuiHeap.GetAddressOf()));
+    hr = m_LiveDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_ImGuiHeap.GetAddressOf()));
     assert(hr == S_OK);
 
     m_ImGuiHeap->SetName(L"ImGui Heap");
 
     ImGui_ImplDX12_InitInfo init_info = {};
-    init_info.Device = device;
-    init_info.CommandQueue = m_Context->GetCommandQueue();
+    init_info.Device = m_LiveDevice;
+    init_info.CommandQueue = m_LiveCommandQueue;
     init_info.NumFramesInFlight = m_Context->GetFramesInFlight();
     init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     init_info.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -50,6 +51,8 @@ Lust::D3D12ImguiContext::~D3D12ImguiContext()
         s_DescriptorHeapImguiAllocator->Destroy();
         delete s_DescriptorHeapImguiAllocator;
         s_DescriptorHeapImguiAllocator = nullptr;
+		m_LiveDevice->Release();
+		m_LiveCommandQueue->Release();
     }
 }
 

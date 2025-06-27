@@ -113,7 +113,7 @@ namespace Lust
 		*/
 		CT* GetConstRef() const
 		{
-			return GetRef();
+			return m_Pointer;
 		}
 
 		/**

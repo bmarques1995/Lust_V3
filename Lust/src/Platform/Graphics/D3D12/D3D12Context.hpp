@@ -41,10 +41,10 @@ namespace Lust
 		uint32_t GetSmallBufferAttachment() const override;
 		uint32_t GetFramesInFlight() const override;
 
-		ID3D12Device14* GetDevicePtr() const;
-		D3D12MA::Allocator* GetAllocatorPtr() const;
-		ID3D12GraphicsCommandList10* GetCurrentCommandList() const;
-		ID3D12CommandQueue* GetCommandQueue() const;
+		ComPointer<ID3D12Device14> GetDevicePtr() const;
+		ComPointer<D3D12MA::Allocator> GetAllocatorPtr() const;
+		ComPointer<ID3D12GraphicsCommandList10> GetCurrentCommandList() const;
+		ComPointer<ID3D12CommandQueue> GetCommandQueue() const;
 		D3D_FEATURE_LEVEL GetFeatureLevel() const;
 
 		const std::string& GetGPUName() override;

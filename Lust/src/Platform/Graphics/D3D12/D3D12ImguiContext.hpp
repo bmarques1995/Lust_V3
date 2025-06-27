@@ -37,6 +37,9 @@ namespace Lust
         ComPointer<ID3D12DescriptorHeap> m_ImGuiHeap;
         static DescriptorHeapAllocator* s_DescriptorHeapImguiAllocator;
 
+		ID3D12Device14* m_LiveDevice = nullptr;
+		ID3D12CommandQueue* m_LiveCommandQueue = nullptr;
+
         static void AllocateDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_desc_handle);
         static void FreeDescriptor(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE out_cpu_desc_handle, D3D12_GPU_DESCRIPTOR_HANDLE out_gpu_desc_handle);
 	};

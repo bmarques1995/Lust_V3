@@ -190,24 +190,24 @@ bool Lust::D3D12Context::IsVSyncEnabled() const
 }
 
 
-ID3D12Device14* Lust::D3D12Context::GetDevicePtr() const
+Lust::ComPointer<ID3D12Device14> Lust::D3D12Context::GetDevicePtr() const
 {
-	return m_Device.GetConst();
+	return m_Device;
 }
 
-D3D12MA::Allocator* Lust::D3D12Context::GetAllocatorPtr() const
+Lust::ComPointer<D3D12MA::Allocator> Lust::D3D12Context::GetAllocatorPtr() const
 { 
-	return m_Allocator.GetConst();
+	return m_Allocator;
 }
 
-ID3D12GraphicsCommandList10* Lust::D3D12Context::GetCurrentCommandList() const
+Lust::ComPointer<ID3D12GraphicsCommandList10> Lust::D3D12Context::GetCurrentCommandList() const
 {
 	return m_CommandLists[m_CurrentBufferIndex].GetConst();
 }
 
-ID3D12CommandQueue* Lust::D3D12Context::GetCommandQueue() const
+Lust::ComPointer<ID3D12CommandQueue> Lust::D3D12Context::GetCommandQueue() const
 {
-	return m_CommandQueue.GetConst();
+	return m_CommandQueue;
 }
 
 D3D_FEATURE_LEVEL Lust::D3D12Context::GetFeatureLevel() const
@@ -308,6 +308,7 @@ void Lust::D3D12Context::CreateAdapter()
 void Lust::D3D12Context::CreateDevice()
 {
 	D3D12Functions::D3D12CreateDeviceFn(m_DXGIAdapter.Get(), m_FeatureLevel, IID_PPV_ARGS(m_Device.GetAddressOf()));
+	m_Device->SetName(L"Full device");
 }
 
 void Lust::D3D12Context::CreateInfoQueue()
@@ -533,6 +534,7 @@ void Lust::D3D12Context::WaitForFence(UINT64 fenceValue)
 	}
 	auto waitable = m_SwapChain->GetFrameLatencyWaitableObject();
 	WaitForMultipleObjects(1, &waitable, TRUE, INFINITE);
+	CloseHandle(waitable);
 }
 
 #ifdef LUST_DEBUG_MODE

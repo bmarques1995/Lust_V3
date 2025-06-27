@@ -40,7 +40,6 @@ Editor::~Editor()
 	m_WrappedWindow.reset();
 	m_App->quit();
 	delete m_App;
-	this->DestroyApplication();
 }
 
 void Editor::ExtraRun()

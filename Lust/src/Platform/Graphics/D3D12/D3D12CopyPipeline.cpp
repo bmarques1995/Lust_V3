@@ -27,10 +27,16 @@ Lust::D3D12CopyPipeline::D3D12CopyPipeline(const D3D12Context* context) :
 
 	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CopyCommandAllocator.Get(), nullptr, IID_PPV_ARGS(m_CopyCommandList.GetAddressOf()));
 	assert(hr == S_OK);
+
+	device->Release();
 }
 
 Lust::D3D12CopyPipeline::~D3D12CopyPipeline()
 {
+	m_CopyCommandList.Release();
+	m_CopyCommandAllocator.Release();
+	m_CopyCommandQueue.Release();
+	m_Context = nullptr;
 }
 
 void Lust::D3D12CopyPipeline::Wait()
