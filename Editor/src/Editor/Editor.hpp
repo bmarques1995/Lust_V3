@@ -5,8 +5,9 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QWindow>
-#include <QWidget>
+#include <QDockWidget>
 #include "CloseController.hpp"
+#include "GameContainer.hpp"
 
 class Editor : public Lust::SandCoffin
 {
@@ -27,5 +28,6 @@ private:
 	bool m_SignalRegistered = false;
 	CloseController m_CloseController;
 	QApplication* m_App;
-	QWindow* m_WrappedWindow;
+	std::shared_ptr<QWindow> m_WrappedWindow;
+	std::shared_ptr<GameContainer> m_WrappedWindowContainer;
 };

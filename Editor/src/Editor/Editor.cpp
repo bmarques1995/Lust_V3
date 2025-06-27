@@ -12,13 +12,16 @@ Editor::Editor(int argc, char** argv) :
 
 	window_handle_t externalHwnd = std::any_cast<HWND>(m_Window->GetNativePointer());
 
-	m_WrappedWindow = QWindow::fromWinId(reinterpret_cast<WId>(externalHwnd));
+	m_WrappedWindow.reset(QWindow::fromWinId(reinterpret_cast<WId>(externalHwnd)));
+	m_WrappedWindowContainer.reset(new GameContainer(m_WrappedWindow));
 }
 
 Editor::~Editor()
 {
 	this->DestroyApplication();
-	delete m_WrappedWindow;
+	m_WrappedWindowContainer.reset();	
+	m_WrappedWindow.reset();
+	m_App->quit();
 	delete m_App;
 }
 
@@ -32,6 +35,7 @@ void Editor::ExtraRun()
 			CreateDialogBox();
 		}
 		m_App->processEvents();
+		m_WrappedWindowContainer->update();
 		GameLoop();
 	}
 }
