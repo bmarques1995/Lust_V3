@@ -19,6 +19,9 @@ void ThreeWayDialog::setupUi()
     auto* buttonA = new QPushButton("Save and Close", this);
     auto* buttonB = new QPushButton("Close Without Save", this);
     auto* buttonC = new QPushButton("Cancel", this);
+    buttonA->setStyleSheet("padding: 8px 8px;");
+    buttonB->setStyleSheet("padding: 8px 8px;");
+    buttonC->setStyleSheet("padding: 8px 8px;");
 
     auto* buttonLayout = new QHBoxLayout;
     buttonLayout->addWidget(buttonA);

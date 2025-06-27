@@ -46,7 +46,6 @@ bool Editor::ProceedClose()
 void Editor::CreateDialogBox()
 {
 	auto reply = ThreeWayDialog(nullptr);
-
 	if (reply.exec() == QDialog::Accepted) {
 		switch (reply.getResult())
 		{
@@ -61,6 +60,5 @@ void Editor::CreateDialogBox()
 			default: break;
 		}
 	}
-
 	m_CloseController.CloseDialog();
 }
