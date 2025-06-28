@@ -43,10 +43,7 @@ void Lust::SandCoffin2D::OnAttach()
 		Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
 		square.AddComponent<TransformComponent>(modelMatrix);
 		square.AddComponent<SpriteRendererComponent>(
-			Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f),
-			Eigen::Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
-			Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
-			Eigen::Vector4f(1.0f, 1.0f, 0.0f, 1.0f)
+			Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
 		);
 
 		m_SquareEntity = square;
@@ -59,17 +56,19 @@ void Lust::SandCoffin2D::OnAttach()
 		Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
 		square.AddComponent<TransformComponent>(modelMatrix);
 		square.AddComponent<SpriteRendererComponent>(
-			Eigen::Vector4f(1.0f, 0.0f, 0.0f, 1.0f),
-			Eigen::Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
-			Eigen::Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
-			Eigen::Vector4f(1.0f, 1.0f, 0.0f, 1.0f)
+			Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
 		);
 
 		m_SquareEntity2 = square;
 	}
 	auto spriteRenderer = m_SquareEntity.GetComponent<SpriteRendererComponent>();
 	spriteRenderer->DrawOrder = 3;
+	spriteRenderer->SetTexture(2, 1);
+	spriteRenderer->AddSpriteSheet(m_SpriteSheet);
+	spriteRenderer->SetSprite(6, 7);
 	auto spriteRenderer2 = m_SquareEntity2.GetComponent<SpriteRendererComponent>();
+	spriteRenderer2->SetTexture(1, 1);
+	spriteRenderer2->SetUV(vec4(0.0, 0.0, 50.0, 50.0));
 	spriteRenderer2->DrawOrder = 0;
 
 	m_CameraEntity = m_SampleScene->CreateEntity();

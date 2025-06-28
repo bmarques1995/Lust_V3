@@ -54,6 +54,7 @@ void Lust::D3D12Buffer::CreateBuffer(const void* data, size_t size, bool dynamic
 		assert(hr == S_OK);
 	}
 	RemapCall(data, size, 0);
+	device->Release();
 }
 
 void Lust::D3D12Buffer::DestroyBuffer()

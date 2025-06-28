@@ -69,6 +69,11 @@ namespace Lust
 		virtual const bool* TrackWindowClosing() const = 0;
 
 		/**
+		* @brief Set window close message
+		*/
+		virtual void EmitClose() = 0;
+
+		/**
 		* @brief Display the window
 		*/
 		virtual void DisplayWindow() = 0;

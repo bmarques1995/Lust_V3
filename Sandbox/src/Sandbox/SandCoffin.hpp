@@ -4,11 +4,10 @@
 
 namespace Lust
 {
-	
 	class LUST_SANDBOX_API SandCoffin : public Application
 	{
 	public:
-		SandCoffin();
+		SandCoffin(int argc, char** argv);
 		~SandCoffin();
 	};
 }

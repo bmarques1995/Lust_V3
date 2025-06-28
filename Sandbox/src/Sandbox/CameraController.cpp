@@ -19,7 +19,6 @@ void Lust::CameraController::OnCommand()
 
 void Lust::CameraController::OnCreate()
 {
-	Console::Debug("Created");
 	auto window = Application::GetInstance()->GetWindow();
 	float width = static_cast<float>(window->GetWidth());
 	float height = static_cast<float>(window->GetHeight());
@@ -27,7 +26,6 @@ void Lust::CameraController::OnCreate()
 	auto proj = m_CameraController->GetCamera().GetProjectionMatrix();
 	auto view = m_CameraController->GetCamera().GetViewMatrix();
 	auto camera = AddComponent<CameraComponent>(Camera(proj, view));
-	
 }
 
 void Lust::CameraController::OnDestroy()

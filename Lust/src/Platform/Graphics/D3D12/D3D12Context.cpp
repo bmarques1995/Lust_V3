@@ -30,6 +30,7 @@ Lust::D3D12Context::D3D12Context(const Window* windowHandle, uint32_t framesInFl
 	CreateFactory();
 	CreateAdapter();
 	CreateDevice();
+	CreateInfoQueue();
 	CreateAllocator();
 	CreateCommandQueue();
 	CreateViewportAndScissor(windowHandle->GetWidth(), windowHandle->GetHeight());
@@ -44,6 +45,11 @@ Lust::D3D12Context::~D3D12Context()
 {
 	FlushQueue();
 	m_CommandQueueFence.Release();
+	for (size_t i = 0; i < m_FramesInFlight; i++)
+	{
+		m_CommandLists[i].Release();
+		m_CommandAllocators[i].Release();
+	}
 	delete[] m_CommandLists;
 	delete[] m_CommandAllocators;
 	m_DepthStencilView.Release();
@@ -55,6 +61,7 @@ Lust::D3D12Context::~D3D12Context()
 	m_SwapChain.Release();
 	m_CommandQueue.Release();
 	m_Allocator.Release();
+	m_InfoQueue.Release();
 	m_Device.Release();
 
 	m_DXGIAdapter.Release();
@@ -183,24 +190,24 @@ bool Lust::D3D12Context::IsVSyncEnabled() const
 }
 
 
-ID3D12Device14* Lust::D3D12Context::GetDevicePtr() const
+Lust::ComPointer<ID3D12Device14> Lust::D3D12Context::GetDevicePtr() const
 {
-	return m_Device.GetConst();
+	return m_Device;
 }
 
-D3D12MA::Allocator* Lust::D3D12Context::GetAllocatorPtr() const
+Lust::ComPointer<D3D12MA::Allocator> Lust::D3D12Context::GetAllocatorPtr() const
 { 
-	return m_Allocator.GetConst();
+	return m_Allocator;
 }
 
-ID3D12GraphicsCommandList10* Lust::D3D12Context::GetCurrentCommandList() const
+Lust::ComPointer<ID3D12GraphicsCommandList10> Lust::D3D12Context::GetCurrentCommandList() const
 {
 	return m_CommandLists[m_CurrentBufferIndex].GetConst();
 }
 
-ID3D12CommandQueue* Lust::D3D12Context::GetCommandQueue() const
+Lust::ComPointer<ID3D12CommandQueue> Lust::D3D12Context::GetCommandQueue() const
 {
-	return m_CommandQueue.GetConst();
+	return m_CommandQueue;
 }
 
 D3D_FEATURE_LEVEL Lust::D3D12Context::GetFeatureLevel() const
@@ -301,6 +308,25 @@ void Lust::D3D12Context::CreateAdapter()
 void Lust::D3D12Context::CreateDevice()
 {
 	D3D12Functions::D3D12CreateDeviceFn(m_DXGIAdapter.Get(), m_FeatureLevel, IID_PPV_ARGS(m_Device.GetAddressOf()));
+	m_Device->SetName(L"Full device");
+}
+
+void Lust::D3D12Context::CreateInfoQueue()
+{
+	HRESULT hr;
+	D3D12_INFO_QUEUE_FILTER filter = {};
+	D3D12_MESSAGE_ID denyIds[] = {
+		D3D12_MESSAGE_ID_CREATERESOURCE_STATE_IGNORED
+	};
+	filter.DenyList.NumIDs = _countof(denyIds);
+	filter.DenyList.pIDList = denyIds;
+
+	hr = m_Device->QueryInterface(m_InfoQueue.GetAddressOf());
+	m_InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, FALSE);
+	m_InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, FALSE);
+	m_InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
+	m_InfoQueue->AddStorageFilterEntries(&filter);
+	assert(hr == S_OK);
 }
 
 void Lust::D3D12Context::CreateAllocator()
@@ -508,6 +534,7 @@ void Lust::D3D12Context::WaitForFence(UINT64 fenceValue)
 	}
 	auto waitable = m_SwapChain->GetFrameLatencyWaitableObject();
 	WaitForMultipleObjects(1, &waitable, TRUE, INFINITE);
+	CloseHandle(waitable);
 }
 
 #ifdef LUST_DEBUG_MODE
@@ -528,6 +555,7 @@ void Lust::D3D12Context::DisableDebug()
 		DXGI_DEBUG_ALL,
 		(DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_IGNORE_INTERNAL | DXGI_DEBUG_RLO_DETAIL)
 	);
+	m_DXGIDebug.Release();
 }
 
 #endif

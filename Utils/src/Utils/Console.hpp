@@ -5,6 +5,8 @@
 #include "spdlog/fmt/ostr.h"
 #include <memory>
 #include <utility>
+#include <spdlog/sinks/qt_sinks.h>
+#include <spdlog/sinks/dup_filter_sink.h>
 
 template <typename... Args>
 using format_string_t = fmt::format_string<Args...>;
@@ -27,6 +29,11 @@ namespace Lust
 		* @brief Ends the console, must be called at the end of the program
 		*/
         static void End();
+
+        /**
+        * 
+        */
+        static void RegisterQtLogger(std::shared_ptr<spdlog::sinks::qt_color_sink_mt> core_logger, std::shared_ptr<spdlog::sinks::qt_color_sink_mt> client_logger);
 
         /**
         * @brief Logs a message to the console, in spdlog trace level, for internal use
@@ -168,7 +175,12 @@ namespace Lust
         }
 
     private:
+
+        static void CreateLoggers();
+
         static std::shared_ptr<spdlog::logger> s_CoreLogger;
         static std::shared_ptr<spdlog::logger> s_ClientLogger;
+        static std::shared_ptr<spdlog::sinks::dup_filter_sink_mt> s_ClientDupFilter;
+        static std::shared_ptr<spdlog::sinks::dup_filter_sink_mt> s_CoreDupFilter;
     };
 }

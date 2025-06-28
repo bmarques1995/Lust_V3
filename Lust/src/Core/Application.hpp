@@ -37,7 +37,7 @@ namespace Lust
 		/**
 		* @brief Application destructor
 		*/
-		~Application();
+		virtual ~Application();
 
 		/**
 		* @brief Run the application, main loop
@@ -94,6 +94,11 @@ namespace Lust
 		void PushOverlay(Layer* layer);
 
 		/**
+		* @brief Checks if the application really wants to close
+		*/
+		virtual bool ProceedClose();
+
+		/**
 		* @brief Gets the copy pipeline
 		*/
 		std::shared_ptr<CopyPipeline>* GetCopyPipeline();
@@ -108,6 +113,15 @@ namespace Lust
 		static Application* GetInstance();
 
 	protected:
+		/**
+		* @brief Game loop wrapper, to hide inner logic
+		*/
+		void GameLoop();
+		/**
+		* @brief Destroys the application
+		*/
+		void DestroyApplication();
+
 		/**
 		* @brief Render action
 		* @details render the scene, is used in the main loop as the render loop
@@ -178,5 +192,7 @@ namespace Lust
 		static bool s_SingletonEnabled;
 		std::unique_ptr<ApplicationStarter> m_Starter;
 		bool m_Running = true;
+		bool m_LoopFinished = false;
+		bool m_Destroyed = false;
 	};
 }

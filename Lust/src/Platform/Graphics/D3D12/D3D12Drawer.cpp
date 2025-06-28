@@ -9,6 +9,7 @@ Lust::D3D12Drawer::D3D12Drawer(const D3D12Context* context) :
 
 Lust::D3D12Drawer::~D3D12Drawer()
 {
+	m_Context = nullptr;
 }
 
 void Lust::D3D12Drawer::Draw(uint32_t count, uint32_t instances)

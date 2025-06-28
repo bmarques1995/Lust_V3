@@ -8,6 +8,7 @@
 #include "ScriptableEntity.hpp"
 #include "Timestep.hpp"
 #include <functional>
+#include "SpriteSheet.hpp"
 
 namespace Lust
 {
@@ -37,6 +38,7 @@ namespace Lust
 	{
 		SSBOInstanceData ColorTexInfo;
 		uint32_t DrawOrder = 0;
+		std::shared_ptr<Sprite2DSheet> SpriteSheet;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -46,6 +48,7 @@ namespace Lust
 			ColorTexInfo.texCoordsEdges = vec4(0.0f, 0.0f, 1.0f, 1.0f);
 			ColorTexInfo.edgeColors = ColorCaster::CastFloatColor(color);
 		}
+
 		SpriteRendererComponent(const vec4& color0, const vec4& color1, const vec4& color2, const vec4& color3)
 		{
 			ColorTexInfo.controllerInfo = uvec4(0, 0, 0, 0);
@@ -56,6 +59,31 @@ namespace Lust
 		void SetDrawOrder(uint32_t drawOrder)
 		{
 			DrawOrder = drawOrder;
+		}
+
+		void SetTexture(uint32_t textureIndex, uint32_t samplerIndex)
+		{
+			ColorTexInfo.controllerInfo = uvec4(textureIndex, samplerIndex, 0, 0);
+		}
+
+		void AddSpriteSheet(std::shared_ptr<Sprite2DSheet> spriteSheet)
+		{
+			SpriteSheet = spriteSheet;
+		}
+
+		void AddSpriteSheet(std::shared_ptr<Texture2D> texture, uint32_t spriteWidth, uint32_t spriteHeight)
+		{
+			SpriteSheet.reset(new Sprite2DSheet(texture, spriteWidth, spriteHeight));
+		}
+
+		void SetSprite(uint32_t xIndex, uint32_t yIndex)
+		{
+			ColorTexInfo.texCoordsEdges = SpriteSheet->GetSpriteUV(xIndex, yIndex);
+		}
+
+		void SetUV(const vec4& formattedUV)
+		{
+			ColorTexInfo.texCoordsEdges = formattedUV;
 		}
 	};
 

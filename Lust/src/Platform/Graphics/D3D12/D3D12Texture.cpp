@@ -85,7 +85,7 @@ void Lust::D3D12Texture2D::CreateResource()
 
 	hr = allocator->CreateResource2(
 		&allocDesc, &textureBufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+		D3D12_RESOURCE_STATE_COMMON, nullptr,
 		m_TextureAllocation.GetAddressOf(), IID_PPV_ARGS(m_Texture.GetAddressOf()));
 
 	assert(hr == S_OK);

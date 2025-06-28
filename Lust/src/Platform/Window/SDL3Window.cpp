@@ -70,6 +70,11 @@ const bool* Lust::SDL3Window::TrackWindowClosing() const
 	return &m_ShouldClose;
 }
 
+void Lust::SDL3Window::EmitClose()
+{
+	m_ShouldClose = true;
+}
+
 void Lust::SDL3Window::DisplayWindow()
 {
 	SDL3Functions::SDL_ShowWindowFn(m_Window);
@@ -216,7 +221,6 @@ void Lust::SDL3Window::ProcessEvents(SDL_Event* eventData)
 	case SDL_EVENT_QUIT:
 	{
 		WindowClosedEvent e;
-		m_ShouldClose = true;
 		m_ExecuteCallback(e);
 		break;
 	}

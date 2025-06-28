@@ -67,10 +67,16 @@ Lust::D3D12Instrumentator::D3D12Instrumentator(const D3D12Context* context) :
 
 	auto cmdQueue = m_Context->GetCommandQueue();
 	cmdQueue->GetTimestampFrequency(&m_Frequency);
+
+	device->Release();
 }
 
 Lust::D3D12Instrumentator::~D3D12Instrumentator()
 {
+	m_QueryHeap.Release();
+	m_QueryResult.Release();
+	m_QueryVisibleBuffer.Release();
+	m_Context = nullptr;
 }
 
 void Lust::D3D12Instrumentator::BeginQueryTime()

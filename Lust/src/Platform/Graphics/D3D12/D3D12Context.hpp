@@ -41,10 +41,10 @@ namespace Lust
 		uint32_t GetSmallBufferAttachment() const override;
 		uint32_t GetFramesInFlight() const override;
 
-		ID3D12Device14* GetDevicePtr() const;
-		D3D12MA::Allocator* GetAllocatorPtr() const;
-		ID3D12GraphicsCommandList10* GetCurrentCommandList() const;
-		ID3D12CommandQueue* GetCommandQueue() const;
+		ComPointer<ID3D12Device14> GetDevicePtr() const;
+		ComPointer<D3D12MA::Allocator> GetAllocatorPtr() const;
+		ComPointer<ID3D12GraphicsCommandList10> GetCurrentCommandList() const;
+		ComPointer<ID3D12CommandQueue> GetCommandQueue() const;
 		D3D_FEATURE_LEVEL GetFeatureLevel() const;
 
 		const std::string& GetGPUName() override;
@@ -55,6 +55,7 @@ namespace Lust
 		void CreateFactory();
 		void CreateAdapter();
 		void CreateDevice();
+		void CreateInfoQueue();
 		void CreateAllocator();
 		void CreateCommandQueue();
 		void CreateSwapChain(HWND windowHandle);
@@ -85,6 +86,7 @@ namespace Lust
 		ComPointer<IDXGIAdapter4> m_DXGIAdapter;
 
 		ComPointer<ID3D12Device14> m_Device;
+		ComPointer<ID3D12InfoQueue> m_InfoQueue;
 		ComPointer<ID3D12CommandQueue> m_CommandQueue;
 		ComPointer<ID3D12Fence> m_CommandQueueFence;
 		uint64_t m_CommandQueueFenceValue = 0;
