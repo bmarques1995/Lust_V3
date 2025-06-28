@@ -27,7 +27,7 @@ if (($buildMode -eq "Debug" -or $buildMode -eq "Release") -and ($installPrefix -
     AppendVSNinjaHost($vsCompilerLocation)
     Write-Output "Installing QtSVG with build mode: $buildMode, install prefix: $installPrefix, module destination: $moduleDestination"
     git clone --recursive -b 6.9.1 https://code.qt.io/qt/qtsvg.git "$moduleDestination/modules/qtsvg"
-    cmake -S "$moduleDestination/modules/qtsvg" -B "$moduleDestination/dependencies/windows/qtsvg" -G Ninja -DCMAKE_INSTALL_PREFIX="$installPrefix" -DCMAKE_PREFIX_PATH="$installPrefix" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_ASM_COMPILER=ml64 -DCMAKE_BUILD_TYPE="$buildMode"
+    cmake -S "$moduleDestination/modules/qtsvg" -B "$moduleDestination/dependencies/windows/qtsvg" -G Ninja -DQT_FEATURE_force_bundled_libs=ON -DCMAKE_INSTALL_PREFIX="$installPrefix" -DCMAKE_PREFIX_PATH="$installPrefix" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_ASM_COMPILER=ml64 -DCMAKE_BUILD_TYPE="$buildMode"
     cmake --build "$moduleDestination/dependencies/windows/qtsvg" --parallel
     cmake --install "$moduleDestination/dependencies/windows/qtsvg"
 }

@@ -12,6 +12,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     int argc;
     std::vector<char*> argv;
     Lust::StartCmdLine(&argc, &argv);
+	Lust::Console::Init();
 	Lust::Instrumentator* instrumentator = Lust::Instrumentator::Get();
 	instrumentator->BeginSession("Startup", "lust_startup.json");
 	Editor* app = new Editor(argc, argv.data());
@@ -22,6 +23,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	instrumentator->BeginSession("Shutdown", "lust_shutdown.json");
 	delete app;
 	instrumentator->EndSession();
+	Lust::Console::End();
 	return 0;
 }
 

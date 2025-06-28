@@ -26,7 +26,7 @@ if (($buildMode -eq "Debug" -or $buildMode -eq "Release") -and ($installPrefix -
 {
     AppendVSNinjaHost($vsCompilerLocation)
     git clone --recursive -b 6.9.1 https://code.qt.io/qt/qtbase.git "$moduleDestination/modules/qtbase"
-    cmake -S "$moduleDestination/modules/qtbase" -B "$moduleDestination/dependencies/windows/qtbase" -G "Ninja" -DCMAKE_PREFIX_PATH="$installPrefix" -DCMAKE_INSTALL_PREFIX="$installPrefix" -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_BUILD_TYPE="$buildMode" -DCMAKE_ASM_COMPILER=ml64.exe
+    cmake -S "$moduleDestination/modules/qtbase" -B "$moduleDestination/dependencies/windows/qtbase" -G "Ninja" -DQT_FEATURE_force_bundled_libs=ON -DCMAKE_PREFIX_PATH="$installPrefix" -DCMAKE_INSTALL_PREFIX="$installPrefix" -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_BUILD_TYPE="$buildMode" -DCMAKE_ASM_COMPILER=ml64.exe
     cmake --build "$moduleDestination/dependencies/windows/qtbase" --parallel
     cmake --install "$moduleDestination/dependencies/windows/qtbase"
 }

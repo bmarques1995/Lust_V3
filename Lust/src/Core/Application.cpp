@@ -24,8 +24,6 @@ Lust::Application::Application()
 
 	Sleeper::SetFrameTime(1.0 / 60.0);
 	Sleeper::SetFrameTimeF(1.0f / 60.0f);
-
-	Console::Init();
 	Renderer::Init();
 	m_Starter.reset(new ApplicationStarter("controller.json"));
 	WindowProps props("Lust Engine", m_Starter->GetWidth(), m_Starter->GetHeight());
@@ -154,7 +152,7 @@ void Lust::Application::DestroyApplication()
 	m_Window.reset();
 	m_Starter.reset();
 	Renderer::Shutdown();
-	Console::End();
+	
 	Sockets::StopAPI();
 	m_Destroyed = true;
 }

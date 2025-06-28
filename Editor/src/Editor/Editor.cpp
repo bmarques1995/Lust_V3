@@ -35,6 +35,7 @@ Editor::Editor(int argc, char** argv) :
 
 Editor::~Editor()
 {
+	DestroyApplication();
 	m_ConsoleWindow.reset();
 	m_WrappedWindowContainer.reset();
 	m_WrappedWindow.reset();
