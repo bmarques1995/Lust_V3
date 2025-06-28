@@ -522,6 +522,8 @@ void Lust::D3D12Context::EnableDebug()
 
 void Lust::D3D12Context::DisableDebug()
 {
+	m_D3D12Debug.Release();
+	m_DXGIDebug->EnableLeakTrackingForThread();
 	m_DXGIDebug->ReportLiveObjects(
 		DXGI_DEBUG_ALL,
 		(DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_IGNORE_INTERNAL | DXGI_DEBUG_RLO_DETAIL)
