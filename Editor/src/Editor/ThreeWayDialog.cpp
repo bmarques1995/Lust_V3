@@ -3,6 +3,7 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QCoreApplication>
 
 ThreeWayDialog::ThreeWayDialog(QWidget* parent)
     : QDialog(parent)
@@ -13,12 +14,12 @@ ThreeWayDialog::ThreeWayDialog(QWidget* parent)
 
 void ThreeWayDialog::setupUi()
 {
-    setWindowTitle("Close Program");
+    setWindowTitle(QCoreApplication::translate("Messages", "Action"));
 
-    auto* label = new QLabel("Do you want to: ", this);
-    auto* buttonA = new QPushButton("Save and Close", this);
-    auto* buttonB = new QPushButton("Close Without Save", this);
-    auto* buttonC = new QPushButton("Cancel", this);
+    auto* label = new QLabel(QCoreApplication::translate("Messages", "Placeholder"), this);
+    auto* buttonA = new QPushButton(QCoreApplication::translate("Messages", "Full Confirm"), this);
+    auto* buttonB = new QPushButton(QCoreApplication::translate("Messages", "Confirm"), this);
+    auto* buttonC = new QPushButton(QCoreApplication::translate("Messages", "Cancel"), this);
     buttonA->setStyleSheet("padding: 8px 8px;");
     buttonB->setStyleSheet("padding: 8px 8px;");
     buttonC->setStyleSheet("padding: 8px 8px;");

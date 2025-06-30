@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding = "utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language = "pt_BR">
+	<context>
+		<name>Messages</name>
+		<message>
+			<source>Action</source>
+			<translation type="unfinished">Fechar aplicação</translation>
+		</message>
+		<message>
+			<source>Placeholder</source>
+			<translation type="unfinished">Como deseja prosseguir?</translation>
+		</message>
+		<message>
+			<source>Full Confirm</source>
+			<translation type="unfinished">Salvar e fechar</translation>
+		</message>
+		<message>
+			<source>Confirm</source>
+			<translation type="unfinished">Fechar sem salvar</translation>
+		</message>
+		<message>
+			<source>Cancel</source>
+			<translation type="unfinished">Cancelar</translation>
+		</message>
+	</context>
+</TS>

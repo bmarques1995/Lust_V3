@@ -28,6 +28,7 @@ private:
 	bool m_SignalRegistered = false;
 	CloseController m_CloseController;
 	QApplication* m_App;
+	std::shared_ptr<QTranslator> m_Translator;
 	std::shared_ptr<QWindow> m_WrappedWindow;
 	std::shared_ptr<QTextEdit> m_ConsoleWindow;
 	std::shared_ptr<GameContainer> m_WrappedWindowContainer;

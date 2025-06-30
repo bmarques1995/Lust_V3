@@ -37,7 +37,7 @@ Lust::Application::Application()
 
 	try
 	{
-		m_SPVCompiler.reset(new SPVCompiler("_main", "_6_8", "1.3"));
+		m_SPVCompiler.reset(new SPVCompiler("_main", "_6_8", "1.4"));
 		m_CSOCompiler.reset(new CSOCompiler("_main", "_6_8"));
 		m_SPVCompiler->PushShaderPath("./assets/shaders/Renderer2D.hlsl", PipelineType::Graphics);
 		m_CSOCompiler->PushShaderPath("./assets/shaders/Renderer2D.hlsl", PipelineType::Graphics);

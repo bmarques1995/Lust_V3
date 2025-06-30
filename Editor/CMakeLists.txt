@@ -46,3 +46,10 @@ endif()
 
 target_precompile_headers(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/pch/pch.hpp)
 set_cxx_project_standards(${TARGET_NAME} 20 FALSE)
+
+add_custom_target(copy_translations ALL
+			COMMAND ${CMAKE_COMMAND} -E copy_directory
+			"${CMAKE_CURRENT_SOURCE_DIR}/translations"
+			${CMAKE_PREFIX_PATH}/bin/translations
+			COMMENT "Copying D3D12Core dll into binary directory")
+add_dependencies(${TARGET_NAME} copy_translations)
