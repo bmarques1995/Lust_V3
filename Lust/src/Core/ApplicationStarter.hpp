@@ -3,6 +3,7 @@
 #include "LustDLLMacro.hpp"
 #include <json/json.h>
 #include "GraphicsContext.hpp"
+#include "Languages.hpp"
 #include <unordered_map>
 
 namespace Lust
@@ -61,6 +62,12 @@ namespace Lust
 		uint32_t GetHeight() const;
 
 		/**
+		* @brief GetCurrentLanguage
+		* @details returns current language
+		*/
+		Language GetCurrentLanguage() const;
+
+		/**
 		* @brief SetAPI
 		* @details sets GraphicsAPI
 		*/
@@ -73,9 +80,11 @@ namespace Lust
 		bool m_FullscreenMode;
 		uint32_t m_Width;
 		uint32_t m_Height;
+		Language m_Language;
 
 		static const std::unordered_map<std::string, GraphicsAPI> s_GraphicsAPIMapper;
 		static const std::unordered_map<GraphicsAPI, std::string> s_GraphicsAPIReverseMapper;
+		
 
 		/**
 		* @brief IsPropertyPresent

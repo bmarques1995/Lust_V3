@@ -21,7 +21,6 @@ const std::unordered_map<Lust::GraphicsAPI, std::string> Lust::ApplicationStarte
 #endif
 };
 
-
 Lust::ApplicationStarter::ApplicationStarter(std::string_view jsonFilepath) :
 	m_Filepath(jsonFilepath.data())
 {
@@ -43,18 +42,22 @@ Lust::ApplicationStarter::ApplicationStarter(std::string_view jsonFilepath) :
 		healthy &= IsPropertyPresent("GraphicsAPI");
 		healthy &= IsPropertyPresent("Width");
 		healthy &= IsPropertyPresent("Height");
+		healthy &= IsPropertyPresent("Language");
 
 		auto it = s_GraphicsAPIMapper.find(m_Starter["GraphicsAPI"].asString());
-		if ((it == s_GraphicsAPIMapper.end()) || (!healthy))
+		auto langIt = LanguageDefinitions::s_LanguageMapper.find(m_Starter["Language"].asString());
+		if ((it == s_GraphicsAPIMapper.end()) || (langIt == LanguageDefinitions::s_LanguageMapper.end()) || (!healthy))
 		{
 			m_Width = 1280;
 			m_Height = 720;
 			m_API = RENDER_GRAPHICS_API_VK;
 			m_FullscreenMode = false;
+			m_Language = Language::EN_US;
 			m_Starter["GraphicsAPI"] = "SAMPLE_RENDER_GRAPHICS_API_VK";
 			m_Starter["FullscreenMode"] = m_FullscreenMode;
 			m_Starter["Width"] = m_Width;
 			m_Starter["Height"] = m_Height;
+			m_Starter["Language"] = "EN_US";
 
 			FileHandler::WriteTextFile(jsonFilepath.data(), m_Starter.toStyledString());
 		}
@@ -64,6 +67,7 @@ Lust::ApplicationStarter::ApplicationStarter(std::string_view jsonFilepath) :
 			m_FullscreenMode = m_Starter["FullscreenMode"].asBool();
 			m_Width = m_Starter["Width"].as<uint32_t>();
 			m_Height = m_Starter["Height"].as<uint32_t>();
+			m_Language = langIt->second;
 		}
 
 	}
@@ -98,6 +102,11 @@ uint32_t Lust::ApplicationStarter::GetWidth() const
 uint32_t Lust::ApplicationStarter::GetHeight() const
 {
 	return m_Height;
+}
+
+Lust::Language Lust::ApplicationStarter::GetCurrentLanguage() const
+{
+	return m_Language;
 }
 
 void Lust::ApplicationStarter::SetAPI(GraphicsAPI api)

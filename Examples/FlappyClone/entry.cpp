@@ -1,11 +1,14 @@
 #include "Controller.hpp"
 #include "LustSandboxDLLMacro.hpp"
+#include "Console.hpp"
 
 int lust_entrypoint()
 {
+	Lust::Console::Init();
 	Lust::Application* app = new Controller();
 	app->Run();
 	delete app;
+	Lust::Console::End();
 	return 0;
 }
 

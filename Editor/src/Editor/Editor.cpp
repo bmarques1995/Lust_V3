@@ -15,6 +15,7 @@ Editor::Editor(int argc, char** argv) :
 	TranslationCompiler compiler;
 	compiler.Compile("./translations", "./");
 
+	auto language = m_Starter->GetCurrentLanguage();
 	m_Translator.reset(new QTranslator());
 	auto loaded = m_Translator->load("./translations/dialogbox_pt_br.qm");
 	m_Translator->setObjectName("Message");
