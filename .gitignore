@@ -19,3 +19,5 @@ test*.txt
 final_coverage/
 *.spv
 *.cso
+
+__pycache__/

@@ -4,9 +4,9 @@ file(GLOB_RECURSE TESTS_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE TESTS_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 if(WIN32)
-    trace_dependency(NAME GTest INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/gtest.ps1")
-    trace_dependency(NAME glm INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/glm.ps1")
-    trace_dependency(NAME Eigen3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/eigen.ps1" LIMIT_SEARCH_PATHS)
+    trace_dependency(NAME GTest INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/gtest.py")
+    trace_dependency(NAME glm INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/glm.py")
+    trace_dependency(NAME Eigen3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/eigen.py" LIMIT_SEARCH_PATHS)
 endif()
 
 enable_testing()

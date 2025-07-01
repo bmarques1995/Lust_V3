@@ -11,13 +11,13 @@ file(GLOB_RECURSE UTILS_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
 file(GLOB_RECURSE UTILS_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 if(WIN32)
-	trace_dependency(NAME Qt6 COMPONENTS Widgets INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtbase.ps1" LIMIT_SEARCH_PATHS)
-	trace_dependency(NAME jsoncpp INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/jsoncpp.ps1" LIMIT_SEARCH_PATHS)
-	trace_dependency(NAME spdlog INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spdlog.ps1")
-	trace_dependency(NAME Eigen3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/eigen.ps1" LIMIT_SEARCH_PATHS)
-	trace_dependency(NAME ZLIB INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/zlib.ps1" LIMIT_SEARCH_PATHS)
-	trace_dependency(NAME PNG INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/libpng.ps1")
-	trace_dependency(NAME libjpeg-turbo INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/libjpeg_turbo.ps1")
+	trace_dependency(NAME Qt6 COMPONENTS Widgets INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtbase.py" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME jsoncpp INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/jsoncpp.py" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME spdlog INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spdlog.py")
+	trace_dependency(NAME Eigen3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/eigen.py" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME ZLIB INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/zlib.py" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME PNG INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/libpng.py")
+	trace_dependency(NAME libjpeg-turbo INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/libjpeg_turbo.py")
 endif()
 
 # Check if OpenMP is available
@@ -76,7 +76,7 @@ if(BUILD_TESTS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
 		target_add_test(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 						SUB_DIR "tests" 
 						TARGET_NAME ${TARGET_TEST_NAME}
-						GTEST_INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/gtest.ps1"
+						GTEST_INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/gtest.py"
 						EXTRA_LINKED_LIBS ${TARGET_NAME} d3d12
 						EXTRA_INCLUDE_DIRS "${CMAKE_PREFIX_PATH}/include" "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 	endif()

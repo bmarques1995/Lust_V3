@@ -17,8 +17,8 @@ if(WIN32)
 endif()
 
 if(WIN32)
-	trace_dependency(NAME Qt6 COMPONENTS Core Widgets Gui INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtbase.ps1" LIMIT_SEARCH_PATHS)
-	trace_dependency(NAME Qt6 COMPONENTS Svg INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtsvg.ps1" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME Qt6 COMPONENTS Core Widgets Gui INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtbase.py" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME Qt6 COMPONENTS Svg INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/qtsvg.py" LIMIT_SEARCH_PATHS)
 endif()
 
 file(GLOB_RECURSE LAUNCHER_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.hpp")
