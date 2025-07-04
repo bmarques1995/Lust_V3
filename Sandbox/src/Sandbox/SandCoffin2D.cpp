@@ -83,6 +83,7 @@ void Lust::SandCoffin2D::OnDetach()
 {
 	m_SpriteSheetTexture.reset();
 	m_Renderer2DTexture.reset();
+	m_Renderer2DSampler.reset();
 	//m_SampleSocket->CloseConnection();
 }
 

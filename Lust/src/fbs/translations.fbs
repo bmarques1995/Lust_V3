@@ -1,0 +1,18 @@
+// schema.fbs
+namespace LustBuffers;
+
+table Key {
+  key: string;
+  value: string;
+}
+
+table Context {
+  context: string;
+  keys: [Key];
+}
+
+table Root {
+  contexts: [Context];
+}
+
+root_type Root;

@@ -49,7 +49,7 @@ namespace Lust
 		std::shared_ptr<Sampler> m_Renderer2DSampler;
 		std::shared_ptr<Sockets> m_SampleSocket;
 		std::shared_ptr<Scene> m_SampleScene;
-		std::shared_ptr<Shader> m_Renderer2DShader;
+		//std::shared_ptr<Shader> m_Renderer2DShader;
 		Lust::Entity m_SquareEntity;
 		Lust::Entity m_SquareEntity2;
 		Lust::Entity m_CameraEntity;

@@ -3,6 +3,8 @@
 #include "LustUtilsDLLMacro.hpp"
 #include <string>
 #include <utility>
+#include "RawBuffer.hpp"
+#include <memory>
 
 namespace Lust
 {
@@ -37,6 +39,20 @@ namespace Lust
 		* @param content The content of the file
 		*/
 		static bool WriteBinFile(std::string_view path, std::byte* content, size_t dataSize);
+
+		/**
+		* @brief Read a binary file
+		* @param path The path of the file
+		* @param content [Out] The Buffer of the file
+		*/
+		static bool ReadBinFile(std::string_view path, std::shared_ptr<RawBuffer>* content);
+		/**
+		* @brief Write a binary file
+		* @param path The path of the file
+		* @param content The content of the file, as a buffer
+		*/
+		static bool WriteBinFile(std::string_view path, const std::shared_ptr<RawBuffer>& content);
+
 		/**
 		* @brief Check if a file exists
 		* @param path The path of the file

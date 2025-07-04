@@ -3,45 +3,6 @@
 #include "FileHandler.hpp"
 #include <Stack>
 
-Lust::RawBuffer::RawBuffer()
-{
-	m_Data = nullptr;
-	m_Size = 0;
-}
-
-Lust::RawBuffer::RawBuffer(uint8_t* data, size_t size)
-{
-	m_Size = size;
-	m_Data = new uint8_t[m_Size];
-	memcpy(m_Data, data, m_Size);
-}
-
-Lust::RawBuffer::~RawBuffer()
-{
-	if (m_Data != nullptr)
-		delete[] m_Data;
-}
-
-void Lust::RawBuffer::RecreateBuffer(uint8_t* data, size_t size)
-{
-	if (m_Data != nullptr)
-		delete[] m_Data;
-
-	m_Size = size;
-	m_Data = new uint8_t[m_Size];
-	memcpy(m_Data, data, m_Size);
-}
-
-const uint8_t* Lust::RawBuffer::GetData() const
-{
-	return m_Data;
-}
-
-const size_t Lust::RawBuffer::GetSize() const
-{
-	return m_Size;
-}
-
 Lust::VKShaderReflector::VKShaderReflector(std::string_view jsonFilepath, uint32_t stages, uint32_t numInstances) :
 	ShaderReflector(stages, numInstances)
 {

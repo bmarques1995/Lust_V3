@@ -2,25 +2,10 @@
 
 #include "ShaderReflector.hpp"
 #include <spirv_reflect.h>
+#include "RawBuffer.hpp"
 
 namespace Lust
 {
-	class RawBuffer
-	{
-	public:
-		RawBuffer();
-		RawBuffer(uint8_t* data, size_t size);
-		~RawBuffer();
-
-		void RecreateBuffer(uint8_t* data, size_t size);
-
-		const uint8_t* GetData() const;
-		const size_t GetSize() const;
-
-	private:
-		uint8_t* m_Data;
-		size_t m_Size;
-	};
 	class VKShaderReflector : public ShaderReflector
 	{
 	public:

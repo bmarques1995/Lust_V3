@@ -16,6 +16,8 @@ if(WIN32)
 	trace_dependency(NAME spdlog INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spdlog.py")
 	trace_dependency(NAME Eigen3 INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/eigen.py" LIMIT_SEARCH_PATHS)
 	trace_dependency(NAME ZLIB INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/zlib.py" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME zstd INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/zstd.py" LIMIT_SEARCH_PATHS)
+	trace_dependency(NAME OpenSSL INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/openssl.py" LIMIT_SEARCH_PATHS)
 	trace_dependency(NAME PNG INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/libpng.py")
 	trace_dependency(NAME libjpeg-turbo INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/libjpeg_turbo.py")
 endif()
@@ -40,7 +42,7 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/pch>
 )
-target_link_libraries(${TARGET_NAME} PUBLIC spdlog::spdlog libjpeg-turbo::jpeg PNG::PNG ZLIB::ZLIB jsoncpp_lib Eigen3::Eigen Qt6::Widgets)
+target_link_libraries(${TARGET_NAME} PUBLIC spdlog::spdlog libjpeg-turbo::jpeg PNG::PNG ZLIB::ZLIB jsoncpp_lib Eigen3::Eigen Qt6::Widgets zstd::libzstd_shared OpenSSL::Crypto)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
 	target_compile_definitions(${TARGET_NAME} PRIVATE LUST_UTILS_BUILD_DLL)

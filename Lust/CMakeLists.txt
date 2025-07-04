@@ -49,13 +49,15 @@ if(WIN32)
 	trace_dependency(NAME SPIRV-Tools INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/spirv_tools.py")
 	trace_dependency(NAME D3D12MemoryAllocator INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/d3d12ma.py")
 	trace_dependency(NAME mimalloc INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/mimalloc.py")
+	trace_dependency(NAME flatbuffers INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/flatbuffers.py")
+	trace_dependency(NAME OpenSSL INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/openssl.py" USE_VSTOOLS)
 	
 	trace_installable_file(NAME "VkLayer_khronos_shader_object" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_extensions.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "dll")
 	trace_installable_file(NAME "VkLayer_khronos_shader_object" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_extensions.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "json")
 	trace_installable_file(NAME "VkLayer_khronos_synchronization2" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_extensions.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "dll")
 	trace_installable_file(NAME "VkLayer_khronos_synchronization2" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_extensions.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "json")
-	trace_installable_file(NAME "VkLayer_khronos_validation" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_validation.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "dll")
-	trace_installable_file(NAME "VkLayer_khronos_validation" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_validation.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "json")
+	trace_installable_file(NAME "VkLayer_khronos_validation" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_validation.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "dll" USE_VSTOOLS)
+	trace_installable_file(NAME "VkLayer_khronos_validation" INSTALL_SCRIPT "${PROJECT_SOURCE_DIR}/installers/vulkan_validation.py" LOCATION "${CMAKE_PREFIX_PATH}/bin" EXTENSION "json" USE_VSTOOLS)
 
 	if(REGISTER_VULKAN_LAYERS)
 
@@ -68,9 +70,13 @@ if(WIN32)
 
 endif()
 
+file(GLOB_RECURSE FBS_FILES ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR}src/fbs/ "*.fbs")
+execute_process(COMMAND python ${PROJECT_SOURCE_DIR}/installers/flatc_gen_h.py ${CMAKE_INSTALL_PREFIX} ${CMAKE_CURRENT_SOURCE_DIR}/src/fbs ${FBS_FILES})
+
 add_library(${TARGET_NAME} ${BUILD_TYPE} ${LUST_HDRS} ${LUST_SRCS})
 target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Core>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/fbs>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Events>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Window>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Sockets>
@@ -109,9 +115,10 @@ if(WIN32)
 	find_library(DXGI_FOUND NAMES dxgi REQUIRED)
 	find_library(DXGUID_FOUND NAMES dxguid REQUIRED)
 
+
 	target_link_libraries(${TARGET_NAME} PRIVATE d3d12 dxgi dxguid ws2_32 GPUOpen::D3D12MemoryAllocator)
 endif()
-target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager EnTT::EnTT LustVMA)
+target_link_libraries(${TARGET_NAME} PUBLIC LustUtils SDL3::SDL3 Vulkan::Headers Vulkan::Loader LustShaderManager EnTT::EnTT LustVMA flatbuffers::flatbuffers_shared OpenSSL::Crypto)
 if(WIN32)
 	target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_PREFIX_PATH}/lib/dxcompiler.lib)
 elseif(LINUX)

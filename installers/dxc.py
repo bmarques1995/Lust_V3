@@ -1,13 +1,15 @@
 ﻿import os
 import subprocess
 import sys
-from package_helpers import clone_and_checkout, download_file, extract_zip, copy_file, run, append_paths
+from package_helpers import clone_and_checkout, download_file, extract_zip, copy_file, run, append_paths, append_vs_ninja_host
 
 def main():
     build_mode = sys.argv[1]
     install_prefix = sys.argv[2]
     module_destination = sys.argv[3]
+    vs_compiler = sys.argv[4]
 
+    append_vs_ninja_host(vs_compiler)
     if not (install_prefix and module_destination):
         print("Invalid build type or install path")
         return

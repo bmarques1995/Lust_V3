@@ -4,9 +4,16 @@ import urllib.request
 import zipfile
 import shutil
 import re
+from pathlib import Path
 
 def append_paths(base_path, *paths):
     return os.path.join(base_path, *paths).replace("\\", "/")
+
+def append_msvc_compiler_location(compiler_location):
+    full_path = Path(compiler_location)
+    compiler_dir = full_path.parent
+    current_path_var = os.environ.get("PATH", "")
+    os.environ["PATH"] = f"{compiler_dir};{current_path_var}"
 
 def append_vs_ninja_host(compiler_location):
     vs_base_path = ""
