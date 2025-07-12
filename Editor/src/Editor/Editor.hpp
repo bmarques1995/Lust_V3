@@ -9,6 +9,7 @@
 #include "CloseController.hpp"
 #include "GameContainer.hpp"
 #include <spdlog/sinks/qt_sinks.h>
+#include "Translation.hpp"
 
 class Editor : public Lust::SandCoffin
 {
@@ -29,6 +30,7 @@ private:
 	bool m_SignalRegistered = false;
 	CloseController m_CloseController;
 	QApplication* m_App;
+	Lust::Translation m_Translation;
 	std::shared_ptr<QTranslator> m_Translator;
 	std::shared_ptr<QWindow> m_WrappedWindow;
 	std::shared_ptr<QTextEdit> m_ConsoleWindow;

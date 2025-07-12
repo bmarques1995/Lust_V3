@@ -1,29 +1,32 @@
-[
-    {
-        "context": "smdialog", 
-        "keys": [
-            {"dialog1": "sample dialog 1"},
-            {"call": "Talk"},
-            {"call2": "Talk"},
-            {"call3": "Talk"},
-            {"call4": "Talk"},
-            {"call5": "Talk"}
-        ]
-    },
-    {
-        "context": "mjdialog", 
-        "keys": [
-            {"dialog1": "sample dialog 1 mj"},
-            {"caller": "GTSY jkadhkfjsdah asdwdkasfjh adsiouksda"},
-            {"caller2": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
-            {"caller3": "GTSY jadklçs hsdfva askdj ykzsf j"},
-            {"caller4": "GTSY lkdjas lsdfaçadsfklsdfacj "},
-            {"caller5": "GTSY kjasd lv jak vlasdfkl jasdl"},
-            {"caller6": "GTSY jkdfal aslk dfaskljasdf l"},
-            {"caller7": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
-            {"caller8": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
-            {"caller9": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
-            {"caller10": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"}
-        ]
-    }
-]
+{
+    "language": "EN_US",
+    "dialogs": [
+        {
+            "context": "smdialog", 
+            "keys": [
+                {"dialog1": "sample dialog 1"},
+                {"call": "Talk"},
+                {"call2": "Talk"},
+                {"call3": "Talk"},
+                {"call4": "Talk"},
+                {"call5": "Talk"}
+            ]
+        },
+        {
+            "context": "mjdialog", 
+            "keys": [
+                {"dialog1": "sample dialog 1 mj"},
+                {"caller": "GTSY jkadhkfjsdah asdwdkasfjh adsiouksda"},
+                {"caller2": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
+                {"caller3": "GTSY jadklçs hsdfva askdj ykzsf j"},
+                {"caller4": "GTSY lkdjas lsdfaçadsfklsdfacj "},
+                {"caller5": "GTSY kjasd lv jak vlasdfkl jasdl"},
+                {"caller6": "GTSY jkdfal aslk dfaskljasdf l"},
+                {"caller7": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
+                {"caller8": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
+                {"caller9": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"},
+                {"caller10": "GTSY asdhjfkjljdfhas asdf acjklasdiou hnsdfakl sdf 闇の血"}
+            ]
+        }
+    ]
+}

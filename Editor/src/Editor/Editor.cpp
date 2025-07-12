@@ -23,7 +23,8 @@ Editor::Editor(int argc, char** argv) :
 		m_Translator->setObjectName("Message");
 		m_App->installTranslator(m_Translator.get());
 		Lust::Translator::Translate("./translations/sample");
-		Lust::Translator::LoadTranslation("./translations/sample.fbd");
+		Lust::Translator::LoadTranslation("./translations/sample.fbd", &m_Translation);
+		std::u8string sample = m_Translation.GetTranslation("mjdialog", "dialog1");
 	}
 	{
 		m_ConsoleWindow.reset(new QTextEdit(nullptr));

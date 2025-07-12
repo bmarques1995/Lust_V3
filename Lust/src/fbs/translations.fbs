@@ -12,6 +12,7 @@ table Context {
 }
 
 table Root {
+  language: uint32;
   contexts: [Context];
 }
 

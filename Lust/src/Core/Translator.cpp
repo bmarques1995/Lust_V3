@@ -2,6 +2,7 @@
 #include <flatbuffers/flatbuffers.h>
 #include "FileHandler.hpp"
 #include "Console.hpp"
+#include <filesystem>
 
 void Lust::Translator::Translate(const std::string& json_basepath)
 {
@@ -12,7 +13,12 @@ void Lust::Translator::Translate(const std::string& json_basepath)
     LoadJson(json_path, &json_context);
 	JsonToTranslationMap(json_context, &data);
     std::shared_ptr<RawBuffer> outputBuffer;
-	TranslationMapToFlatbuffers(&outputBuffer, data);
+    Language language = Language::EN_US;
+    auto it = LanguageDefinitions::s_LanguageMapper.find(json_context["language"].asString());
+    if(it != LanguageDefinitions::s_LanguageMapper.end()) {
+		language = it->second;
+	}
+	TranslationMapToFlatbuffers(&outputBuffer, data, language);
     outputBuffer->DeflateBuffer();
     outputBuffer->CypherBuffer();
     /*
@@ -22,12 +28,15 @@ void Lust::Translator::Translate(const std::string& json_basepath)
     FileHandler::WriteBinFile(fbd_path, outputBuffer);
 }
 
-void Lust::Translator::LoadTranslation(std::string fbd_basepath)
+void Lust::Translator::LoadTranslation(std::string fbd_basepath, Translation* translation)
 {
     std::shared_ptr<RawBuffer> inputBuffer;
     FileHandler::ReadBinFile(fbd_basepath, &inputBuffer);
     inputBuffer->DecypherBuffer();
     inputBuffer->InflateBuffer();
+
+    std::filesystem::path path(fbd_basepath);
+	translation->m_Name = path.stem().string();
 
     // Step 2: Verify the buffer (optional but good practice)
     flatbuffers::Verifier verifier(inputBuffer->GetData(), inputBuffer->GetSize());
@@ -43,14 +52,14 @@ void Lust::Translator::LoadTranslation(std::string fbd_basepath)
         std::string context_name = ctx->context()->str();
         for (const LustBuffers::Key* key : *ctx->keys()) {
             auto element = key->value()->str();
-            translations[context_name][key->key()->str()] = reinterpret_cast<const char8_t*>(element.data());
+            translation->m_Translations[context_name][key->key()->str()] = reinterpret_cast<const char8_t*>(element.data());
         }
     }
 }
 
 void Lust::Translator::JsonToTranslationMap(const Json::Value& json_context, std::unordered_map<std::string, std::unordered_map<std::string, std::u8string>>* translations)
 {
-    for (const auto& ctx_json : json_context) {
+    for (const auto& ctx_json : json_context["dialogs"]) {
         std::string context_name = ctx_json["context"].asString();
         auto& key_map = (*translations)[context_name]; // creates context if missing
 
@@ -76,7 +85,7 @@ void Lust::Translator::LoadJson(const std::string& filepath, Json::Value* json_r
     reader.parse(jsonResult, *json_root);
 }
 
-void Lust::Translator::TranslationMapToFlatbuffers(std::shared_ptr<RawBuffer>* outputBuffer, const std::unordered_map<std::string, std::unordered_map<std::string, std::u8string>>& data)
+void Lust::Translator::TranslationMapToFlatbuffers(std::shared_ptr<RawBuffer>* outputBuffer, const std::unordered_map<std::string, std::unordered_map<std::string, std::u8string>>& data, Language language)
 {
     outputBuffer->reset(new RawBuffer());
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -104,7 +113,7 @@ void Lust::Translator::TranslationMapToFlatbuffers(std::shared_ptr<RawBuffer>* o
         fb_contexts.push_back(fb_context);
     }
 
-    auto root = CreateRoot(builder, builder.CreateVector(fb_contexts));
+    auto root = CreateRoot(builder, (uint32_t)language, builder.CreateVector(fb_contexts));
     builder.Finish(root);
 
 	(*outputBuffer)->RecreateBuffer(builder.GetBufferPointer(), builder.GetSize());
