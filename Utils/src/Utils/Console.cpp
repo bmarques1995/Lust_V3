@@ -58,7 +58,7 @@ void Lust::Console::End()
 	s_CoreLogger.reset();
 }
 
-inline void Lust::Console::RegisterQtLogger(std::shared_ptr<spdlog::sinks::qt_color_sink_mt> core_logger, std::shared_ptr<spdlog::sinks::qt_color_sink_mt> client_logger)
+inline void Lust::Console::RegisterQtLogger(std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> core_logger, std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> client_logger)
 {
 	End();
 	core_logger->set_pattern("%^[%T][%l] %n: %v%$");

@@ -5,7 +5,6 @@
 #include "spdlog/fmt/ostr.h"
 #include <memory>
 #include <utility>
-#include <spdlog/sinks/qt_sinks.h>
 #include <spdlog/sinks/dup_filter_sink.h>
 
 template <typename... Args>
@@ -33,7 +32,7 @@ namespace Lust
         /**
         * 
         */
-        static void RegisterQtLogger(std::shared_ptr<spdlog::sinks::qt_color_sink_mt> core_logger, std::shared_ptr<spdlog::sinks::qt_color_sink_mt> client_logger);
+        static void RegisterQtLogger(std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> core_logger, std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> client_logger);
 
         /**
         * @brief Logs a message to the console, in spdlog trace level, for internal use

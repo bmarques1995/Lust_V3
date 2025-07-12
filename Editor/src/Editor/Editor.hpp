@@ -8,6 +8,7 @@
 #include <QDockWidget>
 #include "CloseController.hpp"
 #include "GameContainer.hpp"
+#include <spdlog/sinks/qt_sinks.h>
 
 class Editor : public Lust::SandCoffin
 {
