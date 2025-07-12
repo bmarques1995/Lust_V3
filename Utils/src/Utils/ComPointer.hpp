@@ -1,7 +1,11 @@
 #pragma once
 
+#ifdef LUST_UTILS_WINDOWS
+
 #include <type_traits>
 #include <cstdint>
+#include <windows.h>
+#include "Console.hpp"
 
 namespace Lust
 {
@@ -206,7 +210,16 @@ namespace Lust
 			uint32_t newRef = 0;
 			if (m_Pointer)
 			{
-				newRef = m_Pointer->Release();
+				
+				__try
+				{
+					newRef = m_Pointer->Release();
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					Console::CoreLog("Brute force exception");
+					exit(6);
+				}
 				m_Pointer = nullptr;
 			}
 
@@ -230,3 +243,5 @@ namespace Lust
 		CT* m_Pointer = nullptr;
 	};
 }
+
+#endif
