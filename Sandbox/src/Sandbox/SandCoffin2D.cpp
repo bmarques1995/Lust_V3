@@ -9,6 +9,7 @@
 #include <cstdio>
 #include "Instrumentator.hpp"
 #include "CameraController.hpp"
+#include "PlayerController.hpp"
 #include <Components.hpp>
 #include <Operations.hpp>
 
@@ -38,23 +39,19 @@ void Lust::SandCoffin2D::OnAttach()
 	m_SampleScene.reset(new Scene());
 	{
 		auto square = m_SampleScene->CreateEntity();
-		Eigen::Quaternionf q(Eigen::AngleAxisf(0.0f, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
-		Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(Eigen::Vector3f(0.0f, 0.0f, .0f)) * Eigen::Scaling(150.0f, 130.0f, 1.0f) * q;
-		Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
-		square.AddComponent<TransformComponent>(modelMatrix);
+		//pos, rot, scale
+		square.AddComponent<TransformComponent>(vec3(0.0f, 0.0f, .0f), vec3(0.0f, 0.0f, 0.0f), vec3(150.0f, 130.0f, 1.0f));
 		square.AddComponent<SpriteRendererComponent>(
 			Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
 		);
 
+		square.AddComponent<NativeScriptComponent>()->Bind<PlayerController>();
 		m_SquareEntity = square;
 	}
 
 	{
 		auto square = m_SampleScene->CreateEntity();
-		Eigen::Quaternionf q(Eigen::AngleAxisf(0.0f, Eigen::Vector3f(0.0f, 0.0f, 1.0f)));
-		Eigen::Transform<float, 3, Eigen::Affine, Eigen::ColMajor> element_transform = Eigen::Translation<float, 3>(Eigen::Vector3f(0.0f, 0.0f, .0f)) * Eigen::Scaling(15000.0f, 13000.0f, 1.0f) * q;
-		Eigen::Matrix4f modelMatrix = element_transform.matrix().transpose();
-		square.AddComponent<TransformComponent>(modelMatrix);
+		square.AddComponent<TransformComponent>(vec3(0.0f, 0.0f, .0f), vec3(0.0f, 0.0f, 0.0f), vec3(15000.0f, 13000.0f, 1.0f));
 		square.AddComponent<SpriteRendererComponent>(
 			Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
 		);
@@ -73,6 +70,12 @@ void Lust::SandCoffin2D::OnAttach()
 
 	m_CameraEntity = m_SampleScene->CreateEntity();
 	m_CameraEntity.AddComponent<NativeScriptComponent>()->Bind<CameraController>();
+	m_SampleScene->InstantiateEntities();
+	auto cameraScript = m_CameraEntity.GetComponent<NativeScriptComponent>()->GetImplementedScript<CameraController>();
+	cameraScript->Follow(&m_SquareEntity);
+
+	auto script = m_SquareEntity.GetComponent<NativeScriptComponent>()->GetImplementedScript<PlayerController>();
+	script->SetPlayer(&m_SquareEntity);
 	//auto cameraController = m_CameraEntity.GetComponent<CameraController>();
 	//cameraController->Follow();
 

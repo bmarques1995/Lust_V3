@@ -21,7 +21,7 @@ namespace Lust
 		Entity(const Entity&) = default;
 
 		template<typename T>
-		inline bool HasComponent()
+		inline bool HasComponent() const
 		{
 			return m_Scene->m_Registry.all_of<T>(m_EntityHandle);
 		}
@@ -36,6 +36,13 @@ namespace Lust
 
 		template<typename T>
 		inline T* GetComponent()
+		{
+			Console::CoreAssert(this->HasComponent<T>(), "Entity does not have this component");
+			return m_Scene->m_Registry.try_get<T>(m_EntityHandle);
+		}
+
+		template<typename T>
+		inline const T* GetConstComponent() const
 		{
 			Console::CoreAssert(this->HasComponent<T>(), "Entity does not have this component");
 			return m_Scene->m_Registry.try_get<T>(m_EntityHandle);

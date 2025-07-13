@@ -1,14 +1,17 @@
 #include "CameraController.hpp"
 #include "Console.hpp"
 #include "Application.hpp"
+#include <CameraComponent.hpp>
+#include <TransformComponent.hpp>
 
 void Lust::CameraController::ResetCamera()
 {
 	m_CameraController->ResetCamera();
 }
 
-void Lust::CameraController::Follow(const InGameTransformComponent* transform)
+void Lust::CameraController::Follow(const Entity* entity)
 {
+	m_FollowEntity = entity;
 }
 
 void Lust::CameraController::OnEvent(Event* e)
@@ -30,7 +33,7 @@ void Lust::CameraController::OnCreate()
 	auto proj = m_CameraController->GetCamera().GetProjectionMatrix();
 	auto view = m_CameraController->GetCamera().GetViewMatrix();
 	auto camera = AddComponent<CameraComponent>(Camera(proj, view));
-	m_Transform = nullptr;
+	m_FollowEntity = nullptr;
 }
 
 void Lust::CameraController::OnDestroy()
@@ -42,8 +45,11 @@ void Lust::CameraController::OnUpdate(Timestep ts)
 {
 	m_CameraController->OnUpdate(ts);
 	auto camera = GetComponent<CameraComponent>();
-	if (m_Transform)
-		m_CameraController->SetPositionAndRotation(m_Transform->GetPosition(), 0.0f);
+	if (m_FollowEntity)
+	{
+		auto transform = m_FollowEntity->GetConstComponent<TransformComponent>();
+		m_CameraController->SetPositionAndRotation(transform->GetPosition(), 0.0f);
+	}
 	camera->CameraElement.ResetProjectionMatrix(m_CameraController->GetCamera().GetProjectionMatrix());
 	camera->CameraElement.ResetViewMatrix(m_CameraController->GetCamera().GetViewMatrix());
 }

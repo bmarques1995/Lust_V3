@@ -1,5 +1,8 @@
 #include "Scene.hpp"
-#include "Components.hpp"
+#include "NativeScriptComponent.hpp"
+#include "CameraComponent.hpp"
+#include "TransformComponent.hpp"
+#include "SpriteRendererComponent.hpp"
 #include "Entity.hpp"
 
 Lust::Scene::Scene()
@@ -10,6 +13,20 @@ Lust::Scene::Scene()
 Lust::Scene::~Scene()
 {
 }
+
+void Lust::Scene::InstantiateEntities()
+{
+	m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc)
+	{
+		if (!nsc.Instance)
+		{
+			nsc.Instance = nsc.InstantiateScript();
+			nsc.Instance->m_Entity = { entity, this };
+			nsc.Instance->OnCreate();
+		}
+	});
+}
+
 
 Lust::Entity Lust::Scene::CreateEntity()
 {

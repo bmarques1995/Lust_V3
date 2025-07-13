@@ -30,7 +30,7 @@ void Lust::OrthographicCameraController::OnUpdate(Timestep ts)
 			m_CameraRotation -= m_CameraRotationSpeed * ts;
 	}
 	
-	float leftStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
+	/*float leftStickX = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTX);
 	float leftStickY = (float)Input::GetGamepadAxis(Gamepad::LUST_GAMEPAD_AXIS_LEFTY);
 	vec2 leftStick(leftStickX, leftStickY);
 	if ((leftStick.norm() > maxAxis * Input::GetGamepadLowerDeadZone()) && (leftStick.norm() < maxAxis * Input::GetGamepadUpperDeadZone()))
@@ -46,7 +46,7 @@ void Lust::OrthographicCameraController::OnUpdate(Timestep ts)
 	if (Input::IsKeyPressed(Key::LUST_KEYCODE_S))
 		m_CameraPosition(1) -= m_CameraTranslationSpeed * ts;
 	if (Input::IsKeyPressed(Key::LUST_KEYCODE_W))
-		m_CameraPosition(1) += m_CameraTranslationSpeed * ts;
+		m_CameraPosition(1) += m_CameraTranslationSpeed * ts;*/
 
 	if ((m_CameraRotation != m_CameraPreviousRotation) || (m_CameraPosition != m_CameraPreviousPosition))
 	{

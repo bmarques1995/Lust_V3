@@ -1,16 +1,13 @@
 #pragma once
 
 #include <ScriptableEntity.hpp>
-#include <OrthographicCameraController.hpp>
 
 namespace Lust
 {
-	class CameraController : public ScriptableEntity
+	class PlayerController : public ScriptableEntity
 	{
 	public:
-		void ResetCamera();
-		
-		void Follow(const Entity* entity);
+		void SetPlayer(Entity* entity);
 	protected:
 		void OnCreate() override;
 		void OnDestroy() override;
@@ -18,7 +15,7 @@ namespace Lust
 		void OnEvent(Event* e) override;
 		void OnCommand() override;
 	private:
-		std::shared_ptr<OrthographicCameraController> m_CameraController;
-		const Entity* m_FollowEntity;
+		Entity* m_Player;
+		float m_CameraTranslationSpeed = 200.0f;
 	};
 }

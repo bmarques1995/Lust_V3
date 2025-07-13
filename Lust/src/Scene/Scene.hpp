@@ -17,6 +17,8 @@ namespace Lust
 		Scene();
 		virtual ~Scene();
 
+		void InstantiateEntities();
+
 		Entity CreateEntity();
 		void OnUpdate(Timestep deltaTime);
 		void OnEvent(Event* e);
