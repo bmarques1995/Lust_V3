@@ -7,6 +7,10 @@ void Lust::CameraController::ResetCamera()
 	m_CameraController->ResetCamera();
 }
 
+void Lust::CameraController::Follow(const InGameTransformComponent* transform)
+{
+}
+
 void Lust::CameraController::OnEvent(Event* e)
 {
 	m_CameraController->OnEvent(*e);
@@ -26,6 +30,7 @@ void Lust::CameraController::OnCreate()
 	auto proj = m_CameraController->GetCamera().GetProjectionMatrix();
 	auto view = m_CameraController->GetCamera().GetViewMatrix();
 	auto camera = AddComponent<CameraComponent>(Camera(proj, view));
+	m_Transform = nullptr;
 }
 
 void Lust::CameraController::OnDestroy()
@@ -37,6 +42,8 @@ void Lust::CameraController::OnUpdate(Timestep ts)
 {
 	m_CameraController->OnUpdate(ts);
 	auto camera = GetComponent<CameraComponent>();
+	if (m_Transform)
+		m_CameraController->SetPositionAndRotation(m_Transform->GetPosition(), 0.0f);
 	camera->CameraElement.ResetProjectionMatrix(m_CameraController->GetCamera().GetProjectionMatrix());
 	camera->CameraElement.ResetViewMatrix(m_CameraController->GetCamera().GetViewMatrix());
 }

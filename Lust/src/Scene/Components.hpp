@@ -9,6 +9,7 @@
 #include "Timestep.hpp"
 #include <functional>
 #include "SpriteSheet.hpp"
+#include <MathUtils.hpp>
 
 namespace Lust
 {
@@ -31,6 +32,59 @@ namespace Lust
 		operator const mat4& () const
 		{
 			return Transform;
+		}
+	};
+
+	struct LUST_API InGameTransformComponent
+	{
+	private:
+		vec3 Position = { 0.0f, 0.0f, 0.0f };
+		vec3 Rotation = { 0.0f, 0.0f, 0.0f };
+		vec3 Scale = { 1.0f, 1.0f, 1.0f };
+		mat4 Transform = mat4::Identity();
+
+		void UpdateTransform()
+		{
+			quat qx(angleaxis(Rotation.x(), vec3::UnitX()));
+			quat qy(angleaxis(Rotation.y(), vec3::UnitY()));
+			quat qz(angleaxis(Rotation.z(), vec3::UnitZ()));
+
+			// Combine in desired rotation order (e.g., ZYX)
+			quat rotation = qz * qy * qx;
+			scaling3 baseScale = scaling(Scale.x(), Scale.y(), Scale.z());
+			affine3 transform = rotation * baseScale * translation3(Position);
+			Transform = transform.matrix().transpose();
+		}
+
+	public:
+
+		InGameTransformComponent() = default;
+		InGameTransformComponent(const InGameTransformComponent&) = default;
+		InGameTransformComponent(const vec3& position, const vec3& rotation, const vec3& scale)
+			: Position(position), Rotation(rotation), Scale(scale)
+		{
+		}
+
+		vec3 GetPosition() const { return Position; }
+		vec3 GetRotation() const { return Rotation; }
+		vec3 GetScale() const { return Scale; }
+		mat4 GetTransform() const { return Transform; }
+
+		void SetPosition(const vec3& position)
+		{ 
+			Position = position;
+			UpdateTransform();
+		}
+		
+		void SetRotation(const vec3& rotation)
+		{ 
+			Rotation = rotation;
+			UpdateTransform();
+		}
+		void SetScale(const vec3& scale)
+		{ 
+			Scale = scale;
+			UpdateTransform();
 		}
 	};
 

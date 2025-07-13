@@ -1,11 +1,9 @@
 #pragma once
 
+#include "LustUtilsDLLMacro.hpp"
 #include <MathComponents.hpp>
 
 namespace Lust
 {
-	scaling3 scaling(float x, float y, float z)
-	{
-		return Eigen::Scaling(x, y, z);
-	}
+	LUST_UTILS_API scaling3 scaling(float x, float y, float z);
 }

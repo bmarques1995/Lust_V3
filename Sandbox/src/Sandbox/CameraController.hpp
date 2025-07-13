@@ -10,6 +10,7 @@ namespace Lust
 	public:
 		void ResetCamera();
 		
+		void Follow(const InGameTransformComponent* transform);
 	protected:
 		void OnCreate() override;
 		void OnDestroy() override;
@@ -18,5 +19,6 @@ namespace Lust
 		void OnCommand() override;
 	private:
 		std::shared_ptr<OrthographicCameraController> m_CameraController;
+		const InGameTransformComponent* m_Transform;
 	};
 }

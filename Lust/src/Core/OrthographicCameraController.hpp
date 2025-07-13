@@ -44,6 +44,12 @@ namespace Lust
 		* @details resets the camera
 		*/
 		void ResetCamera();
+
+		/**
+		* @brief SetPositionAndRotation
+		* @details sets the camera position and rotation
+		*/
+		void SetPositionAndRotation(vec3 position, float rotation);
 	private:
 
 		/**

@@ -73,6 +73,8 @@ void Lust::SandCoffin2D::OnAttach()
 
 	m_CameraEntity = m_SampleScene->CreateEntity();
 	m_CameraEntity.AddComponent<NativeScriptComponent>()->Bind<CameraController>();
+	//auto cameraController = m_CameraEntity.GetComponent<CameraController>();
+	//cameraController->Follow();
 
 	Renderer2D::UploadTexture2D(m_Renderer2DTexture);
 	Renderer2D::UploadTexture2D(m_SpriteSheetTexture, 2);

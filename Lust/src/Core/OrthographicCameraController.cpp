@@ -81,6 +81,12 @@ void Lust::OrthographicCameraController::ResetCamera()
 	m_Camera.SetPositionAndRotation(m_CameraPosition, m_CameraRotation);
 }
 
+void Lust::OrthographicCameraController::SetPositionAndRotation(vec3 position, float rotation)
+{
+	m_CameraPosition = position;
+	m_CameraRotation = rotation;
+}
+
 bool Lust::OrthographicCameraController::OnMouseScroll(MouseScrolledEvent& e)
 {
 	m_ZoomLevel -= e.GetYOffset() * .1f;
