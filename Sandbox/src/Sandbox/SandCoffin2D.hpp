@@ -53,6 +53,7 @@ namespace Lust
 		Lust::Entity m_SquareEntity;
 		Lust::Entity m_SquareEntity2;
 		Lust::Entity m_CameraEntity;
+		Lust::Entity m_TilemapEntity;
 
 		Eigen::Vector3f m_Renderer2DColorFloat = { .2f, .3f, .8f };
 		Eigen::Vector4<uint32_t> m_Renderer2DColor = { 0x334cccff, 0x334cccff, 0x334cccff, 0x334cccff };

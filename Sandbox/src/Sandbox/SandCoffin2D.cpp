@@ -50,23 +50,39 @@ void Lust::SandCoffin2D::OnAttach()
 	}
 
 	{
-		auto square = m_SampleScene->CreateEntity();
+		/*auto square = m_SampleScene->CreateEntity();
 		square.AddComponent<TransformComponent>(vec3(0.0f, 0.0f, .0f), vec3(0.0f, 0.0f, 0.0f), vec3(15000.0f, 13000.0f, 1.0f));
 		square.AddComponent<SpriteRendererComponent>(
 			Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
 		);
 
-		m_SquareEntity2 = square;
+		m_SquareEntity2 = square;*/
 	}
 	auto spriteRenderer = m_SquareEntity.GetComponent<SpriteRendererComponent>();
 	spriteRenderer->DrawOrder = 3;
 	spriteRenderer->SetTexture(2, 1);
 	spriteRenderer->AddSpriteSheet(m_SpriteSheet);
 	spriteRenderer->SetSprite(6, 7);
-	auto spriteRenderer2 = m_SquareEntity2.GetComponent<SpriteRendererComponent>();
+	/*auto spriteRenderer2 = m_SquareEntity2.GetComponent<SpriteRendererComponent>();
 	spriteRenderer2->SetTexture(1, 1);
 	spriteRenderer2->SetUV(vec4(0.0, 0.0, 50.0, 50.0));
-	spriteRenderer2->DrawOrder = 0;
+	spriteRenderer2->DrawOrder = 0;*/
+
+	m_TilemapEntity = m_SampleScene->CreateEntity();
+	//uint32_t width, uint32_t height, Sprite2DSheet spriteSheet, const uint32_t textureIndex = 1, const uint32_t samplerIndex = 1, const vec2& initialPos = { 0.0f, 0.0f }
+	auto tilemapComponent = m_TilemapEntity.AddComponent<TilemapComponent>(8, 8, m_SpriteSheet);
+	vec2 initialPos = { -448.0f, -448.0f };
+	tilemapComponent->SetInitialPosition(initialPos);
+	tilemapComponent->SetTextureIndex(2);
+	tilemapComponent->SetSamplerIndex(1);
+
+	for (size_t i = 0; i < 8; i++)
+	{
+		for (size_t j = 0; j < 8; j++)
+		{
+			tilemapComponent->AddTilemapBind(1, 1, i, j);
+		}
+	}
 
 	m_CameraEntity = m_SampleScene->CreateEntity();
 	m_CameraEntity.AddComponent<NativeScriptComponent>()->Bind<CameraController>();

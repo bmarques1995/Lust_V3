@@ -1,8 +1,5 @@
 #include "Scene.hpp"
-#include "NativeScriptComponent.hpp"
-#include "CameraComponent.hpp"
-#include "TransformComponent.hpp"
-#include "SpriteRendererComponent.hpp"
+#include "Components.hpp"
 #include "Entity.hpp"
 
 Lust::Scene::Scene()
@@ -65,7 +62,28 @@ void Lust::Scene::OnUpdate(Timestep deltaTime)
 			{
 				return lhs.DrawOrder < rhs.DrawOrder;
 			});
+		auto tileGroup = m_Registry.group<TilemapComponent>();
 		Renderer2D::BeginScene(mainCamera);
+		for (auto entity : tileGroup)
+		{
+			auto tilemap = tileGroup.get<TilemapComponent>(entity);
+			SSBOInstanceData instanceData;
+			for (size_t i = 0; i < tilemap.m_Width * tilemap.m_Height; i++)
+			{
+				uint32_t xIndex = i % tilemap.m_Width;
+				uint32_t yIndex = i / tilemap.m_Width;
+				auto& bind = tilemap.m_TilemapBinds[i];
+				vec4 spriteCoords = tilemap.m_SpriteSheet->GetSpriteUV(bind.XIndex, bind.YIndex);
+				float spriteWidth = tilemap.m_SpriteSheet->GetSpriteWidth();
+				float spriteHeight = tilemap.m_SpriteSheet->GetSpriteHeight();
+				instanceData.texCoordsEdges = spriteCoords;
+				instanceData.controllerInfo = uvec4(tilemap.m_TextureIndex, tilemap.m_SamplerIndex, 0, 0);
+				instanceData.edgeColors = uvec4(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
+				vec2 pos = tilemap.m_InitialPos + vec2(xIndex * spriteWidth, yIndex * spriteHeight);
+				vec2 size = { spriteWidth, spriteHeight };
+				Lust::Renderer2D::DrawQuad(pos, size, instanceData);
+			}
+		}
 		for (auto entity : group)
 		{
 			auto& transform = group.get<TransformComponent>(entity);

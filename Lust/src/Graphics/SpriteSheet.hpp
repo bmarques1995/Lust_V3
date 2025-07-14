@@ -2,6 +2,7 @@
 
 #include "LustDLLMacro.hpp"
 #include <Texture.hpp>
+#include <MathComponents.hpp>
 
 namespace Lust
 {
@@ -19,7 +20,15 @@ namespace Lust
 		 * @param xQuadrants The x quadrants, that means how many columns the texture has, 1 by default
 		 * @param yQuadrants The y quadrants, that means how many rows the texture has, 1 by default
 		 */
-		Eigen::Vector4f GetSpriteUV(uint32_t xIndex, uint32_t yIndex, uint32_t xQuadrants = 1, uint32_t yQuadrants = 1) const;
+		vec4 GetSpriteUV(uint32_t xIndex, uint32_t yIndex, uint32_t xQuadrants = 1, uint32_t yQuadrants = 1) const;
+
+		/**
+		* @brief Check if the index is valid
+		* @return true if the index is valid
+		* @param xIndex The x index
+		* @param yIndex The y index
+		*/
+		bool IsValidIndex(uint32_t xIndex, uint32_t yIndex) const;
 
 		/**
 		 * @brief Get the sprite width
