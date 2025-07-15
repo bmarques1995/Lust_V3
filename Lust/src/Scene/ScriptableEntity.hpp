@@ -2,6 +2,7 @@
 
 #include "Entity.hpp"
 #include "Event.hpp"
+#include "LustDLLMacro.hpp"
 
 namespace Lust
 {

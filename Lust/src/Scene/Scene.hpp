@@ -14,6 +14,8 @@ namespace Lust
 	{
 		friend class Entity;
 	public:
+
+		void DestroyEntity(Entity* entity);
 		Scene();
 		virtual ~Scene();
 

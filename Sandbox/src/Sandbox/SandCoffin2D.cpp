@@ -102,6 +102,9 @@ void Lust::SandCoffin2D::OnAttach()
 
 void Lust::SandCoffin2D::OnDetach()
 {
+	m_SampleScene->DestroyEntity(&m_TilemapEntity);
+	m_SampleScene->DestroyEntity(&m_SquareEntity);
+	m_SampleScene->DestroyEntity(&m_CameraEntity);
 	m_SpriteSheetTexture.reset();
 	m_Renderer2DTexture.reset();
 	m_Renderer2DSampler.reset();

@@ -2,9 +2,21 @@
 #include "Components.hpp"
 #include "Entity.hpp"
 
+void Lust::Scene::DestroyEntity(Entity* entity)
+{
+	while (entity->HasComponent<Lust::NativeScriptComponent>())
+	{
+		entity->GetComponent<NativeScriptComponent>()->Instance->OnDestroy();
+		entity->RemoveComponent<NativeScriptComponent>();
+	}
+	entity->RemoveAllComponents<TilemapComponent>();
+	entity->RemoveAllComponents<CameraComponent>();
+	entity->RemoveAllComponents<TransformComponent>();
+	entity->RemoveAllComponents<SpriteRendererComponent>();
+}
+
 Lust::Scene::Scene()
 {
-	//entt::entity entity = m_Registry.create();
 }
 
 Lust::Scene::~Scene()

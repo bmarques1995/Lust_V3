@@ -54,6 +54,15 @@ namespace Lust
 			Console::CoreAssert(this->HasComponent<T>(), "Entity does not have this component");
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
+
+		template<typename T>
+		inline void RemoveAllComponents()
+		{
+			while (HasComponent<T>())
+			{
+				m_Scene->m_Registry.remove<T>(m_EntityHandle);
+			}
+		}
 	private:
 		entt::entity m_EntityHandle {entt::null} ;
 		Scene* m_Scene = nullptr;
