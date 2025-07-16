@@ -12,6 +12,7 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <tchar.h>
+#include <d3d12memalloc.h>
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -83,7 +84,10 @@ struct ExampleDescriptorHeapAllocator
 static FrameContext                 g_frameContext[APP_NUM_FRAMES_IN_FLIGHT] = {};
 static UINT                         g_frameIndex = 0;
 
+static IDXGIFactory7* g_pFactory;
+static IDXGIAdapter4* g_pAdapter;
 static ID3D12Device14* g_pd3dDevice = nullptr;
+static D3D12MA::Allocator* g_pd3dMemAlloc = nullptr;
 static ID3D12DescriptorHeap* g_pd3dRtvDescHeap = nullptr;
 static ID3D12DescriptorHeap* g_pd3dSrvDescHeap = nullptr;
 static ExampleDescriptorHeapAllocator g_pd3dSrvDescHeapAlloc;
@@ -338,6 +342,43 @@ bool CreateDeviceD3D(HWND hWnd)
         sd.Stereo = FALSE;
     }
 
+    {
+        HRESULT hr;
+        UINT dxgiFactoryFlag = 0;
+#ifdef DX12_ENABLE_DEBUG_LAYER
+        dxgiFactoryFlag = DXGI_CREATE_FACTORY_DEBUG;
+#endif
+        hr = CreateDXGIFactory2(dxgiFactoryFlag, IID_PPV_ARGS(&g_pFactory));
+        assert(hr == S_OK);
+    }
+
+    {
+        HRESULT hr = E_INVALIDARG;
+        for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != g_pFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&g_pAdapter)); ++adapterIndex)
+        {
+            DXGI_ADAPTER_DESC3 desc;
+            g_pAdapter->GetDesc3(&desc);
+            if (desc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE)
+            {
+                // Don't select the Basic Render Driver adapter.
+                continue;
+            }
+
+            hr = D3D12CreateDevice(g_pAdapter, D3D_FEATURE_LEVEL_12_2, _uuidof(ID3D12Device), nullptr);
+            if ((hr == S_OK) || (hr == S_FALSE))
+            {
+                break;
+            }
+
+            if ((hr == S_OK) || (hr == S_FALSE))
+            {
+                break;
+            }
+        }
+
+        assert((hr == S_OK) || (hr == S_FALSE));
+    }
+
     // [DEBUG] Enable debug interface
 #ifdef DX12_ENABLE_DEBUG_LAYER
     ID3D12Debug* pdx12Debug = nullptr;
@@ -346,10 +387,20 @@ bool CreateDeviceD3D(HWND hWnd)
 #endif
 
     // Create device
-    D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+    D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_2;
     if (D3D12CreateDevice(nullptr, featureLevel, IID_PPV_ARGS(&g_pd3dDevice)) != S_OK)
         return false;
+    {
+        HRESULT hr;
 
+        D3D12MA::ALLOCATOR_DESC desc = {};
+        desc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
+        desc.pDevice = g_pd3dDevice;
+        desc.pAdapter = g_pAdapter;
+
+        hr = D3D12MA::CreateAllocator(&desc, &g_pd3dMemAlloc);
+        assert(hr == S_OK);
+    }
     // [DEBUG] Setup debug interface to break on any warnings/errors
 #ifdef DX12_ENABLE_DEBUG_LAYER
     if (pdx12Debug != nullptr)
@@ -450,7 +501,10 @@ void CleanupDeviceD3D()
     if (g_pd3dSrvDescHeap) { g_pd3dSrvDescHeap->Release(); g_pd3dSrvDescHeap = nullptr; }
     if (g_fence) { g_fence->Release(); g_fence = nullptr; }
     if (g_fenceEvent) { CloseHandle(g_fenceEvent); g_fenceEvent = nullptr; }
+    if (g_pd3dMemAlloc) { g_pd3dMemAlloc->Release(); g_pd3dMemAlloc = nullptr; }
     if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = nullptr; }
+    if (g_pAdapter) { g_pAdapter->Release(); g_pAdapter = nullptr; }
+    if (g_pFactory) { g_pFactory->Release(); g_pFactory = nullptr; }
 
 #ifdef DX12_ENABLE_DEBUG_LAYER
     IDXGIDebug1* pDebug = nullptr;
