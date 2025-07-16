@@ -44,6 +44,13 @@ if(WIN32)
 			"${PROJECT_SOURCE_DIR}/D3D12Core/build/native/bin/x64/D3D12Core.dll"
 			${CMAKE_PREFIX_PATH}/bin/D3D12/D3D12Core.dll
 			COMMENT "Copying D3D12Core dll into binary directory")
+	add_dependencies(${TARGET_NAME} copy_d3d12)
+	add_custom_target(copy_d3d12_pdb ALL
+		COMMAND ${CMAKE_COMMAND} -E copy
+		"${PROJECT_SOURCE_DIR}/D3D12Core/build/native/bin/x64/D3D12Core.pdb"
+		${CMAKE_PREFIX_PATH}/bin/D3D12/D3D12Core.pdb
+		COMMENT "Copying D3D12Core dll into binary directory")
+	add_dependencies(${TARGET_NAME} copy_d3d12_pdb)
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		add_custom_target(copy_d3d12_sdk ALL
 				COMMAND ${CMAKE_COMMAND} -E copy
@@ -51,9 +58,13 @@ if(WIN32)
 				${CMAKE_PREFIX_PATH}/bin/D3D12/d3d12SDKLayers.dll
 				COMMENT "Copying d3d12SDKLayers dll into binary directory")
 		add_dependencies(${TARGET_NAME} copy_d3d12_sdk)
+		add_custom_target(copy_d3d12_sdk_pdb ALL
+				COMMAND ${CMAKE_COMMAND} -E copy
+				"${PROJECT_SOURCE_DIR}/D3D12Core/build/native/bin/x64/d3d12SDKLayers.pdb"
+				${CMAKE_PREFIX_PATH}/bin/D3D12/d3d12SDKLayers.pdb
+				COMMENT "Copying d3d12SDKLayers dll into binary directory")
+		add_dependencies(${TARGET_NAME} copy_d3d12_sdk_pdb)
 	endif()
-	add_dependencies(${TARGET_NAME} copy_d3d12)
-
 	find_library(D3D12_FOUND NAMES d3d12 REQUIRED)
 	find_library(DXGI_FOUND NAMES dxgi REQUIRED)
 	find_library(DXGUID_FOUND NAMES dxguid REQUIRED)

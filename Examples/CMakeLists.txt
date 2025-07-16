@@ -8,3 +8,4 @@ endif()
 
 add_subdirectory("Layers")
 add_subdirectory("FlappyClone")
+add_subdirectory("d3d12_sample_fix")
