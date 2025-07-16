@@ -31,6 +31,9 @@ if(WIN32)
 	set(IMGUI_BACKEND_FILES ${IMGUI_BACKEND_FILES}
 							"backends/imgui_impl_dx12.cpp"
 							"backends/imgui_impl_dx12.h")
+	set(IMGUI_BACKEND_FILES ${IMGUI_BACKEND_FILES}
+							"backends/imgui_impl_win32.cpp"
+							"backends/imgui_impl_win32.h")
 endif()
 
 download_sources_from_git_repo(COMMIT_VALUE ${IMGUI_COMMIT_HASH} SOURCE_BASE_URL ${IMGUI_SOURCE_URL} SOURCE_INPUTS ${IMGUI_PUBLIC_FILES} SOURCE_BASE_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui)
@@ -84,6 +87,8 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/MathOperations>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/backends>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/imgui/public/imgui>
 	$<INSTALL_INTERFACE:./Lust/third_party/imgui/public>
 	$<INSTALL_INTERFACE:./>
 	PRIVATE
