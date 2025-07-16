@@ -10,7 +10,7 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx12.h"
 #include <d3d12.h>
-#include <dxgi1_4.h>
+#include <dxgi1_6.h>
 #include <tchar.h>
 
 #ifdef _DEBUG
@@ -30,8 +30,8 @@ static const int APP_SRV_HEAP_SIZE = 64;
 struct FrameContext
 {
     ID3D12CommandAllocator* CommandAllocator;
-    ID3D12GraphicsCommandList*      CommandList;
-    UINT64                      FenceValue;
+    ID3D12GraphicsCommandList10* CommandList;
+    UINT64 FenceValue;
 };
 
 // Simple free list based allocator
@@ -83,7 +83,7 @@ struct ExampleDescriptorHeapAllocator
 static FrameContext                 g_frameContext[APP_NUM_FRAMES_IN_FLIGHT] = {};
 static UINT                         g_frameIndex = 0;
 
-static ID3D12Device* g_pd3dDevice = nullptr;
+static ID3D12Device14* g_pd3dDevice = nullptr;
 static ID3D12DescriptorHeap* g_pd3dRtvDescHeap = nullptr;
 static ID3D12DescriptorHeap* g_pd3dSrvDescHeap = nullptr;
 static ExampleDescriptorHeapAllocator g_pd3dSrvDescHeapAlloc;
@@ -92,7 +92,7 @@ static ID3D12CommandQueue* g_pd3dCommandQueue = nullptr;
 static ID3D12Fence* g_fence = nullptr;
 static HANDLE                       g_fenceEvent = nullptr;
 static UINT64                       g_fenceLastSignaledValue = 0;
-static IDXGISwapChain3* g_pSwapChain = nullptr;
+static IDXGISwapChain4* g_pSwapChain = nullptr;
 static bool                         g_SwapChainOccluded = false;
 static HANDLE                       g_hSwapChainWaitableObject = nullptr;
 static ID3D12Resource* g_mainRenderTargetResource[APP_NUM_BACK_BUFFERS] = {};
