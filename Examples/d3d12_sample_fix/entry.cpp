@@ -84,6 +84,7 @@ struct ExampleDescriptorHeapAllocator
 // Data
 static FrameContext                 g_frameContext[APP_NUM_FRAMES_IN_FLIGHT] = {};
 static UINT                         g_frameIndex = 0;
+static UINT g_Width = 1280, g_Height = 720;
 
 static Lust::ComPointer<IDXGIFactory7> g_pFactory;
 static Lust::ComPointer<IDXGIAdapter4> g_pAdapter;
@@ -93,6 +94,10 @@ static Lust::ComPointer<ID3D12DescriptorHeap> g_pd3dRtvDescHeap = nullptr;
 static Lust::ComPointer<ID3D12DescriptorHeap> g_pd3dSrvDescHeap = nullptr;
 static ExampleDescriptorHeapAllocator g_pd3dSrvDescHeapAlloc;
 static Lust::ComPointer<ID3D12CommandQueue> g_pd3dCommandQueue = nullptr;
+static Lust::ComPointer<ID3D12Resource2> g_pd3dDepthStencil = nullptr;
+static Lust::ComPointer<D3D12MA::Allocation> g_pd3dDepthStencilAlloc = nullptr;
+static D3D12_CPU_DESCRIPTOR_HANDLE g_pd3dDepthStencilHandle = {};
+static Lust::ComPointer<ID3D12DescriptorHeap> g_pd3dDepthStencilHeap = nullptr;
 //static ID3D12GraphicsCommandList* g_pd3dCommandList = nullptr;
 static Lust::ComPointer<ID3D12Fence> g_fence = nullptr;
 static HANDLE                       g_fenceEvent = nullptr;
@@ -107,6 +112,7 @@ static D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[APP_NUM_BACK_BU
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void CreateRenderTarget();
+void CreateDepthStencilView();
 void CleanupRenderTarget();
 void WaitForLastSubmittedFrame();
 FrameContext* WaitForNextFrameResources();
@@ -119,7 +125,7 @@ int main(int, char**)
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100, g_Width, g_Height, nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -164,7 +170,7 @@ int main(int, char**)
     init_info.CommandQueue = g_pd3dCommandQueue;
     init_info.NumFramesInFlight = APP_NUM_FRAMES_IN_FLIGHT;
     init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-    init_info.DSVFormat = DXGI_FORMAT_UNKNOWN;
+    init_info.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     // Allocating SRV descriptors (for textures) is up to the application, so we provide callbacks.
     // (current version of the backend will only allocate one descriptor, future versions will need to allocate more)
     init_info.SrvDescriptorHeap = g_pd3dSrvDescHeap;
@@ -266,6 +272,7 @@ int main(int, char**)
         FrameContext* frameCtx = WaitForNextFrameResources();
         UINT backBufferIdx = g_pSwapChain->GetCurrentBackBufferIndex();
         frameCtx->CommandAllocator->Reset();
+        frameCtx->CommandList->Reset(frameCtx->CommandAllocator, nullptr);
 
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -274,18 +281,20 @@ int main(int, char**)
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        frameCtx->CommandList->Reset(frameCtx->CommandAllocator, nullptr);
         frameCtx->CommandList->ResourceBarrier(1, &barrier);
 
         // Render Dear ImGui graphics
         const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
         frameCtx->CommandList->ClearRenderTargetView(g_mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0, nullptr);
-        frameCtx->CommandList->OMSetRenderTargets(1, &g_mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
+        frameCtx->CommandList->OMSetRenderTargets(1, &g_mainRenderTargetDescriptor[backBufferIdx], FALSE, &g_pd3dDepthStencilHandle);
         frameCtx->CommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+        
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), frameCtx->CommandList);
+        
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
         frameCtx->CommandList->ResourceBarrier(1, &barrier);
+        
         frameCtx->CommandList->Close();
 
         g_pd3dCommandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&frameCtx->CommandList);
@@ -402,6 +411,7 @@ bool CreateDeviceD3D(HWND hWnd)
         hr = D3D12MA::CreateAllocator(&desc, &g_pd3dMemAlloc);
         assert(hr == S_OK);
     }
+    CreateDepthStencilView();
     // [DEBUG] Setup debug interface to break on any warnings/errors
 #ifdef DX12_ENABLE_DEBUG_LAYER
     if (pdx12Debug != nullptr)
@@ -500,6 +510,9 @@ void CleanupDeviceD3D()
         if (g_frameContext[i].CommandList) { g_frameContext[i].CommandList.Release(); }
     if (g_pd3dRtvDescHeap) { g_pd3dRtvDescHeap.Release(); }
     if (g_pd3dSrvDescHeap) { g_pd3dSrvDescHeap.Release(); }
+	if (g_pd3dDepthStencil) { g_pd3dDepthStencil.Release(); }
+	if (g_pd3dDepthStencilAlloc) { g_pd3dDepthStencilAlloc.Release(); }
+	if (g_pd3dDepthStencilHeap) { g_pd3dDepthStencilHeap.Release(); }
     if (g_fence) { g_fence.Release(); }
     if (g_fenceEvent) { CloseHandle(g_fenceEvent); g_fenceEvent = nullptr; }
     if (g_pd3dMemAlloc) { g_pd3dMemAlloc.Release(); }
@@ -526,6 +539,62 @@ void CreateRenderTarget()
         g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, g_mainRenderTargetDescriptor[i]);
         g_mainRenderTargetResource[i] = pBackBuffer;
     }
+}
+
+void CreateDepthStencilView()
+{
+    /**
+    * static Lust::ComPointer<ID3D12Resource2> g_pd3dDepthStencil = nullptr;
+static D3D12_CPU_DESCRIPTOR_HANDLE g_pd3dDepthStencilHandle = {};
+static Lust::ComPointer<ID3D12DescriptorHeap> g_pd3dDepthStencilHeap = nullptr;
+    */
+    HRESULT hr;
+
+    // === Retrive RTV & Buffers ===
+
+    D3D12_DESCRIPTOR_HEAP_DESC dsvDescriptorHeapDesc{};
+    dsvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+    dsvDescriptorHeapDesc.NumDescriptors = 1;
+    dsvDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    dsvDescriptorHeapDesc.NodeMask = 0;
+
+    hr = g_pd3dDevice->CreateDescriptorHeap(&dsvDescriptorHeapDesc, IID_PPV_ARGS(g_pd3dDepthStencilHeap.GetAddressOf()));
+    assert(hr == S_OK);
+
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHeapStartHandle = g_pd3dDepthStencilHeap->GetCPUDescriptorHandleForHeapStart();
+    g_pd3dDepthStencilHandle = { dsvHeapStartHandle.ptr };
+
+    D3D12_RESOURCE_DESC1 depthStencilDesc = {};
+    depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    depthStencilDesc.Width = g_Width;
+    depthStencilDesc.Height = g_Height;
+    depthStencilDesc.DepthOrArraySize = 1;
+    depthStencilDesc.MipLevels = 1;
+    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilDesc.SampleDesc.Count = 1;
+    depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+    D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+    depthOptimizedClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+    depthOptimizedClearValue.DepthStencil.Stencil = 0;
+
+    D3D12MA::ALLOCATION_DESC allocDesc = {};
+    allocDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+
+    hr = g_pd3dMemAlloc->CreateResource2(
+        &allocDesc, &depthStencilDesc,
+        D3D12_RESOURCE_STATE_DEPTH_WRITE, nullptr,
+        g_pd3dDepthStencilAlloc.GetAddressOf(), IID_PPV_ARGS(g_pd3dDepthStencil.GetAddressOf()));
+    assert(hr == S_OK);
+
+    // Create the depth/stencil view
+    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+    g_pd3dDevice->CreateDepthStencilView(g_pd3dDepthStencil.Get(), &dsvDesc, g_pd3dDepthStencilHandle);
 }
 
 void CleanupRenderTarget()
@@ -598,6 +667,10 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HRESULT result = g_pSwapChain->ResizeBuffers(0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
             assert(SUCCEEDED(result) && "Failed to resize swapchain.");
             CreateRenderTarget();
+			g_pd3dDepthStencilAlloc.Release();
+			g_pd3dDepthStencil.Release();
+            g_pd3dDepthStencilHeap.Release();
+            CreateDepthStencilView();
         }
         return 0;
     case WM_SYSCOMMAND:
