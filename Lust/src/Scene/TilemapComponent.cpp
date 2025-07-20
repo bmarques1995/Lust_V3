@@ -96,7 +96,7 @@ void Lust::TilemapComponent::LoadTilemapFromJson(const std::string& filepath, st
 
 	texture->reset(Texture2D::Instantiate(context, tilemapInfo["tilemap"]["texture"].asString()));
 	spriteSheet->reset(new Sprite2DSheet(*texture, tilemapInfo["tilemap"]["tileWidth"].asUInt(), tilemapInfo["tilemap"]["tileHeight"].asUInt()));
-	tilemapComponent->reset(new TilemapComponent(tiles.size(), tiles[0].size(), *spriteSheet));
+	tilemapComponent->reset(new TilemapComponent(tiles[0].size(), tiles.size(), *spriteSheet));
 	vec2 pos = { tilemapInfo["start"]["x"].asFloat(), tilemapInfo["start"]["y"].asFloat() };
 	(*tilemapComponent)->SetInitialPosition(pos);
 
@@ -106,7 +106,7 @@ void Lust::TilemapComponent::LoadTilemapFromJson(const std::string& filepath, st
 	{
 		for (auto it2 = it->begin(); it2 != it->end(); it2++)
 		{
-			(*tilemapComponent)->AddTilemapBind(it2->second, it2->first, xIndex, yIndex);
+			(*tilemapComponent)->AddTilemapBind(it2->first, it2->second, yIndex, xIndex);
 			xIndex++;
 		}
 		xIndex = 0;
