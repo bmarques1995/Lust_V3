@@ -55,6 +55,12 @@ Lust::D3D12Context::~D3D12Context()
 	m_DepthStencilView.Release();
 	m_DSVAllocation.Release();
 	m_DSVHeap.Release();
+	m_DSVHandle = {};
+	for (size_t i = 0; i < m_FramesInFlight; i++)
+	{
+		m_RenderTargets[i].Release();
+		m_RTVHandles[i] = {};
+	}
 	delete[] m_RenderTargets;
 	delete[] m_RTVHandles;
 	m_RTVHeap.Release();
@@ -126,6 +132,7 @@ void Lust::D3D12Context::FillRenderPass()
 	depthStencilDesc.DepthBeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
 	depthStencilDesc.DepthBeginningAccess.Clear.ClearValue.DepthStencil.Depth = 1.0f;
 	depthStencilDesc.DepthBeginningAccess.Clear.ClearValue.DepthStencil.Stencil = 0;
+	depthStencilDesc.DepthBeginningAccess.Clear.ClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	depthStencilDesc.DepthEndingAccess.Type = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 
 	m_CommandLists[m_CurrentBufferIndex]->BeginRenderPass(1, &renderTargetDesc, &depthStencilDesc, D3D12_RENDER_PASS_FLAG_NONE);
@@ -358,10 +365,11 @@ void Lust::D3D12Context::CreateCommandQueue()
 
 void Lust::D3D12Context::CreateSwapChain(HWND windowHandle)
 {
+	DXGI_FORMAT swapChainFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
 	swapChainDesc.Width = (uint32_t)m_ScissorRect.right;
 	swapChainDesc.Height = (uint32_t)m_ScissorRect.bottom;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.Format = swapChainFormat;
 	swapChainDesc.Stereo = FALSE;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
@@ -371,6 +379,8 @@ void Lust::D3D12Context::CreateSwapChain(HWND windowHandle)
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+
+	m_ClearColor.Format = swapChainFormat;
 
 	DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc{};
 	fullscreenDesc.RefreshRate.Denominator = 90;

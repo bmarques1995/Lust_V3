@@ -29,6 +29,8 @@ namespace Lust
 		void SetSamplerIndex(const uint32_t samplerIndex);// { m_SpriteSheet = spriteSheet; }
 
 		void SetTilemapBindMap(const std::unordered_map<std::string, TilemapBind>& tilemapBindMap); // { m_TilemapBindMap = tilemapBindMap; }
+
+		static void LoadTilemapFromJson(const std::string& filepath, std::shared_ptr<Texture2D>* texture, std::shared_ptr<Sprite2DSheet>* spriteSheet, std::shared_ptr<TilemapComponent>* tilemapComponent);
 	private:
 		vec2 m_InitialPos;
 		std::shared_ptr<Sprite2DSheet> m_SpriteSheet;

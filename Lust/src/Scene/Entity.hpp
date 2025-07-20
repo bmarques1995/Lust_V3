@@ -35,6 +35,14 @@ namespace Lust
 		}
 
 		template<typename T>
+		inline T* AddComponent(T* component)
+		{
+			Console::CoreAssert(!this->HasComponent<T>(), "Entity already has component!");
+			m_Scene->m_Registry.emplace<T>(m_EntityHandle, *component);
+			return this->GetComponent<T>();
+		}
+
+		template<typename T>
 		inline T* GetComponent()
 		{
 			Console::CoreAssert(this->HasComponent<T>(), "Entity does not have this component");

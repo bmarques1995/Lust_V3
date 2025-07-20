@@ -91,7 +91,7 @@ void Lust::Scene::OnUpdate(Timestep deltaTime)
 				instanceData.texCoordsEdges = spriteCoords;
 				instanceData.controllerInfo = uvec4(tilemap.m_TextureIndex, tilemap.m_SamplerIndex, 0, 0);
 				instanceData.edgeColors = uvec4(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
-				vec2 pos = tilemap.m_InitialPos + vec2(xIndex * spriteWidth, yIndex * spriteHeight);
+				vec2 pos = tilemap.m_InitialPos + vec2(xIndex * spriteWidth, yIndex * spriteHeight * -1.0f);
 				vec2 size = { spriteWidth, spriteHeight };
 				Lust::Renderer2D::DrawQuad(pos, size, instanceData);
 			}

@@ -32,8 +32,9 @@ void Lust::SandCoffin2D::OnAttach()
 	SamplerInfo samplerInfoController(SamplerFilter::NEAREST, AnisotropicFactor::FACTOR_4, AddressMode::REPEAT, ComparisonPassMode::ALWAYS);
 	m_Renderer2DSampler.reset(Sampler::Instantiate(context, samplerInfoController));
 	m_Renderer2DTexture.reset(Texture2D::Instantiate(context, "./assets/textures/sample.png"));
-	m_SpriteSheetTexture.reset(Texture2D::Instantiate(context, "./assets/textures/rpg_pack.png"));
-	m_SpriteSheet.reset(new Sprite2DSheet(m_SpriteSheetTexture, 128, 128));
+	//m_SpriteSheetTexture.reset(Texture2D::Instantiate(context, "./assets/textures/rpg_pack.png"));
+	//m_SpriteSheet.reset(new Sprite2DSheet(m_SpriteSheetTexture, 128, 128));
+	
 	//m_SampleSocket.reset(Sockets::Instantiate());
 	//m_SampleSocket->OpenConnection("127.0.0.1", 8300, SocketType::TCP, false);
 	m_SampleScene.reset(new Scene());
@@ -58,31 +59,23 @@ void Lust::SandCoffin2D::OnAttach()
 
 		m_SquareEntity2 = square;*/
 	}
+	std::shared_ptr<TilemapComponent> tilemap;
+	TilemapComponent::LoadTilemapFromJson("./assets/texture_map/scenario.json", &m_SpriteSheetTexture, &m_SpriteSheet, &tilemap);
+
 	auto spriteRenderer = m_SquareEntity.GetComponent<SpriteRendererComponent>();
 	spriteRenderer->DrawOrder = 3;
 	spriteRenderer->SetTexture(2, 1);
 	spriteRenderer->AddSpriteSheet(m_SpriteSheet);
 	spriteRenderer->SetSprite(6, 7);
-	/*auto spriteRenderer2 = m_SquareEntity2.GetComponent<SpriteRendererComponent>();
-	spriteRenderer2->SetTexture(1, 1);
-	spriteRenderer2->SetUV(vec4(0.0, 0.0, 50.0, 50.0));
-	spriteRenderer2->DrawOrder = 0;*/
 
 	m_TilemapEntity = m_SampleScene->CreateEntity();
+	
 	//uint32_t width, uint32_t height, Sprite2DSheet spriteSheet, const uint32_t textureIndex = 1, const uint32_t samplerIndex = 1, const vec2& initialPos = { 0.0f, 0.0f }
-	auto tilemapComponent = m_TilemapEntity.AddComponent<TilemapComponent>(8, 8, m_SpriteSheet);
-	vec2 initialPos = { -448.0f, -448.0f };
-	tilemapComponent->SetInitialPosition(initialPos);
+	auto tilemapComponent = m_TilemapEntity.AddComponent<TilemapComponent>(tilemap.get());
+	//vec2 initialPos = { -448.0f, -448.0f };
+	//tilemapComponent->SetInitialPosition(initialPos);
 	tilemapComponent->SetTextureIndex(2);
 	tilemapComponent->SetSamplerIndex(1);
-
-	for (size_t i = 0; i < 8; i++)
-	{
-		for (size_t j = 0; j < 8; j++)
-		{
-			tilemapComponent->AddTilemapBind(1, 1, i, j);
-		}
-	}
 
 	m_CameraEntity = m_SampleScene->CreateEntity();
 	m_CameraEntity.AddComponent<NativeScriptComponent>()->Bind<CameraController>();

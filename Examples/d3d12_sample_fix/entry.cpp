@@ -225,75 +225,119 @@ int main(int, char**)
         g_SwapChainOccluded = false;
 
         // Start the Dear ImGui frame
-        ImGui_ImplDX12_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-        ImGui::NewFrame();
+        //ImGui_ImplDX12_NewFrame();
+        //ImGui_ImplWin32_NewFrame();
+        //ImGui::NewFrame();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
+        //// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        //if (show_demo_window)
+        //    ImGui::ShowDemoWindow(&show_demo_window);
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
+        //// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        //{
+        //    static float f = 0.0f;
+        //    static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+        //    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+        //    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+        //    ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+        //    ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+        //    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+        //    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+        //    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+        //        counter++;
+        //    ImGui::SameLine();
+        //    ImGui::Text("counter = %d", counter);
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
+        //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        //    ImGui::End();
+        //}
 
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
+        //// 3. Show another simple window.
+        //if (show_another_window)
+        //{
+        //    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        //    ImGui::Text("Hello from another window!");
+        //    if (ImGui::Button("Close Me"))
+        //        show_another_window = false;
+        //    ImGui::End();
+        //}
 
-        // Rendering
-        ImGui::Render();
+        //// Rendering
+        //ImGui::Render();
 
         FrameContext* frameCtx = WaitForNextFrameResources();
         UINT backBufferIdx = g_pSwapChain->GetCurrentBackBufferIndex();
         frameCtx->CommandAllocator->Reset();
         frameCtx->CommandList->Reset(frameCtx->CommandAllocator, nullptr);
 
-        D3D12_RESOURCE_BARRIER barrier = {};
+        /*D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         barrier.Transition.pResource = g_mainRenderTargetResource[backBufferIdx];
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        frameCtx->CommandList->ResourceBarrier(1, &barrier);
+        frameCtx->CommandList->ResourceBarrier(1, &barrier);*/
+
+        /*auto backBuffer = g_mainRenderTargetResource[backBufferIdx];
+        auto rtvHandle = g_mainRenderTargetDescriptor[backBufferIdx];
+        auto dsvHandle = g_pd3dDepthStencilHandle;*/
+
+        D3D12_RESOURCE_BARRIER rtSetupBarrier{};
+        rtSetupBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        rtSetupBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        rtSetupBarrier.Transition.pResource = g_mainRenderTargetResource[backBufferIdx];
+        rtSetupBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        rtSetupBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+        rtSetupBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+        frameCtx->CommandList->ResourceBarrier(1, &rtSetupBarrier);
+
+        const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+        D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc = {};
+        renderTargetDesc.cpuDescriptor = g_mainRenderTargetDescriptor[backBufferIdx];
+        renderTargetDesc.BeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+        renderTargetDesc.BeginningAccess.Clear.ClearValue.Color[0] = clear_color_with_alpha[0];
+        renderTargetDesc.BeginningAccess.Clear.ClearValue.Color[1] = clear_color_with_alpha[1];
+        renderTargetDesc.BeginningAccess.Clear.ClearValue.Color[2] = clear_color_with_alpha[2];
+        renderTargetDesc.BeginningAccess.Clear.ClearValue.Color[3] = clear_color_with_alpha[3];
+		renderTargetDesc.BeginningAccess.Clear.ClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        renderTargetDesc.EndingAccess.Type = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+
+        D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depthStencilDesc = {};
+        depthStencilDesc.cpuDescriptor = g_pd3dDepthStencilHandle;
+        depthStencilDesc.DepthBeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
+        depthStencilDesc.DepthBeginningAccess.Clear.ClearValue.DepthStencil.Depth = 1.0f;
+        depthStencilDesc.DepthBeginningAccess.Clear.ClearValue.DepthStencil.Stencil = 0;
+        depthStencilDesc.DepthBeginningAccess.Clear.ClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        depthStencilDesc.DepthEndingAccess.Type = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
+
+        frameCtx->CommandList->BeginRenderPass(1, &renderTargetDesc, &depthStencilDesc, D3D12_RENDER_PASS_FLAG_NONE);
 
         // Render Dear ImGui graphics
-        const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+        
+        /*
         frameCtx->CommandList->ClearRenderTargetView(g_mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0, nullptr);
         frameCtx->CommandList->OMSetRenderTargets(1, &g_mainRenderTargetDescriptor[backBufferIdx], FALSE, &g_pd3dDepthStencilHandle);
-        frameCtx->CommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+        frameCtx->CommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);*/
         
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), frameCtx->CommandList);
+        //ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), frameCtx->CommandList);
         
-        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-        frameCtx->CommandList->ResourceBarrier(1, &barrier);
+        //D3D12_RESOURCE_BARRIER rtSetupBarrier{};
+        rtSetupBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        rtSetupBarrier.Transition.pResource = g_mainRenderTargetResource[backBufferIdx];
+        rtSetupBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        rtSetupBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+        rtSetupBarrier.Transition.Subresource = 0;
+        rtSetupBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+
+        frameCtx->CommandList->EndRenderPass();
+
+        frameCtx->CommandList->ResourceBarrier(1, &rtSetupBarrier);
         
         frameCtx->CommandList->Close();
 
